@@ -105,6 +105,38 @@ CREATE TABLE IF NOT EXISTS rebuild_runs(
   metadata_json TEXT NOT NULL DEFAULT '{}'
 );
 CREATE INDEX IF NOT EXISTS idx_rebuild_runs_target ON rebuild_runs(target_id,rebuild_run_id);
+
+CREATE TABLE IF NOT EXISTS dependency_edges(
+  dependent_type TEXT NOT NULL,
+  dependent_id TEXT NOT NULL,
+  dependency_type TEXT NOT NULL,
+  dependency_id TEXT NOT NULL,
+  dependency_kind TEXT NOT NULL,
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  PRIMARY KEY(dependent_type,dependent_id,dependency_type,dependency_id,dependency_kind)
+);
+CREATE INDEX IF NOT EXISTS idx_dependency_lookup ON dependency_edges(dependency_type,dependency_id,dependent_type,dependent_id);
+CREATE TABLE IF NOT EXISTS build_targets(
+  target_id TEXT PRIMARY KEY,
+  builder TEXT NOT NULL,
+  policy_json TEXT NOT NULL DEFAULT '{}',
+  active INTEGER NOT NULL DEFAULT 1,
+  last_output_hash TEXT NOT NULL DEFAULT '',
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS incremental_rebuild_runs(
+  incremental_run_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  change_set_hash TEXT NOT NULL,
+  source_policy_hash TEXT NOT NULL,
+  roots_json TEXT NOT NULL,
+  affected_json TEXT NOT NULL,
+  rebuilt_json TEXT NOT NULL,
+  deferred_json TEXT NOT NULL,
+  output_hash TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  metadata_json TEXT NOT NULL DEFAULT '{}'
+);
 """
 
 class CanonicalDB:
@@ -173,4 +205,4 @@ class CanonicalDB:
 
     def stats(self):
         q = lambda sql: self.db.execute(sql).fetchone()[0]
-        return {"nodes":q("SELECT COUNT(*) FROM nodes"),"evidence":q("SELECT COUNT(*) FROM evidence"),"sources":q("SELECT COUNT(DISTINCT source_id||'@'||source_version) FROM evidence"),"registered_models":q("SELECT COUNT(*) FROM source_models"),"hypothesis_runs":q("SELECT COUNT(*) FROM hypothesis_runs"),"hypotheses":q("SELECT COUNT(*) FROM hypothesis_states"),"source_policies":q("SELECT COUNT(*) FROM source_policies"),"rebuild_runs":q("SELECT COUNT(*) FROM rebuild_runs")}
+        return {"nodes":q("SELECT COUNT(*) FROM nodes"),"evidence":q("SELECT COUNT(*) FROM evidence"),"sources":q("SELECT COUNT(DISTINCT source_id||'@'||source_version) FROM evidence"),"registered_models":q("SELECT COUNT(*) FROM source_models"),"hypothesis_runs":q("SELECT COUNT(*) FROM hypothesis_runs"),"hypotheses":q("SELECT COUNT(*) FROM hypothesis_states"),"source_policies":q("SELECT COUNT(*) FROM source_policies"),"rebuild_runs":q("SELECT COUNT(*) FROM rebuild_runs"),"dependency_edges":q("SELECT COUNT(*) FROM dependency_edges"),"build_targets":q("SELECT COUNT(*) FROM build_targets"),"incremental_rebuild_runs":q("SELECT COUNT(*) FROM incremental_rebuild_runs")}

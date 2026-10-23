@@ -15,6 +15,8 @@ from .hidden_state import HiddenStateConfig, TransformersHiddenStateBackend, ext
 from .sense_compiler import SenseCompilePolicy, FusionWeights, compile_provisional_senses, find_text_surface_id
 from .consensus import ConsensusPolicy, track_hypothesis_run, list_hypothesis_states
 from .rebuild import set_source_policy, clear_source_policy, replace_source_version, list_source_policies, rebuild_senses
+from .dependency import ArtifactRef, impact_from_roots, source_roots, refresh_dependency_index, register_manual_dependency
+from .incremental import incremental_rebuild_from_sources
 
 
 def ingest(db_path: str, doc_path: str):
@@ -312,7 +314,7 @@ def _source_policy_set(args) -> int:
         policy = set_source_policy(
             c.db, args.source_id, args.source_version,
             enabled=enabled, trust_weight=args.weight,
-            note=args.note or "", metadata={"set_via": "eqforge-v0.9"},
+            note=args.note or "", metadata={"set_via": "eqforge-v0.10"},
         )
         print(json.dumps({"policy": {
             "source_id": policy.source_id,
@@ -396,6 +398,36 @@ def _rebuild_senses(args) -> int:
             "db_stats": c.stats(),
         }, ensure_ascii=False, indent=2, sort_keys=True))
     return 0
+
+def _dependency_impact(args) -> int:
+    with CanonicalDB(args.db) as c:
+        try:
+            roots = source_roots(args.changed_source) + [ArtifactRef("node", n) for n in (args.changed_node or [])]
+            stats = refresh_dependency_index(c.db)
+            impact = impact_from_roots(c.db, roots, refresh=False)
+        except Exception as exc:
+            print(f"ERROR: dependency impact failed: {exc}")
+            return 3
+        print(json.dumps({"dependency_stats": stats, "impact": impact.to_dict()}, ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
+
+def _incremental_rebuild(args) -> int:
+    with CanonicalDB(args.db) as c:
+        try:
+            report = incremental_rebuild_from_sources(
+                c.db, args.changed_source, output_dir=args.output_dir,
+                dry_run=args.dry_run, ingest_derived=args.ingest_derived,
+            )
+        except Exception as exc:
+            print(f"ERROR: incremental rebuild failed: {exc}")
+            return 3
+        report_path = Path(args.report) if args.report else None
+        if report_path:
+            report_path.write_text(json.dumps(report.to_dict(),ensure_ascii=False,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+        print(json.dumps({"incremental_rebuild": report.to_dict(), "report": None if report_path is None else str(report_path), "db_stats": c.stats()}, ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
 
 def main():
     p=argparse.ArgumentParser(prog="eqforge")
@@ -525,6 +557,19 @@ def main():
     hl.add_argument("db")
     hl.add_argument("--target-id")
 
+    di=sub.add_parser("dependency-impact", help="show transitive invalidation from changed sources/nodes")
+    di.add_argument("db")
+    di.add_argument("--changed-source", action="append", default=[], help="SOURCE@VERSION; repeatable")
+    di.add_argument("--changed-node", action="append", default=[], help="canonical node id; repeatable")
+
+    irb=sub.add_parser("incremental-rebuild", help="rebuild only registered compiler targets affected by source changes")
+    irb.add_argument("db")
+    irb.add_argument("--changed-source", action="append", required=True, help="SOURCE@VERSION; repeatable")
+    irb.add_argument("--output-dir")
+    irb.add_argument("--report")
+    irb.add_argument("--dry-run", action="store_true")
+    irb.add_argument("--ingest-derived", action="store_true")
+
     sp=sub.add_parser("source-policy", help="set, clear, or list persistent source trust/ablation policy")
     sps=sp.add_subparsers(dest="source_policy_cmd", required=True)
     spset=sps.add_parser("set")
@@ -612,6 +657,10 @@ def main():
     elif a.cmd=="hypotheses":
         with CanonicalDB(a.db) as db:
             print(json.dumps(list_hypothesis_states(db.db,a.target_id),ensure_ascii=False,indent=2,sort_keys=True))
+    elif a.cmd=="dependency-impact":
+        raise SystemExit(_dependency_impact(a))
+    elif a.cmd=="incremental-rebuild":
+        raise SystemExit(_incremental_rebuild(a))
     elif a.cmd=="source-policy":
         if a.source_policy_cmd=="set": raise SystemExit(_source_policy_set(a))
         if a.source_policy_cmd=="clear": raise SystemExit(_source_policy_clear(a))

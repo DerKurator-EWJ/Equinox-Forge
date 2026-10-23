@@ -12,7 +12,7 @@ from .sense_compiler import SenseCompilePolicy, compile_provisional_senses
 from .consensus import ConsensusPolicy, track_hypothesis_run, ConsensusReport
 
 REBUILD_FORMAT = "equinox-forge-rebuild-v1"
-REBUILD_VERSION = "0.9"
+REBUILD_VERSION = "0.10"
 
 
 @dataclass(frozen=True)
@@ -228,6 +228,14 @@ def rebuild_senses(
             ),
         )
         rebuild_run_id = int(cur.lastrowid)
+        # v0.10 records the build recipe and dependency boundary. Local import avoids
+        # making the dependency graph part of the lower-level v0.1-v0.9 modules.
+        from .dependency import register_sense_build_target, refresh_dependency_index
+        register_sense_build_target(
+            db, target_id, sense_policy, consensus_policy or ConsensusPolicy(),
+            track_stability=track_stability, last_output_hash=output_hash,
+        )
+        refresh_dependency_index(db)
         db.commit()
         report = RebuildReport(
             REBUILD_FORMAT, REBUILD_VERSION, target_id,

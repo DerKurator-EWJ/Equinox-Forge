@@ -1,25 +1,25 @@
-# Equinox Forge v0.9 — Source Ablation, Reweighting & Rebuild Engine
+# Equinox Forge v0.10 — Dependency Graph + Incremental Transitive Rebuild
 
-Forge v0.9 makes provenance **operational**.
+Forge v0.10 turns the v0.9 source-policy rebuild into a **dependency-aware incremental compiler**.
 
-Until v0.8, Forge could preserve source provenance, fuse evidence, create provisional sense concepts, and track cross-teacher stability. v0.9 adds the ability to change the trust policy for a source **after extraction** and rebuild derived Equinox knowledge without running the original teacher again.
+Instead of manually naming every surface that might be affected after a teacher/source change, Forge now maintains a generic dependency graph:
 
 ```text
-raw extracted evidence (immutable history)
-        ↓
-source policy
-  enabled / disabled
-  trust weight 0..1
-  version replacement
-        ↓
-temporary effective-evidence view
-        ↓
-existing v0.1–v0.8 compiler
-        ↓
-recompiled senses + weighted consensus
-        ↓
-new rebuild report / lifecycle state
+source@version
+    ↓ evidence provenance
+canonical endpoints
+    ↓ composition / contextual use / template match
+registered build target
+    ↓ derived output
+higher artifact / future builder
 ```
+
+A changed source can therefore invalidate only the transitive subgraph that actually depends on it. Unrelated registered targets remain untouched.
+
+The dependency graph is intentionally builder-agnostic. v0.10 can automatically execute the existing **sense compiler**; future macro/crossmodal/domain builders can register in the same scheduler and are currently reported as `deferred` until their executor exists.
+
+
+The v0.9 source-ablation and reweighting engine remains intact underneath this layer: raw evidence is preserved, source policies create an effective evidence view, and rebuilds remain deterministic/auditable.
 
 ## Central rule
 
@@ -308,7 +308,7 @@ python tests/run_all.py
 Expected final marker:
 
 ```text
-FORGE_V09_ALL_TESTS_OK
+FORGE_V10_ALL_TESTS_OK
 ```
 
 Coverage now includes:
@@ -330,30 +330,112 @@ v0.9 version replacement
 v0.9 persisted rebuild history
 ```
 
-## What v0.9 does NOT prove
+## v0.10 dependency graph
 
-v0.9 does not determine the objectively correct trust value for a teacher. Trust weights are compiler policy and must eventually be calibrated against held-out benchmarks.
-
-It also does not yet rebuild the **entire Master DB transitively** after a source change. The current engine rebuilds a specified derived target/sense family and records the result.
-
-That makes the next logical step:
-
-## Recommended next step — v0.10
-
-**Dependency Graph + Incremental Transitive Rebuild.**
-
-Instead of manually rebuilding `Bank`, `Hund`, etc., Forge should know which derived structures depend on which evidence or lower-level hypotheses:
+The Canonical DB now stores generic `dependency_edges` with the form:
 
 ```text
-source changed
-    ↓
-find directly affected derived nodes
-    ↓
-walk dependency graph upward
-    ↓
-rebuild only affected subgraph
-    ↓
-leave unrelated Master DB untouched
+dependent artifact  --depends on-->  dependency artifact
 ```
 
-That is the step needed before scaling from experiments to a genuinely large continuously maintainable Master Archive.
+Artifact types are namespaced (`source`, `node`, `build_target`, `artifact`, ...), so the graph is not hard-coded to language senses. Automatic indexing currently records:
+
+```text
+node(parent)      → node(child)          composition_member
+node(endpoint)    → source@version       evidence provenance
+build_target      → target node          sense target
+build_target      → context node         contextual-use dependency
+build_target      → matching template    prediction dependency
+derived sense     → build_target         compiler output
+```
+
+Manual/plugin dependencies can be registered without being erased when the automatic index is refreshed.
+
+### Impact analysis
+
+```bash
+python -m equinox_forge.cli dependency-impact master.sqlite \
+  --changed-source teacher-A@1
+```
+
+The command walks reverse dependencies transitively and reports affected nodes, registered build targets, and higher manual/plugin artifacts.
+
+### Incremental rebuild
+
+```bash
+python -m equinox_forge.cli incremental-rebuild master.sqlite \
+  --changed-source teacher-A@1 \
+  --output-dir out/incremental
+```
+
+Dry run:
+
+```bash
+python -m equinox_forge.cli incremental-rebuild master.sqlite \
+  --changed-source teacher-A@1 --dry-run
+```
+
+A successful v0.10 rebuild:
+
+```text
+1. refreshes the dependency index
+2. starts from the changed source root(s)
+3. computes the transitive invalidation closure
+4. selects only affected registered build targets
+5. automatically executes installed builders (currently: sense)
+6. reports future/unknown builders as deferred
+7. records an incremental_rebuild_run
+8. leaves unrelated build targets untouched
+```
+
+### Persisted build recipes
+
+`rebuild-senses` now registers its compiler policy in `build_targets`. That allows a later incremental rebuild to reproduce the target without the user re-specifying thresholds and fusion/consensus settings.
+
+Existing pre-v0.10 databases are migrated non-destructively. A target created only by v0.9 must be rebuilt once with v0.10 to register its build recipe.
+
+### Reproducible v0.10 demo
+
+```bash
+python examples/build_incremental_demo.py
+```
+
+The demo creates independent `bank` and `kran` targets. A change to `teacher-bank@1` rebuilds `bank` only, while dependency impact still propagates into higher synthetic artifacts. A registered future `macro` builder is reported as deferred rather than silently ignored.
+
+## Regression suite
+
+Run:
+
+```bash
+PYTHONPATH=. python tests/run_all.py
+```
+
+Expected final marker:
+
+```text
+FORGE_V10_ALL_TESTS_OK
+```
+
+New v0.10 coverage includes:
+
+```text
+transitive source → node → build-target invalidation
+unrelated-target isolation
+manual higher-artifact propagation
+future-builder deferral
+persisted build recipes
+dry-run planning
+incremental rebuild history
+```
+
+## What v0.10 does NOT prove
+
+The dependency graph solves invalidation and selective recompilation; it does **not** yet provide executors for every future higher-level compiler. v0.10 automatically rebuilds registered `sense` targets. Unknown builders remain visible as `deferred`, preserving the transitive dependency chain instead of pretending they were rebuilt.
+
+Source trust values also remain compiler policy and still require calibration against held-out benchmarks.
+
+## Recommended next step — v0.11
+
+**Derived Artifact Store + Macro/Hierarchy Builder.**
+
+That would give the generic v0.10 scheduler a second real compiler family above provisional senses, so changes can propagate and rebuild not only sense nodes but higher Equinox macros/domains automatically.
