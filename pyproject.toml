@@ -1,6 +1,6 @@
 [project]
 name = "equinox-forge"
-version = "0.46.0"
+version = "0.47.0"
 description = "Model-independent canonical knowledge compiler for Equinox"
 requires-python = ">=3.10"
 dependencies = [
@@ -26,9 +26,13 @@ eqforge-structural-gain-audit = "equinox_forge.structural_gain_audit:main"
 eqforge-canonical-id-space = "equinox_forge.canonical_id_space:main"
 eqforge-structural-closure = "equinox_forge.structural_closure:main"
 eqforge-recursive-macro = "equinox_forge.recursive_macro_collapse:main"
+eqforge-top-down-teacher = "equinox_forge.top_down_teacher_structure:main"
 
 [project.optional-dependencies]
 domain-trial = [
+  "torch>=2.1",
+]
+teacher-structure = [
   "torch>=2.1",
 ]
 hf-runtime = [
@@ -45,3 +49,6 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 include = ["equinox_forge*"]
 exclude = ["adapters*", "examples*", "out*", "tests*", "benchmarks*", "tools*"]
+
+[tool.setuptools.package-data]
+equinox_forge = ["data/*.json"]

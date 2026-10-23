@@ -1,4 +1,34 @@
-# Equinox Forge v0.46 — Recursive Macro Collapse
+# Equinox Forge v0.47 — Top-Down Teacher Structure Extraction
+
+v0.47 connects teacher evidence to the new canonical numeric substrate. Forge now extracts a generic parent hierarchy from a teacher without embedding the concrete domain ontology in the extractor, validates the hierarchy, materializes it root-to-leaf as canonical concept IDs, and passes the result directly into v0.45 Structural Closure and v0.46 Recursive Macro Collapse. RuntimeCognition remains unchanged from v0.40.
+
+```text
+Teacher evidence
+      ↓
+discovered parent forest
+      ↓
+root → general → specific
+      ↓
+canonical numeric IDs
+      ↓
+Structural Closure
+      ↓
+Recursive Macro Collapse
+```
+
+Run the controlled offline neural-teacher proof (PyTorch required):
+
+```bash
+eqforge-top-down-teacher --out out/v0_47_top_down_teacher_structure
+```
+
+The generic extraction API accepts any `CausalTeacherBackend`, including the existing local Hugging Face backend when that optional runtime and model files are available. See `RELEASE_V0_47.md` and `benchmarks/v0_47/`.
+
+---
+
+## Previous milestone — v0.46 Recursive Macro Collapse
+
+### Equinox Forge v0.46 — Recursive Macro Collapse
 
 v0.46 adds the first true recursive collapse layer to the canonical numeric ID space. Stable common relation structures across concept IDs receive deterministic numeric macro IDs; those macro IDs can themselves participate as members in a higher collapse. When a higher macro owns shared facts, child macros keep only local residual facts and recover the full signature recursively through the macro hierarchy. The canonical semantic graph remains unchanged and auditable. RuntimeCognition remains unchanged from v0.40.
 
