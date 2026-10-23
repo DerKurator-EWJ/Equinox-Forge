@@ -11,7 +11,8 @@ TESTS=[
     'test_tiny_causal_runtime.py',
     'test_hidden_state.py',
     'test_tiny_contextual_runtime.py',
+    'test_sense_compiler.py',
 ]
 for name in TESTS:
     subprocess.run([sys.executable, str(ROOT/'tests'/name)], check=True, cwd=ROOT)
-print('FORGE_V06_ALL_TESTS_OK')
+print('FORGE_V07_ALL_TESTS_OK')

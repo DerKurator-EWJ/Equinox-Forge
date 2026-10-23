@@ -1,0 +1,327 @@
+{
+  "accepted_pair_count": 6,
+  "clusters": [
+    {
+      "confidence": 0.7961988304093565,
+      "contexts": [
+        "m_2307a7ed760b4f9b4d448708",
+        "m_4ef8461897143930ee6989d0",
+        "m_d8ed1ba137a877e948caa882"
+      ],
+      "evidence_channels": [
+        "hidden_similarity",
+        "lexical_overlap",
+        "semantic_similarity"
+      ],
+      "mean_internal_score": 0.7961988304093565,
+      "min_internal_score": 0.7947368421052629,
+      "sense_id": "m_e0c75993019715cea9367207",
+      "target_id": "m_b3458c60118e5e0ab521cb81",
+      "target_surface": "Bank"
+    },
+    {
+      "confidence": 0.7982456140350874,
+      "contexts": [
+        "m_5536c4ed72dded69037b7938",
+        "m_c1e6a46620f9c108ac4b8695",
+        "m_d44f83614396a201dcf0a508"
+      ],
+      "evidence_channels": [
+        "hidden_similarity",
+        "lexical_overlap",
+        "semantic_similarity"
+      ],
+      "mean_internal_score": 0.7982456140350874,
+      "min_internal_score": 0.7947368421052629,
+      "sense_id": "m_5dda207d06f3ce6eedb4ed28",
+      "target_id": "m_b3458c60118e5e0ab521cb81",
+      "target_surface": "Bank"
+    }
+  ],
+  "clusters_created": 2,
+  "contexts_found": 6,
+  "format": "equinox-forge-sense-compiler-v1",
+  "min_channels": 2,
+  "pair_count": 15,
+  "pairs": [
+    {
+      "a_context": "m_2307a7ed760b4f9b4d448708",
+      "available_channels": 2,
+      "b_context": "m_4ef8461897143930ee6989d0",
+      "channel_scores": {
+        "hidden_similarity": 0.8499999999999996,
+        "lexical_overlap": 0.0,
+        "prediction_signature": null,
+        "semantic_similarity": 0.81,
+        "substitution": null,
+        "transition": null
+      },
+      "fused_score": 0.7947368421052629,
+      "used_weights": {
+        "hidden_similarity": 0.65,
+        "lexical_overlap": 0.05,
+        "semantic_similarity": 0.25
+      }
+    },
+    {
+      "a_context": "m_2307a7ed760b4f9b4d448708",
+      "available_channels": 1,
+      "b_context": "m_5536c4ed72dded69037b7938",
+      "channel_scores": {
+        "hidden_similarity": null,
+        "lexical_overlap": 0.09090909090909091,
+        "prediction_signature": null,
+        "semantic_similarity": null,
+        "substitution": null,
+        "transition": null
+      },
+      "fused_score": 0.09090909090909091,
+      "used_weights": {
+        "lexical_overlap": 0.05
+      }
+    },
+    {
+      "a_context": "m_2307a7ed760b4f9b4d448708",
+      "available_channels": 0,
+      "b_context": "m_c1e6a46620f9c108ac4b8695",
+      "channel_scores": {
+        "hidden_similarity": null,
+        "lexical_overlap": 0.0,
+        "prediction_signature": null,
+        "semantic_similarity": null,
+        "substitution": null,
+        "transition": null
+      },
+      "fused_score": 0.0,
+      "used_weights": {
+        "lexical_overlap": 0.05
+      }
+    },
+    {
+      "a_context": "m_2307a7ed760b4f9b4d448708",
+      "available_channels": 1,
+      "b_context": "m_d44f83614396a201dcf0a508",
+      "channel_scores": {
+        "hidden_similarity": null,
+        "lexical_overlap": 0.09090909090909091,
+        "prediction_signature": null,
+        "semantic_similarity": null,
+        "substitution": null,
+        "transition": null
+      },
+      "fused_score": 0.09090909090909091,
+      "used_weights": {
+        "lexical_overlap": 0.05
+      }
+    },
+    {
+      "a_context": "m_2307a7ed760b4f9b4d448708",
+      "available_channels": 3,
+      "b_context": "m_d8ed1ba137a877e948caa882",
+      "channel_scores": {
+        "hidden_similarity": 0.8499999999999996,
+        "lexical_overlap": 0.08333333333333333,
+        "prediction_signature": null,
+        "semantic_similarity": 0.81,
+        "substitution": null,
+        "transition": null
+      },
+      "fused_score": 0.7991228070175436,
+      "used_weights": {
+        "hidden_similarity": 0.65,
+        "lexical_overlap": 0.05,
+        "semantic_similarity": 0.25
+      }
+    },
+    {
+      "a_context": "m_4ef8461897143930ee6989d0",
+      "available_channels": 0,
+      "b_context": "m_5536c4ed72dded69037b7938",
+      "channel_scores": {
+        "hidden_similarity": null,
+        "lexical_overlap": 0.0,
+        "prediction_signature": null,
+        "semantic_similarity": null,
+        "substitution": null,
+        "transition": null
+      },
+      "fused_score": 0.0,
+      "used_weights": {
+        "lexical_overlap": 0.05
+      }
+    },
+    {
+      "a_context": "m_4ef8461897143930ee6989d0",
+      "available_channels": 1,
+      "b_context": "m_c1e6a46620f9c108ac4b8695",
+      "channel_scores": {
+        "hidden_similarity": null,
+        "lexical_overlap": 0.09090909090909091,
+        "prediction_signature": null,
+        "semantic_similarity": null,
+        "substitution": null,
+        "transition": null
+      },
+      "fused_score": 0.09090909090909091,
+      "used_weights": {
+        "lexical_overlap": 0.05
+      }
+    },
+    {
+      "a_context": "m_4ef8461897143930ee6989d0",
+      "available_channels": 0,
+      "b_context": "m_d44f83614396a201dcf0a508",
+      "channel_scores": {
+        "hidden_similarity": null,
+        "lexical_overlap": 0.0,
+        "prediction_signature": null,
+        "semantic_similarity": null,
+        "substitution": null,
+        "transition": null
+      },
+      "fused_score": 0.0,
+      "used_weights": {
+        "lexical_overlap": 0.05
+      }
+    },
+    {
+      "a_context": "m_4ef8461897143930ee6989d0",
+      "available_channels": 2,
+      "b_context": "m_d8ed1ba137a877e948caa882",
+      "channel_scores": {
+        "hidden_similarity": 0.8499999999999996,
+        "lexical_overlap": 0.0,
+        "prediction_signature": null,
+        "semantic_similarity": 0.81,
+        "substitution": null,
+        "transition": null
+      },
+      "fused_score": 0.7947368421052629,
+      "used_weights": {
+        "hidden_similarity": 0.65,
+        "lexical_overlap": 0.05,
+        "semantic_similarity": 0.25
+      }
+    },
+    {
+      "a_context": "m_5536c4ed72dded69037b7938",
+      "available_channels": 2,
+      "b_context": "m_c1e6a46620f9c108ac4b8695",
+      "channel_scores": {
+        "hidden_similarity": 0.8499999999999996,
+        "lexical_overlap": 0.0,
+        "prediction_signature": null,
+        "semantic_similarity": 0.81,
+        "substitution": null,
+        "transition": null
+      },
+      "fused_score": 0.7947368421052629,
+      "used_weights": {
+        "hidden_similarity": 0.65,
+        "lexical_overlap": 0.05,
+        "semantic_similarity": 0.25
+      }
+    },
+    {
+      "a_context": "m_5536c4ed72dded69037b7938",
+      "available_channels": 3,
+      "b_context": "m_d44f83614396a201dcf0a508",
+      "channel_scores": {
+        "hidden_similarity": 0.8499999999999996,
+        "lexical_overlap": 0.2,
+        "prediction_signature": null,
+        "semantic_similarity": 0.81,
+        "substitution": null,
+        "transition": null
+      },
+      "fused_score": 0.8052631578947366,
+      "used_weights": {
+        "hidden_similarity": 0.65,
+        "lexical_overlap": 0.05,
+        "semantic_similarity": 0.25
+      }
+    },
+    {
+      "a_context": "m_5536c4ed72dded69037b7938",
+      "available_channels": 0,
+      "b_context": "m_d8ed1ba137a877e948caa882",
+      "channel_scores": {
+        "hidden_similarity": null,
+        "lexical_overlap": 0.0,
+        "prediction_signature": null,
+        "semantic_similarity": null,
+        "substitution": null,
+        "transition": null
+      },
+      "fused_score": 0.0,
+      "used_weights": {
+        "lexical_overlap": 0.05
+      }
+    },
+    {
+      "a_context": "m_c1e6a46620f9c108ac4b8695",
+      "available_channels": 2,
+      "b_context": "m_d44f83614396a201dcf0a508",
+      "channel_scores": {
+        "hidden_similarity": 0.8499999999999996,
+        "lexical_overlap": 0.0,
+        "prediction_signature": null,
+        "semantic_similarity": 0.81,
+        "substitution": null,
+        "transition": null
+      },
+      "fused_score": 0.7947368421052629,
+      "used_weights": {
+        "hidden_similarity": 0.65,
+        "lexical_overlap": 0.05,
+        "semantic_similarity": 0.25
+      }
+    },
+    {
+      "a_context": "m_c1e6a46620f9c108ac4b8695",
+      "available_channels": 0,
+      "b_context": "m_d8ed1ba137a877e948caa882",
+      "channel_scores": {
+        "hidden_similarity": null,
+        "lexical_overlap": 0.0,
+        "prediction_signature": null,
+        "semantic_similarity": null,
+        "substitution": null,
+        "transition": null
+      },
+      "fused_score": 0.0,
+      "used_weights": {
+        "lexical_overlap": 0.05
+      }
+    },
+    {
+      "a_context": "m_d44f83614396a201dcf0a508",
+      "available_channels": 1,
+      "b_context": "m_d8ed1ba137a877e948caa882",
+      "channel_scores": {
+        "hidden_similarity": null,
+        "lexical_overlap": 0.08333333333333333,
+        "prediction_signature": null,
+        "semantic_similarity": null,
+        "substitution": null,
+        "transition": null
+      },
+      "fused_score": 0.08333333333333333,
+      "used_weights": {
+        "lexical_overlap": 0.05
+      }
+    }
+  ],
+  "target_id": "m_b3458c60118e5e0ab521cb81",
+  "target_surface": "Bank",
+  "threshold": 0.62,
+  "unresolved_contexts": 0,
+  "weights": {
+    "hidden_similarity": 0.65,
+    "lexical_overlap": 0.05,
+    "prediction_signature": 0.05,
+    "semantic_similarity": 0.25,
+    "substitution": 0,
+    "transition": 0
+  }
+}

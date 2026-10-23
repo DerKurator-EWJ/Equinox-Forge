@@ -12,6 +12,7 @@ from .text_teacher import TextExtractionConfig, extract_text_teacher
 from .language_evidence import LanguageEvidenceConfig, build_controlled_language_evidence, load_text_inputs
 from .teacher_behavior import BehaviourProbeConfig, TransformersCausalLMBackend, extract_teacher_behaviour, load_prompts
 from .hidden_state import HiddenStateConfig, TransformersHiddenStateBackend, extract_contextual_hidden_evidence, load_probe_dataset
+from .sense_compiler import SenseCompilePolicy, FusionWeights, compile_provisional_senses, find_text_surface_id
 
 
 def ingest(db_path: str, doc_path: str):
@@ -246,6 +247,42 @@ def _probe_hidden(args) -> int:
     return 0
 
 
+
+def _compile_senses(args) -> int:
+    weights = FusionWeights(
+        hidden_similarity=args.w_hidden, lexical_overlap=args.w_lexical,
+        semantic_similarity=args.w_semantic, substitution=args.w_substitution,
+        transition=args.w_transition, prediction_signature=args.w_prediction,
+    )
+    policy = SenseCompilePolicy(
+        threshold=args.threshold, min_channels=args.min_channels,
+        min_contexts=args.min_contexts, include_singletons=args.include_singletons,
+        weights=weights,
+    )
+    with CanonicalDB(args.db) as c:
+        try:
+            target_id = args.target_id or find_text_surface_id(c.db, args.surface)
+            doc, report = compile_provisional_senses(c.db, target_id, policy)
+        except Exception as exc:
+            print(f"ERROR: sense compile failed: {exc}")
+            return 3
+        issues = validate_document(doc)
+        errors = [x for x in issues if x.severity == "error"]
+        if errors:
+            for x in issues: print(f"{x.severity.upper()}: {x.message}")
+            return 2
+        save_document(doc,args.output)
+        report_path=Path(args.report) if args.report else Path(args.output).with_suffix('.report.json')
+        report_path.write_text(json.dumps(report.to_dict(),ensure_ascii=False,indent=2,sort_keys=True)+'\n',encoding='utf-8')
+        if args.ingest_derived:
+            for n in doc.nodes: c.upsert_node(n)
+            for e in doc.evidence: c.add_evidence(e)
+            c.commit()
+        result={"output":str(Path(args.output)),"report":str(report_path),"sense_compile":report.to_dict()}
+        if args.ingest_derived: result["db_stats"]=c.stats()
+        print(json.dumps(result,ensure_ascii=False,indent=2,sort_keys=True))
+    return 0
+
 def main():
     p=argparse.ArgumentParser(prog="eqforge")
     sub=p.add_subparsers(dest="cmd",required=True)
@@ -341,6 +378,25 @@ def main():
     hs.add_argument("--dtype", default="auto")
     hs.add_argument("--trust-remote-code", action="store_true")
 
+    sc=sub.add_parser("compile-senses", help="fuse multi-channel evidence into provisional text sense concepts")
+    sc.add_argument("db", help="canonical SQLite DB")
+    sc.add_argument("output", help="derived Canonical IR JSON")
+    tg=sc.add_mutually_exclusive_group(required=True)
+    tg.add_argument("--surface", help="exact canonical text surface, e.g. Bank")
+    tg.add_argument("--target-id", help="canonical surface node id")
+    sc.add_argument("--report")
+    sc.add_argument("--threshold",type=float,default=0.62)
+    sc.add_argument("--min-channels",type=int,default=2)
+    sc.add_argument("--min-contexts",type=int,default=2)
+    sc.add_argument("--include-singletons",action="store_true")
+    sc.add_argument("--ingest-derived",action="store_true",help="write provisional concepts/evidence back into the canonical DB")
+    sc.add_argument("--w-hidden",type=float,default=0.55)
+    sc.add_argument("--w-lexical",type=float,default=0.05)
+    sc.add_argument("--w-semantic",type=float,default=0.15)
+    sc.add_argument("--w-substitution",type=float,default=0.10)
+    sc.add_argument("--w-transition",type=float,default=0.05)
+    sc.add_argument("--w-prediction",type=float,default=0.10)
+
     a=p.parse_args()
     if a.cmd=="validate":
         doc=load_document(a.document); issues=validate_document(doc)
@@ -382,5 +438,7 @@ def main():
         raise SystemExit(_probe_teacher(a))
     elif a.cmd=="probe-hidden":
         raise SystemExit(_probe_hidden(a))
+    elif a.cmd=="compile-senses":
+        raise SystemExit(_compile_senses(a))
 
 if __name__=="__main__": main()
