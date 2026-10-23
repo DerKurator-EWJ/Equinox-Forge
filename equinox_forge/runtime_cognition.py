@@ -12,7 +12,7 @@ from .runtime_pack import LoadedRuntimePack, RuntimeNode, load_base_pack
 from .runtime_query import RuntimeIndex
 
 RUNTIME_COGNITION_FORMAT = "equinox-runtime-cognition-v1"
-RUNTIME_COGNITION_VERSION = "0.27"
+RUNTIME_COGNITION_VERSION = "0.28"
 
 
 @dataclass
@@ -56,6 +56,9 @@ class RuntimeCognitionPolicy:
     # already resolved before frame matching; among frames the order is direct
     # lower/prototype scope > hierarchical transferred scope > untyped open scope.
     enable_frame_specificity_override: bool = True
+    # v0.28: allow compile-time automatically induced exception frames. Kept as a
+    # separate switch so the exact same BASE can be ablated without recompilation.
+    enable_exception_override_frames: bool = True
     max_hierarchical_slot_hops: int = 8
     frame_match_weight: float = 0.82
     max_frame_matches: int = 8
@@ -249,6 +252,7 @@ class RuntimeCognition:
                     slot_profiles.append(dict(smeta.get("semantic_admission") or {}))
 
             hierarchical = bool(meta.get("hierarchical_transfer"))
+            exception_override = bool(meta.get("exception_override"))
             ancestor_hops = int(meta.get("ancestor_hops", 0) or 0)
             typed = any(bool(x.get("enabled")) for x in slot_profiles)
             prototype_typed = any(bool(x.get("prototype_node_id")) for x in slot_profiles)
@@ -278,6 +282,7 @@ class RuntimeCognition:
                 "scope_rank": scope_rank,
                 "ancestor_hops": ancestor_hops,
                 "hierarchical_transfer": hierarchical,
+                "exception_override": exception_override,
             })
         for width in self._frames_by_width:
             self._frames_by_width[width].sort(key=lambda x: (-int(x["scope_rank"]), -int(x["support"]), str(x["node_id"])))
@@ -441,6 +446,8 @@ class RuntimeCognition:
             matches: list[dict[str, Any]] = []
             width_had_structural_match = False
             for spec in self._frames_by_width[width]:
+                if bool(spec.get("exception_override")) and not self.policy.enable_exception_override_frames:
+                    continue
                 node_id = str(spec["node_id"]); pattern = list(spec["pattern"]); support = int(spec["support"])
                 open_slot = bool(spec["open_slot"]); allowed_fillers = set(spec["allowed_fillers"]); slot_ids = list(spec["slot_ids"])
                 checks += 1
@@ -594,6 +601,9 @@ class RuntimeCognition:
                 pnode = self.index.node_by_id[pid]
                 if pnode.kind == NodeKind.QUANT.value:
                     continue
+                if (not self.policy.enable_exception_override_frames
+                        and bool((pnode.metadata or {}).get("exception_override"))):
+                    continue
                 nxt = act * self.policy.parent_weight * self.policy.depth_decay
                 if nxt < self.policy.min_activation:
                     continue
@@ -618,6 +628,9 @@ class RuntimeCognition:
             for q, rel in ranked_rels[:self.policy.max_relation_neighbors]:
                 target = self.index.node_by_id.get(rel.to_id)
                 if target is None or target.kind == NodeKind.QUANT.value:
+                    continue
+                if (not self.policy.enable_exception_override_frames
+                        and bool((target.metadata or {}).get("exception_override"))):
                     continue
                 nxt = act * q * self.policy.depth_decay
                 if nxt < self.policy.min_activation:
@@ -700,6 +713,11 @@ class RuntimeCognition:
         if self.policy.enable_recalled_context_prediction:
             for trace in recall:
                 if trace.node_id in context_ids:
+                    continue
+                trace_node = self.index.node_by_id.get(trace.node_id)
+                if (not self.policy.enable_exception_override_frames
+                        and trace_node is not None
+                        and bool((trace_node.metadata or {}).get("exception_override"))):
                     continue
                 for rel in self.index.relations_from.get(trace.node_id, []):
                     if rel.relation_type == RelationType.PREDICTION.value:

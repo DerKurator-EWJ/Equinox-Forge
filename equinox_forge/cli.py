@@ -35,6 +35,8 @@ from .prototype_hierarchy import PrototypeHierarchyPolicy, induce_prototype_hier
 from .hierarchical_frame_transfer import HierarchicalFrameTransferPolicy, promote_frames_to_higher_concepts
 from .frame_schema_benchmark import compile_and_benchmark_frame_schemas, load_frame_eval_jsonl
 from .specificity_resolution import load_specificity_cases, benchmark_specificity_resolution
+from .exception_induction import ExceptionInductionPolicy, induce_exception_overrides
+from .exception_benchmark import load_exception_cases, benchmark_exception_overrides
 
 
 def ingest(db_path: str, doc_path: str):
@@ -707,6 +709,86 @@ def _benchmark_specificity(args) -> int:
         Path(args.output).write_text(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True)+"\n",encoding="utf-8")
     print(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True))
     return 0
+
+def _induce_exceptions(args) -> int:
+    policy = ExceptionInductionPolicy(
+        min_contexts=args.min_contexts,
+        min_unique_fillers=args.min_unique_fillers,
+        min_target_context_fraction=args.min_target_context_fraction,
+        min_exception_target_score=args.min_exception_target_score,
+        min_disagreement_margin=args.min_disagreement_margin,
+        min_membership_quality=args.min_membership_quality,
+        min_prototype_path_quality=args.min_prototype_path_quality,
+        max_prototype_hops=args.max_prototype_hops,
+        evidence_confidence=args.evidence_confidence,
+        require_different_top1=not args.allow_same_top1,
+    )
+    try:
+        with CanonicalDB(args.db) as c:
+            doc, report = induce_exception_overrides(
+                c.db, policy, source_id=args.source_id, source_version=args.source_version
+            )
+            errors = [x for x in validate_document(doc) if x.severity == "error"]
+            if errors:
+                raise ValueError("exception override IR invalid: " + "; ".join(x.message for x in errors))
+            save_document(doc, args.output)
+            report_path = Path(args.report) if args.report else Path(args.output).with_suffix(".report.json")
+            report_path.write_text(
+                json.dumps(report.to_dict(), ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+            if args.persist:
+                persist_frame_document(c.db, doc)
+                c.db.commit()
+            payload = {
+                "output": str(Path(args.output)),
+                "report": str(report_path),
+                "persisted": bool(args.persist),
+                "exception_induction": report.to_dict(),
+                "db_stats": c.stats(),
+            }
+    except Exception as exc:
+        print(f"ERROR: exception induction failed: {exc}")
+        return 3
+    print(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
+
+def _benchmark_exceptions(args) -> int:
+    policy = RuntimeCognitionPolicy(
+        max_recall_nodes=args.max_recall_nodes,
+        max_recall_depth=args.max_recall_depth,
+        max_relation_neighbors=args.max_relation_neighbors,
+        max_structural_parents=args.max_structural_parents,
+        max_predictions=args.max_predictions,
+        min_activation=args.min_activation,
+        min_prediction_score=args.min_prediction_score,
+        enable_exact_context=not args.disable_exact_context,
+        enable_suffix_context=not args.disable_suffix_context,
+        enable_lexical_seeds=not args.disable_lexical_seeds,
+        enable_parent_routing=not args.disable_parent_routing,
+        enable_relation_recall=not args.disable_relation_recall,
+        enable_transition_prediction=not args.disable_transition_prediction,
+        enable_recalled_context_prediction=not args.disable_recalled_context_prediction,
+        enable_direct_context_prediction=not args.disable_direct_context_prediction,
+        enable_frame_schema_matching=True,
+        enable_semantic_slot_admission=not args.disable_semantic_slot_admission,
+        enable_slot_prototype_admission=not args.disable_slot_prototype_admission,
+        enable_hierarchical_slot_admission=not args.disable_hierarchical_slot_admission,
+        enable_frame_specificity_override=True,
+    )
+    try:
+        cases = load_exception_cases(args.datasets)
+        report = benchmark_exception_overrides(args.pack, cases, policy=policy)
+        payload = report.to_dict()
+    except Exception as exc:
+        print(f"ERROR: exception benchmark failed: {exc}")
+        return 3
+    if args.output:
+        Path(args.output).write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True)+"\n", encoding="utf-8")
+    print(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
 
 def _benchmark_retention(args) -> int:
     probe_cfg = BehaviourProbeConfig(
@@ -1384,6 +1466,29 @@ def main():
     sp.add_argument("--disable-hierarchical-slot-admission", action="store_true")
     sp.add_argument("--output")
 
+    eb=sub.add_parser("benchmark-exceptions", help="compare the same .eqbase with automatic v0.28 exception frames disabled versus enabled")
+    eb.add_argument("pack")
+    eb.add_argument("datasets", nargs="+", help="JSONL/TSV rows with context and optional expected surface")
+    eb.add_argument("--max-recall-nodes", type=int, default=96)
+    eb.add_argument("--max-recall-depth", type=int, default=3)
+    eb.add_argument("--max-relation-neighbors", type=int, default=24)
+    eb.add_argument("--max-structural-parents", type=int, default=24)
+    eb.add_argument("--max-predictions", type=int, default=8)
+    eb.add_argument("--min-activation", type=float, default=0.06)
+    eb.add_argument("--min-prediction-score", type=float, default=0.0)
+    eb.add_argument("--disable-exact-context", action="store_true")
+    eb.add_argument("--disable-suffix-context", action="store_true")
+    eb.add_argument("--disable-lexical-seeds", action="store_true")
+    eb.add_argument("--disable-parent-routing", action="store_true")
+    eb.add_argument("--disable-relation-recall", action="store_true")
+    eb.add_argument("--disable-transition-prediction", action="store_true")
+    eb.add_argument("--disable-recalled-context-prediction", action="store_true")
+    eb.add_argument("--disable-direct-context-prediction", action="store_true")
+    eb.add_argument("--disable-semantic-slot-admission", action="store_true")
+    eb.add_argument("--disable-slot-prototype-admission", action="store_true")
+    eb.add_argument("--disable-hierarchical-slot-admission", action="store_true")
+    eb.add_argument("--output")
+
     br=sub.add_parser("benchmark-retention", help="compile controlled teacher next-token behaviour into .eqbase and measure replay retention")
     br.add_argument("model_dir")
     br.add_argument("prompts", nargs="+", help="UTF-8 files containing one controlled prompt per line")
@@ -1601,6 +1706,24 @@ def main():
     hf.add_argument("--persist",action="store_true",help="persist transferred frame nodes/evidence into the canonical DB")
 
 
+    ex=sub.add_parser("induce-exceptions", help="induce subtype-specific overrides from systematic deviations from broader hierarchical frames")
+    ex.add_argument("db"); ex.add_argument("output")
+    ex.add_argument("--report")
+    ex.add_argument("--source-id", default="derived:exception-induction")
+    ex.add_argument("--source-version", default="0.28")
+    ex.add_argument("--min-contexts", type=int, default=2)
+    ex.add_argument("--min-unique-fillers", type=int, default=2)
+    ex.add_argument("--min-target-context-fraction", type=float, default=1.0)
+    ex.add_argument("--min-exception-target-score", type=float, default=0.50)
+    ex.add_argument("--min-disagreement-margin", type=float, default=0.20)
+    ex.add_argument("--min-membership-quality", type=float, default=0.50)
+    ex.add_argument("--min-prototype-path-quality", type=float, default=0.50)
+    ex.add_argument("--max-prototype-hops", type=int, default=4)
+    ex.add_argument("--evidence-confidence", type=float, default=0.92)
+    ex.add_argument("--allow-same-top1", action="store_true")
+    ex.add_argument("--persist", action="store_true", help="persist induced override frames/evidence into the canonical DB")
+
+
     fb=sub.add_parser("benchmark-frames", help="compile induced relation frames and benchmark isolated held-out schema transfer")
     fb.add_argument("model_dir"); fb.add_argument("output_dir")
     fb.add_argument("--train",action="append",required=True,help="UTF-8 train prompt file; repeatable")
@@ -1752,6 +1875,8 @@ def main():
         raise SystemExit(_benchmark_predictions(a))
     elif a.cmd=="benchmark-specificity":
         raise SystemExit(_benchmark_specificity(a))
+    elif a.cmd=="benchmark-exceptions":
+        raise SystemExit(_benchmark_exceptions(a))
     elif a.cmd=="benchmark-retention":
         raise SystemExit(_benchmark_retention(a))
     elif a.cmd=="benchmark-pareto":
@@ -1768,6 +1893,8 @@ def main():
         raise SystemExit(_induce_prototype_hierarchy(a))
     elif a.cmd=="promote-hierarchical-frames":
         raise SystemExit(_promote_hierarchical_frames(a))
+    elif a.cmd=="induce-exceptions":
+        raise SystemExit(_induce_exceptions(a))
     elif a.cmd=="benchmark-frames":
         raise SystemExit(_benchmark_frames(a))
     elif a.cmd=="artifacts":

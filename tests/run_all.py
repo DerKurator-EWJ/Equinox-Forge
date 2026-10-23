@@ -32,10 +32,12 @@ TESTS=[
     'test_slot_prototype_induction.py',
     'test_recursive_prototype_hierarchy.py',
     'test_hierarchical_frame_transfer.py',
+    'test_specificity_resolution.py',
+    'test_exception_induction.py',
 ]
 env=os.environ.copy()
 old=env.get('PYTHONPATH','')
 env['PYTHONPATH']=str(ROOT)+(os.pathsep+old if old else '')
 for name in TESTS:
     subprocess.run([sys.executable, str(ROOT/'tests'/name)], check=True, cwd=ROOT, env=env)
-print('FORGE_V26_ALL_TESTS_OK')
+print('FORGE_V28_ALL_TESTS_OK')
