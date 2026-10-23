@@ -1,0 +1,802 @@
+{
+  "evidence": [
+    {
+      "confidence": 0.98,
+      "from_id": "m_833b79d0a68f7a8404ef150c",
+      "metadata": {
+        "independent_of_predictive_teacher": true
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.94,
+      "source": {
+        "extraction": "semantic_similarity_fixture",
+        "source_id": "v033-independent-semantic",
+        "source_version": "1"
+      },
+      "to_id": "m_42178d06f9c5e1b98384186a"
+    },
+    {
+      "confidence": 0.98,
+      "from_id": "m_833b79d0a68f7a8404ef150c",
+      "metadata": {
+        "independent_of_predictive_teacher": true
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.91,
+      "source": {
+        "extraction": "semantic_similarity_fixture",
+        "source_id": "v033-independent-semantic",
+        "source_version": "1"
+      },
+      "to_id": "m_8f8d6efd0bd55cf0022982ac"
+    },
+    {
+      "confidence": 0.98,
+      "from_id": "m_78e929af459465fda1905964",
+      "metadata": {
+        "independent_of_predictive_teacher": true
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.08,
+      "source": {
+        "extraction": "semantic_similarity_fixture",
+        "source_id": "v033-independent-semantic",
+        "source_version": "1"
+      },
+      "to_id": "m_42178d06f9c5e1b98384186a"
+    },
+    {
+      "confidence": 0.98,
+      "from_id": "m_78e929af459465fda1905964",
+      "metadata": {
+        "independent_of_predictive_teacher": true
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.06,
+      "source": {
+        "extraction": "semantic_similarity_fixture",
+        "source_id": "v033-independent-semantic",
+        "source_version": "1"
+      },
+      "to_id": "m_8f8d6efd0bd55cf0022982ac"
+    },
+    {
+      "confidence": 0.97,
+      "from_id": "m_42178d06f9c5e1b98384186a",
+      "metadata": {
+        "predictive_family": false,
+        "role": "composition_induction_premise"
+      },
+      "relation_type": "is_a",
+      "score": 0.96,
+      "source": {
+        "extraction": "composition_induction_fixture",
+        "source_id": "v035-semantic-graph",
+        "source_version": "1"
+      },
+      "to_id": "m_4a654e53d48d38c35fb591e8"
+    },
+    {
+      "confidence": 0.97,
+      "from_id": "m_8f8d6efd0bd55cf0022982ac",
+      "metadata": {
+        "predictive_family": false,
+        "role": "composition_induction_premise"
+      },
+      "relation_type": "is_a",
+      "score": 0.96,
+      "source": {
+        "extraction": "composition_induction_fixture",
+        "source_id": "v035-semantic-graph",
+        "source_version": "1"
+      },
+      "to_id": "m_4a654e53d48d38c35fb591e8"
+    },
+    {
+      "confidence": 0.97,
+      "from_id": "m_8b96f895f7143a861a44fbe9",
+      "metadata": {
+        "predictive_family": false,
+        "role": "composition_induction_premise"
+      },
+      "relation_type": "is_a",
+      "score": 0.96,
+      "source": {
+        "extraction": "composition_induction_fixture",
+        "source_id": "v035-semantic-graph",
+        "source_version": "1"
+      },
+      "to_id": "m_34f2671b15cc116aa04ec6a5"
+    },
+    {
+      "confidence": 0.97,
+      "from_id": "m_254389e8439caa2712d3e482",
+      "metadata": {
+        "predictive_family": false,
+        "role": "composition_induction_premise"
+      },
+      "relation_type": "is_a",
+      "score": 0.96,
+      "source": {
+        "extraction": "composition_induction_fixture",
+        "source_id": "v035-semantic-graph",
+        "source_version": "1"
+      },
+      "to_id": "m_34f2671b15cc116aa04ec6a5"
+    },
+    {
+      "confidence": 0.97,
+      "from_id": "m_78e929af459465fda1905964",
+      "metadata": {
+        "predictive_family": false,
+        "role": "composition_induction_premise"
+      },
+      "relation_type": "is_a",
+      "score": 0.96,
+      "source": {
+        "extraction": "composition_induction_fixture",
+        "source_id": "v035-semantic-graph",
+        "source_version": "1"
+      },
+      "to_id": "m_5206c69efb3350f62a99bd0e"
+    },
+    {
+      "confidence": 0.96,
+      "from_id": "m_4a654e53d48d38c35fb591e8",
+      "metadata": {
+        "predictive_family": false,
+        "role": "composition_induction_premise"
+      },
+      "relation_type": "property",
+      "score": 0.94,
+      "source": {
+        "extraction": "composition_induction_fixture",
+        "source_id": "v035-semantic-graph",
+        "source_version": "1"
+      },
+      "to_id": "m_d1a10a1b79dfca1fc1cbc55d"
+    },
+    {
+      "confidence": 0.96,
+      "from_id": "m_34f2671b15cc116aa04ec6a5",
+      "metadata": {
+        "predictive_family": false,
+        "role": "composition_induction_premise"
+      },
+      "relation_type": "property",
+      "score": 0.93,
+      "source": {
+        "extraction": "composition_induction_fixture",
+        "source_id": "v035-semantic-graph",
+        "source_version": "1"
+      },
+      "to_id": "m_4b6b7ccfb6c24ad4179112f5"
+    }
+  ],
+  "format": "equinox-forge-ir-v1",
+  "nodes": [
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_067d7443db67e2be71e514a6",
+      "surface": "o"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_0e89cc9028126dcb350ad7f0",
+      "surface": "a"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_0fc6b4b51d317d48bdb77696",
+      "surface": "k"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_132126fc319cab92b38f5edd",
+      "surface": "]"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_1519008e6800cb8f93869359",
+      "surface": "l"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_15a18ac39698288fb1a91018",
+      "surface": "K"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_1a371ca4988365289108f6c2",
+      "surface": "i"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_2881d0f5ff66d5a5a903634a",
+      "surface": "O"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_292e599d0ba9bcdd44beb5e5",
+      "surface": "c"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_3510ecc33d8e1a348c0c6786",
+      "surface": "h"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_378672f12cb4344e8e3fe7dd",
+      "surface": "f"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_38bc09e968b2bef6ab7543b9",
+      "surface": "s"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_4e304d1d5053c0418f3cf06b",
+      "surface": "u"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_63226e2b8308e87a2c8b9efc",
+      "surface": "H"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_6b9322a21126cb317117d235",
+      "surface": "p"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_755669593e03ab127f4d84c6",
+      "surface": "W"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_8896424a7a5ad703e00a1ec3",
+      "surface": "w"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_91ad68ed9d0649716410d850",
+      "surface": "B"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_99799369ad132cd7e47da92b",
+      "surface": "e"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_99e43283886fe71a453f5876",
+      "surface": "["
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_a0d1c1dfb5825444d67dd681",
+      "surface": "j"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_ad652928813fe3dcb86d10f9",
+      "surface": "z"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_ae9d2c37a77e479fc0c3a832",
+      "surface": "b"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_b503efeb377360e9dd126dfa",
+      "surface": "0"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_b531642b306274deb5568859",
+      "surface": "r"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_b5a875b6d20faf89cf7b8931",
+      "surface": "F"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_b76b951d890390d6d2c75812",
+      "surface": "L"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_c6f6e6994e2cd21c9c0b4935",
+      "surface": "d"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_c815c7c3b11618ca6ade10d1",
+      "surface": "U"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_e2e74048c077843f1f88c6c7",
+      "surface": "_"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f33bd22ce5519138db3a4bce",
+      "surface": "T"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f3c6dde36b2355eb8abef831",
+      "surface": "S"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f534dbef81ff2a5b9c86842b",
+      "surface": "t"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f9c1ab02b020bf72a42dbb99",
+      "surface": "n"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_b5a875b6d20faf89cf7b8931",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_292e599d0ba9bcdd44beb5e5",
+        "q_3510ecc33d8e1a348c0c6786",
+        "q_38bc09e968b2bef6ab7543b9"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_254389e8439caa2712d3e482",
+      "surface": "Fuchs"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_755669593e03ab127f4d84c6",
+        "q_1a371ca4988365289108f6c2",
+        "q_1519008e6800cb8f93869359",
+        "q_c6f6e6994e2cd21c9c0b4935",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_1a371ca4988365289108f6c2",
+        "q_99799369ad132cd7e47da92b",
+        "q_b531642b306274deb5568859"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_34f2671b15cc116aa04ec6a5",
+      "surface": "Wildtier"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_63226e2b8308e87a2c8b9efc",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_c6f6e6994e2cd21c9c0b4935"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_42178d06f9c5e1b98384186a",
+      "surface": "Hund"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_8896424a7a5ad703e00a1ec3",
+        "q_067d7443db67e2be71e514a6",
+        "q_3510ecc33d8e1a348c0c6786",
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_f534dbef81ff2a5b9c86842b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_4a3719967841c13d604138bb",
+      "surface": "wohnt"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_63226e2b8308e87a2c8b9efc",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_38bc09e968b2bef6ab7543b9",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_1a371ca4988365289108f6c2",
+        "q_99799369ad132cd7e47da92b",
+        "q_b531642b306274deb5568859"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_4a654e53d48d38c35fb591e8",
+      "surface": "Haustier"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_91ad68ed9d0649716410d850",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_4e304d1d5053c0418f3cf06b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_4b6b7ccfb6c24ad4179112f5",
+      "surface": "Bau"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_2881d0f5ff66d5a5a903634a",
+        "q_ae9d2c37a77e479fc0c3a832",
+        "q_a0d1c1dfb5825444d67dd681",
+        "q_99799369ad132cd7e47da92b",
+        "q_0fc6b4b51d317d48bdb77696",
+        "q_f534dbef81ff2a5b9c86842b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_5206c69efb3350f62a99bd0e",
+      "surface": "Objekt"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_f3c6dde36b2355eb8abef831",
+        "q_292e599d0ba9bcdd44beb5e5",
+        "q_3510ecc33d8e1a348c0c6786",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_ad652928813fe3dcb86d10f9"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_6c2aa1c07ecd6362bbf89af7",
+      "surface": "Schutz"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_f3c6dde36b2355eb8abef831",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_99799369ad132cd7e47da92b",
+        "q_1a371ca4988365289108f6c2",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_78e929af459465fda1905964",
+      "surface": "Stein"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_755669593e03ab127f4d84c6",
+        "q_067d7443db67e2be71e514a6",
+        "q_1519008e6800cb8f93869359",
+        "q_378672f12cb4344e8e3fe7dd"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_833b79d0a68f7a8404ef150c",
+      "surface": "Wolf"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_15a18ac39698288fb1a91018",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_1a371ca4988365289108f6c2",
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_292e599d0ba9bcdd44beb5e5",
+        "q_3510ecc33d8e1a348c0c6786",
+        "q_99799369ad132cd7e47da92b",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_8b96f895f7143a861a44fbe9",
+      "surface": "Kaninchen"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_15a18ac39698288fb1a91018",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_ad652928813fe3dcb86d10f9",
+        "q_99799369ad132cd7e47da92b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_8f8d6efd0bd55cf0022982ac",
+      "surface": "Katze"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_99e43283886fe71a453f5876",
+        "q_f3c6dde36b2355eb8abef831",
+        "q_b76b951d890390d6d2c75812",
+        "q_2881d0f5ff66d5a5a903634a",
+        "q_f33bd22ce5519138db3a4bce",
+        "q_e2e74048c077843f1f88c6c7",
+        "q_b503efeb377360e9dd126dfa",
+        "q_132126fc319cab92b38f5edd"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_9a1c2daf8f22901db07f84f5",
+      "surface": "[SLOT_0]"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_63226e2b8308e87a2c8b9efc",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_38bc09e968b2bef6ab7543b9"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_d1a10a1b79dfca1fc1cbc55d",
+      "surface": "Haus"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_1a371ca4988365289108f6c2",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_d43bfd7f1b322b513cde68e7",
+      "surface": "in"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_c815c7c3b11618ca6ade10d1",
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_99799369ad132cd7e47da92b",
+        "q_b531642b306274deb5568859",
+        "q_38bc09e968b2bef6ab7543b9",
+        "q_292e599d0ba9bcdd44beb5e5",
+        "q_3510ecc33d8e1a348c0c6786",
+        "q_1519008e6800cb8f93869359",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_6b9322a21126cb317117d235",
+        "q_378672f12cb4344e8e3fe7dd"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_ec9aedf4c68656abe443bf48",
+      "surface": "Unterschlupf"
+    },
+    {
+      "kind": "template",
+      "level": 2,
+      "members": [
+        "m_9a1c2daf8f22901db07f84f5",
+        "m_4a3719967841c13d604138bb",
+        "m_d43bfd7f1b322b513cde68e7"
+      ],
+      "metadata": {
+        "composition_conflict_streak": 0,
+        "composition_lifecycle_reason": "repeated_source_novel_support",
+        "composition_lifecycle_status": "stable",
+        "composition_lifecycle_version": "0.36",
+        "composition_support_streak": 2,
+        "coverage": 1.0,
+        "direct_prediction_family": false,
+        "distinct_filler_count": 3,
+        "example_count": 3,
+        "induced": true,
+        "induction_status": "stable",
+        "induction_version": "0.35",
+        "mean_path_quality": 0.8343552,
+        "min_path_quality": 0.5,
+        "path": [
+          {
+            "direction": "out",
+            "relation_type": "is_a"
+          },
+          {
+            "direction": "out",
+            "relation_type": "property"
+          }
+        ],
+        "pattern_tokens": [
+          "[SLOT_0]",
+          "wohnt",
+          "in"
+        ],
+        "role": "relation_composition_schema",
+        "source_count": 3,
+        "status": "stable",
+        "support_count": 3,
+        "support_margin": 3,
+        "supporting_prompts": [
+          "Katze wohnt in",
+          "Kaninchen wohnt in",
+          "Fuchs wohnt in"
+        ],
+        "supporting_sources": [
+          "support-2-a@1",
+          "support-2-b@1",
+          "support-2-c@1"
+        ],
+        "supporting_targets": [
+          "Haus",
+          "Bau",
+          "Bau"
+        ]
+      },
+      "modality": "text",
+      "node_id": "m_b141a7baa6e30c829615823f",
+      "surface": "[SLOT_0] wohnt in :: is_a>property"
+    }
+  ]
+}

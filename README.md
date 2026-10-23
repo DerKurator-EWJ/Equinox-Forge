@@ -1,4 +1,33 @@
-# Equinox Forge v0.35 — Automatic Relation Composition Induction
+# Equinox Forge v0.36 — Composition Hypothesis Lifecycle
+
+v0.36 adds persistent governance for the relation-composition programs introduced in v0.35. A program that is strong in one induction rebuild is no longer automatically authoritative at runtime. Single-run induction status and persistent lifecycle status are now separate concepts.
+
+The frozen lifecycle benchmark drives one automatically induced program through:
+
+```text
+support_1   -> candidate  -> runtime ABSTAIN
+support_2   -> stable     -> Hund wohnt in -> Haus
+conflict_1  -> contested  -> runtime ABSTAIN
+conflict_2  -> quarantined-> runtime ABSTAIN
+recovery_1  -> candidate  -> runtime ABSTAIN
+recovery_2  -> stable     -> Hund wohnt in -> Haus
+```
+
+Promotion and quarantine require **source-novel evidence epochs**. Replaying the same support set does not manufacture stability, and replaying the same conflict set does not manufacture quarantine. Only lifecycle `stable` programs are exposed to the default runtime as executable relation-composition schemas.
+
+Persistent state is stored in `composition_hypothesis_runs` and `composition_hypothesis_states`, including support/conflict streaks, missed rebuilds, source-set history, and stable hypothesis identity across rebuilds.
+
+Run:
+
+```bash
+eqforge-composition-lifecycle --out out/v0_36_composition_lifecycle
+```
+
+See `RELEASE_V0_36.md` and `benchmarks/v0_36/`.
+
+---
+
+## Previous milestone — v0.35 Automatic Relation Composition Induction
 
 v0.35 removes the fixture-authored composition schema used by v0.34. Forge now discovers a one-slot relation pattern and a reusable semantic path program from repeated direct observations plus an independently represented semantic graph.
 

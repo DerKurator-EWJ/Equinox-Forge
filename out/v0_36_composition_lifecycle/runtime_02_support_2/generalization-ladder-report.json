@@ -1,0 +1,1171 @@
+{
+  "backend_manifest": {
+    "backend_id": "v031-scripted-ladder",
+    "fixture": true,
+    "frozen_dataset": "9a68c0ae24c7db62c3f104ca75d63d541fd0d5cb4ebd970dd635570c77d9a118"
+  },
+  "cases_detail": [
+    {
+      "direct_replay": {
+        "conditional_js_divergence": 9.280256273665608e-17,
+        "conditional_total_variation": 5.3644182013146136e-09,
+        "ndcg_at_k": 1.0,
+        "overlap_count": 3,
+        "prompt": "Hund kann",
+        "recall_nodes": 3,
+        "relation_checks": 3,
+        "resolved_context": true,
+        "runtime_candidates": [
+          {
+            "score": 0.7409999635219577,
+            "surface": "bellen"
+          },
+          {
+            "score": 0.13299999889731406,
+            "surface": "laufen"
+          },
+          {
+            "score": 0.07599999734759333,
+            "surface": "schlafen"
+          }
+        ],
+        "runtime_precision_against_teacher_topk": 1.0,
+        "runtime_top1": "bellen",
+        "teacher_candidates": [
+          {
+            "probability": 0.78,
+            "surface": "bellen"
+          },
+          {
+            "probability": 0.14,
+            "surface": "laufen"
+          },
+          {
+            "probability": 0.08,
+            "surface": "schlafen"
+          }
+        ],
+        "teacher_probability_mass_captured_by_probe": 1.0,
+        "teacher_probability_mass_retained_in_runtime_topk": 1.0,
+        "teacher_top1": "bellen",
+        "teacher_top1_runtime_rank": 1,
+        "teacher_topk_recall": 1.0,
+        "top1_match": true
+      },
+      "family": "ability",
+      "full_runtime": {
+        "conditional_js_divergence": 9.280256273665608e-17,
+        "conditional_total_variation": 5.3644182013146136e-09,
+        "ndcg_at_k": 1.0,
+        "overlap_count": 3,
+        "prompt": "Hund kann",
+        "recall_nodes": 7,
+        "relation_checks": 24,
+        "resolved_context": true,
+        "runtime_candidates": [
+          {
+            "score": 0.7409999635219577,
+            "surface": "bellen"
+          },
+          {
+            "score": 0.13299999889731406,
+            "surface": "laufen"
+          },
+          {
+            "score": 0.07599999734759333,
+            "surface": "schlafen"
+          }
+        ],
+        "runtime_precision_against_teacher_topk": 1.0,
+        "runtime_top1": "bellen",
+        "teacher_candidates": [
+          {
+            "probability": 0.78,
+            "surface": "bellen"
+          },
+          {
+            "probability": 0.14,
+            "surface": "laufen"
+          },
+          {
+            "probability": 0.08,
+            "surface": "schlafen"
+          }
+        ],
+        "teacher_probability_mass_captured_by_probe": 1.0,
+        "teacher_probability_mass_retained_in_runtime_topk": 1.0,
+        "teacher_top1": "bellen",
+        "teacher_top1_runtime_rank": 1,
+        "teacher_topk_recall": 1.0,
+        "top1_match": true
+      },
+      "level": 0,
+      "level_name": "exact_replay_control",
+      "note": "exact replay control",
+      "prompt": "Hund kann",
+      "structural": {
+        "bigram_coverage": 1.0,
+        "bigrams": 1,
+        "contract_violations": [],
+        "exact_in_train": true,
+        "family_seen_in_train": true,
+        "known_bigrams": 1,
+        "known_tokens": 2,
+        "level_name": "exact_replay_control",
+        "novel_tokens": 0,
+        "prompt": "Hund kann",
+        "prompt_tokens": [
+          "Hund",
+          "kann"
+        ],
+        "proper_train_suffix": null,
+        "requested_level": 0,
+        "resolved_context_surfaces": [
+          "Hund kann"
+        ],
+        "resolved_context_width": 2,
+        "runtime_resolution_kind": "exact",
+        "structural_contract_ok": true,
+        "token_coverage": 1.0
+      }
+    },
+    {
+      "direct_replay": {
+        "conditional_js_divergence": 9.280256273665608e-17,
+        "conditional_total_variation": 5.3644182013146136e-09,
+        "ndcg_at_k": 1.0,
+        "overlap_count": 3,
+        "prompt": "Mein Hund kann",
+        "recall_nodes": 3,
+        "relation_checks": 3,
+        "resolved_context": true,
+        "runtime_candidates": [
+          {
+            "score": 0.7409999635219577,
+            "surface": "bellen"
+          },
+          {
+            "score": 0.13299999889731406,
+            "surface": "laufen"
+          },
+          {
+            "score": 0.07599999734759333,
+            "surface": "schlafen"
+          }
+        ],
+        "runtime_precision_against_teacher_topk": 1.0,
+        "runtime_top1": "bellen",
+        "teacher_candidates": [
+          {
+            "probability": 0.78,
+            "surface": "bellen"
+          },
+          {
+            "probability": 0.14,
+            "surface": "laufen"
+          },
+          {
+            "probability": 0.08,
+            "surface": "schlafen"
+          }
+        ],
+        "teacher_probability_mass_captured_by_probe": 1.0,
+        "teacher_probability_mass_retained_in_runtime_topk": 1.0,
+        "teacher_top1": "bellen",
+        "teacher_top1_runtime_rank": 1,
+        "teacher_topk_recall": 1.0,
+        "top1_match": true
+      },
+      "family": "ability",
+      "full_runtime": {
+        "conditional_js_divergence": 9.280256273665608e-17,
+        "conditional_total_variation": 5.3644182013146136e-09,
+        "ndcg_at_k": 1.0,
+        "overlap_count": 3,
+        "prompt": "Mein Hund kann",
+        "recall_nodes": 7,
+        "relation_checks": 24,
+        "resolved_context": true,
+        "runtime_candidates": [
+          {
+            "score": 0.7409999635219577,
+            "surface": "bellen"
+          },
+          {
+            "score": 0.13299999889731406,
+            "surface": "laufen"
+          },
+          {
+            "score": 0.07599999734759333,
+            "surface": "schlafen"
+          }
+        ],
+        "runtime_precision_against_teacher_topk": 1.0,
+        "runtime_top1": "bellen",
+        "teacher_candidates": [
+          {
+            "probability": 0.78,
+            "surface": "bellen"
+          },
+          {
+            "probability": 0.14,
+            "surface": "laufen"
+          },
+          {
+            "probability": 0.08,
+            "surface": "schlafen"
+          }
+        ],
+        "teacher_probability_mass_captured_by_probe": 1.0,
+        "teacher_probability_mass_retained_in_runtime_topk": 1.0,
+        "teacher_top1": "bellen",
+        "teacher_top1_runtime_rank": 1,
+        "teacher_topk_recall": 1.0,
+        "top1_match": true
+      },
+      "level": 1,
+      "level_name": "known_suffix_in_new_outer_context",
+      "note": "new prefix, known predictive suffix",
+      "prompt": "Mein Hund kann",
+      "structural": {
+        "bigram_coverage": 0.5,
+        "bigrams": 2,
+        "contract_violations": [],
+        "exact_in_train": false,
+        "family_seen_in_train": true,
+        "known_bigrams": 1,
+        "known_tokens": 2,
+        "level_name": "known_suffix_in_new_outer_context",
+        "novel_tokens": 1,
+        "prompt": "Mein Hund kann",
+        "prompt_tokens": [
+          "Mein",
+          "Hund",
+          "kann"
+        ],
+        "proper_train_suffix": "Hund kann",
+        "requested_level": 1,
+        "resolved_context_surfaces": [
+          "Hund kann"
+        ],
+        "resolved_context_width": 2,
+        "runtime_resolution_kind": "suffix_or_structural",
+        "structural_contract_ok": true,
+        "token_coverage": 0.6666666666666666
+      }
+    },
+    {
+      "direct_replay": {
+        "conditional_js_divergence": 1.0,
+        "conditional_total_variation": 0.5,
+        "ndcg_at_k": 0.0,
+        "overlap_count": 0,
+        "prompt": "Hund jagt Maus",
+        "recall_nodes": 3,
+        "relation_checks": 0,
+        "resolved_context": false,
+        "runtime_candidates": [],
+        "runtime_precision_against_teacher_topk": 0.0,
+        "runtime_top1": null,
+        "teacher_candidates": [
+          {
+            "probability": 0.72,
+            "surface": "heute"
+          },
+          {
+            "probability": 0.18,
+            "surface": "schnell"
+          },
+          {
+            "probability": 0.1,
+            "surface": "draußen"
+          }
+        ],
+        "teacher_probability_mass_captured_by_probe": 1.0,
+        "teacher_probability_mass_retained_in_runtime_topk": 0.0,
+        "teacher_top1": "heute",
+        "teacher_top1_runtime_rank": null,
+        "teacher_topk_recall": 0.0,
+        "top1_match": false
+      },
+      "family": "hunting",
+      "full_runtime": {
+        "conditional_js_divergence": 1.1252035449504425e-16,
+        "conditional_total_variation": 2.2351740250337038e-09,
+        "ndcg_at_k": 1.0,
+        "overlap_count": 3,
+        "prompt": "Hund jagt Maus",
+        "recall_nodes": 8,
+        "relation_checks": 25,
+        "resolved_context": false,
+        "runtime_candidates": [
+          {
+            "score": 0.23842336392227392,
+            "surface": "heute"
+          },
+          {
+            "score": 0.059605840980568536,
+            "surface": "schnell"
+          },
+          {
+            "score": 0.033114355277911955,
+            "surface": "draußen"
+          }
+        ],
+        "runtime_precision_against_teacher_topk": 1.0,
+        "runtime_top1": "heute",
+        "teacher_candidates": [
+          {
+            "probability": 0.72,
+            "surface": "heute"
+          },
+          {
+            "probability": 0.18,
+            "surface": "schnell"
+          },
+          {
+            "probability": 0.1,
+            "surface": "draußen"
+          }
+        ],
+        "teacher_probability_mass_captured_by_probe": 1.0,
+        "teacher_probability_mass_retained_in_runtime_topk": 1.0,
+        "teacher_top1": "heute",
+        "teacher_top1_runtime_rank": 1,
+        "teacher_topk_recall": 1.0,
+        "top1_match": true
+      },
+      "level": 2,
+      "level_name": "novel_recombination_known_parts",
+      "note": "known words + known local relation in new composition",
+      "prompt": "Hund jagt Maus",
+      "structural": {
+        "bigram_coverage": 0.5,
+        "bigrams": 2,
+        "contract_violations": [],
+        "exact_in_train": false,
+        "family_seen_in_train": true,
+        "known_bigrams": 1,
+        "known_tokens": 3,
+        "level_name": "novel_recombination_known_parts",
+        "novel_tokens": 0,
+        "prompt": "Hund jagt Maus",
+        "prompt_tokens": [
+          "Hund",
+          "jagt",
+          "Maus"
+        ],
+        "proper_train_suffix": null,
+        "requested_level": 2,
+        "resolved_context_surfaces": [],
+        "resolved_context_width": 0,
+        "runtime_resolution_kind": "lexical_only",
+        "structural_contract_ok": true,
+        "token_coverage": 1.0
+      }
+    },
+    {
+      "direct_replay": {
+        "conditional_js_divergence": 1.0,
+        "conditional_total_variation": 0.5,
+        "ndcg_at_k": 0.0,
+        "overlap_count": 0,
+        "prompt": "Maus sieht Hund",
+        "recall_nodes": 3,
+        "relation_checks": 0,
+        "resolved_context": false,
+        "runtime_candidates": [],
+        "runtime_precision_against_teacher_topk": 0.0,
+        "runtime_top1": null,
+        "teacher_candidates": [
+          {
+            "probability": 0.72,
+            "surface": "heute"
+          },
+          {
+            "probability": 0.18,
+            "surface": "ruhig"
+          },
+          {
+            "probability": 0.1,
+            "surface": "draußen"
+          }
+        ],
+        "teacher_probability_mass_captured_by_probe": 1.0,
+        "teacher_probability_mass_retained_in_runtime_topk": 0.0,
+        "teacher_top1": "heute",
+        "teacher_top1_runtime_rank": null,
+        "teacher_topk_recall": 0.0,
+        "top1_match": false
+      },
+      "family": "perception-reversed",
+      "full_runtime": {
+        "conditional_js_divergence": 1.1252035449504425e-16,
+        "conditional_total_variation": 2.2351740250337038e-09,
+        "ndcg_at_k": 1.0,
+        "overlap_count": 3,
+        "prompt": "Maus sieht Hund",
+        "recall_nodes": 9,
+        "relation_checks": 26,
+        "resolved_context": false,
+        "runtime_candidates": [
+          {
+            "score": 0.23842336392227392,
+            "surface": "heute"
+          },
+          {
+            "score": 0.059605840980568536,
+            "surface": "ruhig"
+          },
+          {
+            "score": 0.033114355277911955,
+            "surface": "draußen"
+          }
+        ],
+        "runtime_precision_against_teacher_topk": 1.0,
+        "runtime_top1": "heute",
+        "teacher_candidates": [
+          {
+            "probability": 0.72,
+            "surface": "heute"
+          },
+          {
+            "probability": 0.18,
+            "surface": "ruhig"
+          },
+          {
+            "probability": 0.1,
+            "surface": "draußen"
+          }
+        ],
+        "teacher_probability_mass_captured_by_probe": 1.0,
+        "teacher_probability_mass_retained_in_runtime_topk": 1.0,
+        "teacher_top1": "heute",
+        "teacher_top1_runtime_rank": 1,
+        "teacher_topk_recall": 1.0,
+        "top1_match": true
+      },
+      "level": 3,
+      "level_name": "novel_relation_order_known_lexicon",
+      "note": "known lexicon, unseen local order",
+      "prompt": "Maus sieht Hund",
+      "structural": {
+        "bigram_coverage": 0.0,
+        "bigrams": 2,
+        "contract_violations": [],
+        "exact_in_train": false,
+        "family_seen_in_train": false,
+        "known_bigrams": 0,
+        "known_tokens": 3,
+        "level_name": "novel_relation_order_known_lexicon",
+        "novel_tokens": 0,
+        "prompt": "Maus sieht Hund",
+        "prompt_tokens": [
+          "Maus",
+          "sieht",
+          "Hund"
+        ],
+        "proper_train_suffix": null,
+        "requested_level": 3,
+        "resolved_context_surfaces": [],
+        "resolved_context_width": 0,
+        "runtime_resolution_kind": "lexical_only",
+        "structural_contract_ok": true,
+        "token_coverage": 1.0
+      }
+    },
+    {
+      "direct_replay": {
+        "conditional_js_divergence": 1.0,
+        "conditional_total_variation": 0.5,
+        "ndcg_at_k": 0.0,
+        "overlap_count": 0,
+        "prompt": "Wolf ist ein",
+        "recall_nodes": 3,
+        "relation_checks": 0,
+        "resolved_context": false,
+        "runtime_candidates": [],
+        "runtime_precision_against_teacher_topk": 0.0,
+        "runtime_top1": null,
+        "teacher_candidates": [
+          {
+            "probability": 0.82,
+            "surface": "Tier"
+          },
+          {
+            "probability": 0.12,
+            "surface": "Wesen"
+          },
+          {
+            "probability": 0.06,
+            "surface": "Haustier"
+          }
+        ],
+        "teacher_probability_mass_captured_by_probe": 1.0,
+        "teacher_probability_mass_retained_in_runtime_topk": 0.0,
+        "teacher_top1": "Tier",
+        "teacher_top1_runtime_rank": null,
+        "teacher_topk_recall": 0.0,
+        "top1_match": false
+      },
+      "family": "taxonomy",
+      "full_runtime": {
+        "conditional_js_divergence": 0.015727304067395476,
+        "conditional_total_variation": 0.07279574687066129,
+        "ndcg_at_k": 0.991513787376936,
+        "overlap_count": 3,
+        "prompt": "Wolf ist ein",
+        "recall_nodes": 13,
+        "relation_checks": 47,
+        "resolved_context": false,
+        "runtime_candidates": [
+          {
+            "score": 0.46934268747922614,
+            "surface": "Tier"
+          },
+          {
+            "score": 0.07789540266730344,
+            "surface": "Haustier"
+          },
+          {
+            "score": 0.0393424630934095,
+            "surface": "Wesen"
+          }
+        ],
+        "runtime_precision_against_teacher_topk": 1.0,
+        "runtime_top1": "Tier",
+        "teacher_candidates": [
+          {
+            "probability": 0.82,
+            "surface": "Tier"
+          },
+          {
+            "probability": 0.12,
+            "surface": "Wesen"
+          },
+          {
+            "probability": 0.06,
+            "surface": "Haustier"
+          }
+        ],
+        "teacher_probability_mass_captured_by_probe": 1.0,
+        "teacher_probability_mass_retained_in_runtime_topk": 1.0,
+        "teacher_top1": "Tier",
+        "teacher_top1_runtime_rank": 1,
+        "teacher_topk_recall": 1.0,
+        "top1_match": true
+      },
+      "level": 4,
+      "level_name": "novel_entity_known_relational_frame",
+      "note": "novel entity in a known relational frame",
+      "prompt": "Wolf ist ein",
+      "structural": {
+        "bigram_coverage": 0.5,
+        "bigrams": 2,
+        "contract_violations": [],
+        "exact_in_train": false,
+        "family_seen_in_train": true,
+        "known_bigrams": 1,
+        "known_tokens": 2,
+        "level_name": "novel_entity_known_relational_frame",
+        "novel_tokens": 1,
+        "prompt": "Wolf ist ein",
+        "prompt_tokens": [
+          "Wolf",
+          "ist",
+          "ein"
+        ],
+        "proper_train_suffix": null,
+        "requested_level": 4,
+        "resolved_context_surfaces": [],
+        "resolved_context_width": 0,
+        "runtime_resolution_kind": "lexical_only",
+        "structural_contract_ok": true,
+        "token_coverage": 0.6666666666666666
+      }
+    },
+    {
+      "direct_replay": {
+        "conditional_js_divergence": 0.10803154614560012,
+        "conditional_total_variation": 0.19999999999999998,
+        "ndcg_at_k": 0.873637535917102,
+        "overlap_count": 1,
+        "prompt": "Hund wohnt in",
+        "recall_nodes": 3,
+        "relation_checks": 0,
+        "resolved_context": false,
+        "runtime_candidates": [
+          {
+            "score": 0.7226707839763727,
+            "surface": "Haus"
+          }
+        ],
+        "runtime_precision_against_teacher_topk": 1.0,
+        "runtime_top1": "Haus",
+        "teacher_candidates": [
+          {
+            "probability": 0.8,
+            "surface": "Haus"
+          },
+          {
+            "probability": 0.12,
+            "surface": "Stadt"
+          },
+          {
+            "probability": 0.08,
+            "surface": "Nähe"
+          }
+        ],
+        "teacher_probability_mass_captured_by_probe": 1.0,
+        "teacher_probability_mass_retained_in_runtime_topk": 0.8,
+        "teacher_top1": "Haus",
+        "teacher_top1_runtime_rank": 1,
+        "teacher_topk_recall": 0.3333333333333333,
+        "top1_match": true
+      },
+      "family": "residence-preposition",
+      "full_runtime": {
+        "conditional_js_divergence": 0.10803154614560012,
+        "conditional_total_variation": 0.19999999999999998,
+        "ndcg_at_k": 0.873637535917102,
+        "overlap_count": 1,
+        "prompt": "Hund wohnt in",
+        "recall_nodes": 10,
+        "relation_checks": 27,
+        "resolved_context": false,
+        "runtime_candidates": [
+          {
+            "score": 0.7226707839763727,
+            "surface": "Haus"
+          }
+        ],
+        "runtime_precision_against_teacher_topk": 1.0,
+        "runtime_top1": "Haus",
+        "teacher_candidates": [
+          {
+            "probability": 0.8,
+            "surface": "Haus"
+          },
+          {
+            "probability": 0.12,
+            "surface": "Stadt"
+          },
+          {
+            "probability": 0.08,
+            "surface": "Nähe"
+          }
+        ],
+        "teacher_probability_mass_captured_by_probe": 1.0,
+        "teacher_probability_mass_retained_in_runtime_topk": 0.8,
+        "teacher_top1": "Haus",
+        "teacher_top1_runtime_rank": 1,
+        "teacher_topk_recall": 0.3333333333333333,
+        "top1_match": true
+      },
+      "level": 5,
+      "level_name": "heldout_relation_family",
+      "note": "entire relation family held out",
+      "prompt": "Hund wohnt in",
+      "structural": {
+        "bigram_coverage": 0.0,
+        "bigrams": 2,
+        "contract_violations": [],
+        "exact_in_train": false,
+        "family_seen_in_train": false,
+        "known_bigrams": 0,
+        "known_tokens": 3,
+        "level_name": "heldout_relation_family",
+        "novel_tokens": 0,
+        "prompt": "Hund wohnt in",
+        "prompt_tokens": [
+          "Hund",
+          "wohnt",
+          "in"
+        ],
+        "proper_train_suffix": null,
+        "requested_level": 5,
+        "resolved_context_surfaces": [],
+        "resolved_context_width": 0,
+        "runtime_resolution_kind": "lexical_only",
+        "structural_contract_ok": true,
+        "token_coverage": 1.0
+      }
+    }
+  ],
+  "compiled_prediction_evidence": 30,
+  "evaluation_cases": 6,
+  "evaluation_dataset_sha256": "d8cdc79052ec47e05767b5010c30d1a2b78209c08a28d76c742202c0c2284dc7",
+  "evaluation_scope": "stratified_generalization_ladder",
+  "exact_replay_controls": 1,
+  "format": "equinox-forge-generalization-ladder-v1",
+  "generalization_claim": false,
+  "heldout_cases": 5,
+  "highest_contiguous_level_with_full_top1_success": 5,
+  "highest_level_with_any_top1_success": 5,
+  "highest_level_with_full_top1_success": 5,
+  "level_reports": [
+    {
+      "cases": 1,
+      "direct_replay": {
+        "average_recall_nodes": 3.0,
+        "average_relation_checks": 3.0,
+        "cases": 1,
+        "mean_conditional_js_divergence": 9.280256273665608e-17,
+        "mean_conditional_total_variation": 5.3644182013146136e-09,
+        "mean_ndcg_at_k": 1.0,
+        "mean_runtime_precision_against_teacher_topk": 1.0,
+        "mean_teacher_probability_mass_captured_by_probe": 1.0,
+        "mean_teacher_probability_mass_retained_in_runtime_topk": 1.0,
+        "mean_teacher_topk_recall": 1.0,
+        "no_runtime_predictions": 0,
+        "top1_retention": 1.0,
+        "unresolved_contexts": 0
+      },
+      "full_runtime": {
+        "average_recall_nodes": 7.0,
+        "average_relation_checks": 24.0,
+        "cases": 1,
+        "mean_conditional_js_divergence": 9.280256273665608e-17,
+        "mean_conditional_total_variation": 5.3644182013146136e-09,
+        "mean_ndcg_at_k": 1.0,
+        "mean_runtime_precision_against_teacher_topk": 1.0,
+        "mean_teacher_probability_mass_captured_by_probe": 1.0,
+        "mean_teacher_probability_mass_retained_in_runtime_topk": 1.0,
+        "mean_teacher_topk_recall": 1.0,
+        "no_runtime_predictions": 0,
+        "top1_retention": 1.0,
+        "unresolved_contexts": 0
+      },
+      "level": 0,
+      "level_name": "exact_replay_control",
+      "mean_bigram_coverage": 1.0,
+      "mean_conditional_js_divergence": 9.280256273665608e-17,
+      "mean_ndcg_at_k": 1.0,
+      "mean_teacher_probability_mass_retained": 1.0,
+      "mean_teacher_topk_recall": 1.0,
+      "mean_token_coverage": 1.0,
+      "resolved_context_rate": 1.0,
+      "structural_contract_pass_rate": 1.0,
+      "top1_retention": 1.0
+    },
+    {
+      "cases": 1,
+      "direct_replay": {
+        "average_recall_nodes": 3.0,
+        "average_relation_checks": 3.0,
+        "cases": 1,
+        "mean_conditional_js_divergence": 9.280256273665608e-17,
+        "mean_conditional_total_variation": 5.3644182013146136e-09,
+        "mean_ndcg_at_k": 1.0,
+        "mean_runtime_precision_against_teacher_topk": 1.0,
+        "mean_teacher_probability_mass_captured_by_probe": 1.0,
+        "mean_teacher_probability_mass_retained_in_runtime_topk": 1.0,
+        "mean_teacher_topk_recall": 1.0,
+        "no_runtime_predictions": 0,
+        "top1_retention": 1.0,
+        "unresolved_contexts": 0
+      },
+      "full_runtime": {
+        "average_recall_nodes": 7.0,
+        "average_relation_checks": 24.0,
+        "cases": 1,
+        "mean_conditional_js_divergence": 9.280256273665608e-17,
+        "mean_conditional_total_variation": 5.3644182013146136e-09,
+        "mean_ndcg_at_k": 1.0,
+        "mean_runtime_precision_against_teacher_topk": 1.0,
+        "mean_teacher_probability_mass_captured_by_probe": 1.0,
+        "mean_teacher_probability_mass_retained_in_runtime_topk": 1.0,
+        "mean_teacher_topk_recall": 1.0,
+        "no_runtime_predictions": 0,
+        "top1_retention": 1.0,
+        "unresolved_contexts": 0
+      },
+      "level": 1,
+      "level_name": "known_suffix_in_new_outer_context",
+      "mean_bigram_coverage": 0.5,
+      "mean_conditional_js_divergence": 9.280256273665608e-17,
+      "mean_ndcg_at_k": 1.0,
+      "mean_teacher_probability_mass_retained": 1.0,
+      "mean_teacher_topk_recall": 1.0,
+      "mean_token_coverage": 0.6666666666666666,
+      "resolved_context_rate": 1.0,
+      "structural_contract_pass_rate": 1.0,
+      "top1_retention": 1.0
+    },
+    {
+      "cases": 1,
+      "direct_replay": {
+        "average_recall_nodes": 3.0,
+        "average_relation_checks": 0.0,
+        "cases": 1,
+        "mean_conditional_js_divergence": 1.0,
+        "mean_conditional_total_variation": 0.5,
+        "mean_ndcg_at_k": 0.0,
+        "mean_runtime_precision_against_teacher_topk": 0.0,
+        "mean_teacher_probability_mass_captured_by_probe": 1.0,
+        "mean_teacher_probability_mass_retained_in_runtime_topk": 0.0,
+        "mean_teacher_topk_recall": 0.0,
+        "no_runtime_predictions": 1,
+        "top1_retention": 0.0,
+        "unresolved_contexts": 1
+      },
+      "full_runtime": {
+        "average_recall_nodes": 8.0,
+        "average_relation_checks": 25.0,
+        "cases": 1,
+        "mean_conditional_js_divergence": 1.1252035449504425e-16,
+        "mean_conditional_total_variation": 2.2351740250337038e-09,
+        "mean_ndcg_at_k": 1.0,
+        "mean_runtime_precision_against_teacher_topk": 1.0,
+        "mean_teacher_probability_mass_captured_by_probe": 1.0,
+        "mean_teacher_probability_mass_retained_in_runtime_topk": 1.0,
+        "mean_teacher_topk_recall": 1.0,
+        "no_runtime_predictions": 0,
+        "top1_retention": 1.0,
+        "unresolved_contexts": 1
+      },
+      "level": 2,
+      "level_name": "novel_recombination_known_parts",
+      "mean_bigram_coverage": 0.5,
+      "mean_conditional_js_divergence": 1.1252035449504425e-16,
+      "mean_ndcg_at_k": 1.0,
+      "mean_teacher_probability_mass_retained": 1.0,
+      "mean_teacher_topk_recall": 1.0,
+      "mean_token_coverage": 1.0,
+      "resolved_context_rate": 0.0,
+      "structural_contract_pass_rate": 1.0,
+      "top1_retention": 1.0
+    },
+    {
+      "cases": 1,
+      "direct_replay": {
+        "average_recall_nodes": 3.0,
+        "average_relation_checks": 0.0,
+        "cases": 1,
+        "mean_conditional_js_divergence": 1.0,
+        "mean_conditional_total_variation": 0.5,
+        "mean_ndcg_at_k": 0.0,
+        "mean_runtime_precision_against_teacher_topk": 0.0,
+        "mean_teacher_probability_mass_captured_by_probe": 1.0,
+        "mean_teacher_probability_mass_retained_in_runtime_topk": 0.0,
+        "mean_teacher_topk_recall": 0.0,
+        "no_runtime_predictions": 1,
+        "top1_retention": 0.0,
+        "unresolved_contexts": 1
+      },
+      "full_runtime": {
+        "average_recall_nodes": 9.0,
+        "average_relation_checks": 26.0,
+        "cases": 1,
+        "mean_conditional_js_divergence": 1.1252035449504425e-16,
+        "mean_conditional_total_variation": 2.2351740250337038e-09,
+        "mean_ndcg_at_k": 1.0,
+        "mean_runtime_precision_against_teacher_topk": 1.0,
+        "mean_teacher_probability_mass_captured_by_probe": 1.0,
+        "mean_teacher_probability_mass_retained_in_runtime_topk": 1.0,
+        "mean_teacher_topk_recall": 1.0,
+        "no_runtime_predictions": 0,
+        "top1_retention": 1.0,
+        "unresolved_contexts": 1
+      },
+      "level": 3,
+      "level_name": "novel_relation_order_known_lexicon",
+      "mean_bigram_coverage": 0.0,
+      "mean_conditional_js_divergence": 1.1252035449504425e-16,
+      "mean_ndcg_at_k": 1.0,
+      "mean_teacher_probability_mass_retained": 1.0,
+      "mean_teacher_topk_recall": 1.0,
+      "mean_token_coverage": 1.0,
+      "resolved_context_rate": 0.0,
+      "structural_contract_pass_rate": 1.0,
+      "top1_retention": 1.0
+    },
+    {
+      "cases": 1,
+      "direct_replay": {
+        "average_recall_nodes": 3.0,
+        "average_relation_checks": 0.0,
+        "cases": 1,
+        "mean_conditional_js_divergence": 1.0,
+        "mean_conditional_total_variation": 0.5,
+        "mean_ndcg_at_k": 0.0,
+        "mean_runtime_precision_against_teacher_topk": 0.0,
+        "mean_teacher_probability_mass_captured_by_probe": 1.0,
+        "mean_teacher_probability_mass_retained_in_runtime_topk": 0.0,
+        "mean_teacher_topk_recall": 0.0,
+        "no_runtime_predictions": 1,
+        "top1_retention": 0.0,
+        "unresolved_contexts": 1
+      },
+      "full_runtime": {
+        "average_recall_nodes": 13.0,
+        "average_relation_checks": 47.0,
+        "cases": 1,
+        "mean_conditional_js_divergence": 0.015727304067395476,
+        "mean_conditional_total_variation": 0.07279574687066129,
+        "mean_ndcg_at_k": 0.991513787376936,
+        "mean_runtime_precision_against_teacher_topk": 1.0,
+        "mean_teacher_probability_mass_captured_by_probe": 1.0,
+        "mean_teacher_probability_mass_retained_in_runtime_topk": 1.0,
+        "mean_teacher_topk_recall": 1.0,
+        "no_runtime_predictions": 0,
+        "top1_retention": 1.0,
+        "unresolved_contexts": 1
+      },
+      "level": 4,
+      "level_name": "novel_entity_known_relational_frame",
+      "mean_bigram_coverage": 0.5,
+      "mean_conditional_js_divergence": 0.015727304067395476,
+      "mean_ndcg_at_k": 0.991513787376936,
+      "mean_teacher_probability_mass_retained": 1.0,
+      "mean_teacher_topk_recall": 1.0,
+      "mean_token_coverage": 0.6666666666666666,
+      "resolved_context_rate": 0.0,
+      "structural_contract_pass_rate": 1.0,
+      "top1_retention": 1.0
+    },
+    {
+      "cases": 1,
+      "direct_replay": {
+        "average_recall_nodes": 3.0,
+        "average_relation_checks": 0.0,
+        "cases": 1,
+        "mean_conditional_js_divergence": 0.10803154614560012,
+        "mean_conditional_total_variation": 0.19999999999999998,
+        "mean_ndcg_at_k": 0.873637535917102,
+        "mean_runtime_precision_against_teacher_topk": 1.0,
+        "mean_teacher_probability_mass_captured_by_probe": 1.0,
+        "mean_teacher_probability_mass_retained_in_runtime_topk": 0.8,
+        "mean_teacher_topk_recall": 0.3333333333333333,
+        "no_runtime_predictions": 0,
+        "top1_retention": 1.0,
+        "unresolved_contexts": 1
+      },
+      "full_runtime": {
+        "average_recall_nodes": 10.0,
+        "average_relation_checks": 27.0,
+        "cases": 1,
+        "mean_conditional_js_divergence": 0.10803154614560012,
+        "mean_conditional_total_variation": 0.19999999999999998,
+        "mean_ndcg_at_k": 0.873637535917102,
+        "mean_runtime_precision_against_teacher_topk": 1.0,
+        "mean_teacher_probability_mass_captured_by_probe": 1.0,
+        "mean_teacher_probability_mass_retained_in_runtime_topk": 0.8,
+        "mean_teacher_topk_recall": 0.3333333333333333,
+        "no_runtime_predictions": 0,
+        "top1_retention": 1.0,
+        "unresolved_contexts": 1
+      },
+      "level": 5,
+      "level_name": "heldout_relation_family",
+      "mean_bigram_coverage": 0.0,
+      "mean_conditional_js_divergence": 0.10803154614560012,
+      "mean_ndcg_at_k": 0.873637535917102,
+      "mean_teacher_probability_mass_retained": 0.8,
+      "mean_teacher_topk_recall": 0.3333333333333333,
+      "mean_token_coverage": 1.0,
+      "resolved_context_rate": 0.0,
+      "structural_contract_pass_rate": 1.0,
+      "top1_retention": 1.0
+    }
+  ],
+  "notes": [
+    "L0 is an exact-replay control and is intentionally allowed to overlap the compile split; L1-L5 are held out as full prompts.",
+    "Evaluation teacher probes are written only under evaluation_only and are never inserted into train.sqlite or train.eqbase.",
+    "L1 tests reuse of an entire known predictive suffix inside a new outer context.",
+    "L2 tests a new composition of known lexical parts while requiring some previously observed local adjacency and forbidding L1 suffix replay.",
+    "L3 requires a known lexicon but novel local adjacency/order relative to the compile split.",
+    "L4 requires at least one novel lexical entity/token while retaining a previously observed relational frame.",
+    "L5 requires an explicitly labeled relation/task family that is wholly absent from the compile split.",
+    "The ladder reports observed transfer by stratum; it does not establish broad language generalization or reasoning equivalence to the teacher.",
+    "Auxiliary support documents compiled into the BASE: 1. They may supply non-predictive semantic evidence but evaluation teacher predictions are never inserted."
+  ],
+  "pack_bytes": 6298,
+  "pack_manifest": {
+    "binary_major": 1,
+    "binary_minor": 0,
+    "bytes_per_node": 66.29473684210527,
+    "bytes_per_relation": 13.878048780487806,
+    "compile_ms": 3.552365000359714,
+    "compression_run_id": 1,
+    "file_bytes": 6298,
+    "forge_version": "0.26",
+    "format": "equinox-runtime-base-v1",
+    "full_file_sha256": "4202407f7485d7b005652043a9cad2e292d4e948421f5a1b2eda23dc51a4208e",
+    "header_bytes": 112,
+    "index_bytes": 380,
+    "metadata_included": true,
+    "node_count": 95,
+    "node_section_bytes": 1175,
+    "pack_id": "v035-relation-composition-induction",
+    "pack_version": 35,
+    "payload_sha256": "0394323e0ba4cda71396af46d22810b18c6f586eae64d8434f08546b9f9badd4",
+    "relation_count": 41,
+    "relation_section_bytes": 569,
+    "roundtrip_valid": true,
+    "string_count": 200,
+    "string_table_bytes": 4062,
+    "verify_ms": 0.9342120001747389
+  },
+  "pack_nodes": 95,
+  "pack_relations": 41,
+  "relation_compile_policy": {
+    "min_confidence": 0.0,
+    "min_score": 0.0,
+    "min_sources": 1
+  },
+  "runtime_eval_elapsed_ms": 4.313827999794739,
+  "structural_diagnostics": [
+    {
+      "bigram_coverage": 1.0,
+      "bigrams": 1,
+      "contract_violations": [],
+      "exact_in_train": true,
+      "family_seen_in_train": true,
+      "known_bigrams": 1,
+      "known_tokens": 2,
+      "level_name": "exact_replay_control",
+      "novel_tokens": 0,
+      "prompt": "Hund kann",
+      "prompt_tokens": [
+        "Hund",
+        "kann"
+      ],
+      "proper_train_suffix": null,
+      "requested_level": 0,
+      "resolved_context_surfaces": [
+        "Hund kann"
+      ],
+      "resolved_context_width": 2,
+      "runtime_resolution_kind": "exact",
+      "structural_contract_ok": true,
+      "token_coverage": 1.0
+    },
+    {
+      "bigram_coverage": 0.5,
+      "bigrams": 2,
+      "contract_violations": [],
+      "exact_in_train": false,
+      "family_seen_in_train": true,
+      "known_bigrams": 1,
+      "known_tokens": 2,
+      "level_name": "known_suffix_in_new_outer_context",
+      "novel_tokens": 1,
+      "prompt": "Mein Hund kann",
+      "prompt_tokens": [
+        "Mein",
+        "Hund",
+        "kann"
+      ],
+      "proper_train_suffix": "Hund kann",
+      "requested_level": 1,
+      "resolved_context_surfaces": [
+        "Hund kann"
+      ],
+      "resolved_context_width": 2,
+      "runtime_resolution_kind": "suffix_or_structural",
+      "structural_contract_ok": true,
+      "token_coverage": 0.6666666666666666
+    },
+    {
+      "bigram_coverage": 0.5,
+      "bigrams": 2,
+      "contract_violations": [],
+      "exact_in_train": false,
+      "family_seen_in_train": true,
+      "known_bigrams": 1,
+      "known_tokens": 3,
+      "level_name": "novel_recombination_known_parts",
+      "novel_tokens": 0,
+      "prompt": "Hund jagt Maus",
+      "prompt_tokens": [
+        "Hund",
+        "jagt",
+        "Maus"
+      ],
+      "proper_train_suffix": null,
+      "requested_level": 2,
+      "resolved_context_surfaces": [],
+      "resolved_context_width": 0,
+      "runtime_resolution_kind": "lexical_only",
+      "structural_contract_ok": true,
+      "token_coverage": 1.0
+    },
+    {
+      "bigram_coverage": 0.0,
+      "bigrams": 2,
+      "contract_violations": [],
+      "exact_in_train": false,
+      "family_seen_in_train": false,
+      "known_bigrams": 0,
+      "known_tokens": 3,
+      "level_name": "novel_relation_order_known_lexicon",
+      "novel_tokens": 0,
+      "prompt": "Maus sieht Hund",
+      "prompt_tokens": [
+        "Maus",
+        "sieht",
+        "Hund"
+      ],
+      "proper_train_suffix": null,
+      "requested_level": 3,
+      "resolved_context_surfaces": [],
+      "resolved_context_width": 0,
+      "runtime_resolution_kind": "lexical_only",
+      "structural_contract_ok": true,
+      "token_coverage": 1.0
+    },
+    {
+      "bigram_coverage": 0.5,
+      "bigrams": 2,
+      "contract_violations": [],
+      "exact_in_train": false,
+      "family_seen_in_train": true,
+      "known_bigrams": 1,
+      "known_tokens": 2,
+      "level_name": "novel_entity_known_relational_frame",
+      "novel_tokens": 1,
+      "prompt": "Wolf ist ein",
+      "prompt_tokens": [
+        "Wolf",
+        "ist",
+        "ein"
+      ],
+      "proper_train_suffix": null,
+      "requested_level": 4,
+      "resolved_context_surfaces": [],
+      "resolved_context_width": 0,
+      "runtime_resolution_kind": "lexical_only",
+      "structural_contract_ok": true,
+      "token_coverage": 0.6666666666666666
+    },
+    {
+      "bigram_coverage": 0.0,
+      "bigrams": 2,
+      "contract_violations": [],
+      "exact_in_train": false,
+      "family_seen_in_train": false,
+      "known_bigrams": 0,
+      "known_tokens": 3,
+      "level_name": "heldout_relation_family",
+      "novel_tokens": 0,
+      "prompt": "Hund wohnt in",
+      "prompt_tokens": [
+        "Hund",
+        "wohnt",
+        "in"
+      ],
+      "proper_train_suffix": null,
+      "requested_level": 5,
+      "resolved_context_surfaces": [],
+      "resolved_context_width": 0,
+      "runtime_resolution_kind": "lexical_only",
+      "structural_contract_ok": true,
+      "token_coverage": 1.0
+    }
+  ],
+  "teacher_probe_elapsed_ms": 5.152285999429296,
+  "train_cases": 10,
+  "train_dataset_sha256": "d8e4b6e7f0fa9883020d51d0282b442e85373ef2d2a468b34073e75bd9b4884d",
+  "version": "0.20"
+}
