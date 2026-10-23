@@ -170,6 +170,8 @@ class CanonicalDB:
         ensure_exception_consensus_schema(self.db)
         from .composition_lifecycle import ensure_composition_lifecycle_schema
         ensure_composition_lifecycle_schema(self.db)
+        from .canonical_id_space import ensure_canonical_id_schema
+        ensure_canonical_id_schema(self.db)
 
     def _migrate_schema(self):
         # v0.3 makes repeated extraction runs idempotent. Existing v0.1/v0.2 DBs

@@ -1,3 +1,29 @@
+# Equinox Forge v0.44 — Canonical ID Space
+
+v0.44 introduces the numeric identity layer intended to become Equinox's language-independent knowledge substrate. Canonical nodes and relation types receive deterministic 63-bit handles; compiled knowledge can be materialized as pure numeric `(subject, predicate, object)` triples, while human-language surfaces live in a separate binding table. RuntimeCognition is unchanged from v0.40.
+
+```text
+Surface / Teacher / Modality
+          ↓
+canonical concept identity
+          ↓
+ numeric ID -- numeric relation ID --> numeric ID
+          ↓
+ future recursive macro collapse
+```
+
+`Eule` and `owl` can therefore resolve to the same concept handle without either string being the knowledge object itself. v0.44 does not auto-merge labels and does not yet perform recursive collapse; it establishes the stable formless ID space first.
+
+Run:
+
+```bash
+eqforge-canonical-id-space --out out/v0_44_canonical_id_space
+```
+
+See `RELEASE_V0_44.md` and `benchmarks/v0_44/`.
+
+---
+
 # Equinox Forge v0.43 — Marginal Structural Information-Gain Feasibility Audit
 
 v0.43 is a measurement release. It tests whether better prompt selection can, by itself, improve transfer on the fixed never-queryable shadow holdout under the unchanged v0.40 RuntimeCognition representation.
