@@ -1,28 +1,46 @@
-# Equinox Forge v0.55 — Unified Numeric Execution Kernel
+# Equinox Forge v0.56 — Direct Teacher → Flat Kernel Compiler
 
-v0.55 consolidates the numeric runtime work from v0.48-v0.54 into one flat DB-free runtime pack and one execution engine:
+v0.56 removes the historical nested runtime-pack chain from the deployment compiler path. Forge may still materialize research/audit state in SQLite, but the deployable output is compiled directly from Forge build runs into the flat v0.55 numeric execution format:
 
 ```text
-facts + surfaces + concept shortcuts + relation routes
-                       ↓
-          UnifiedNumericExecutionKernel
-                       ↓
-          resolve(subject_id, relation_id)
+Teacher
+  ↓
+Top-down structure extraction
+  ↓
+Canonical IDs + relation facets
+  ↓
+Structural closure
+  ↓
+Concept + relation macro collapse
+  ↓
+DIRECT FLAT COMPILE
+  ↓
+knowledge.eqkernel.json
+  ↓
+UnifiedNumericExecutionKernel
 ```
 
-The deployed kernel no longer nests the historical numeric, concept-macro, facet, relation-macro, and unified-relation runtime packs. Those layers remain in Forge for compatibility, audit, and regression comparison.
+No v0.48-v0.54 runtime pack is persisted or required by the direct compiler. Those historical pack builders remain only as regression oracles.
 
-Frozen v0.55 reference results:
+Frozen v0.56 reference results:
 
-- 240/240 compiled subject/relation query pairs semantically identical to v0.54,
-- 0 parity failures,
-- flat pack ≈ 67.23% of the nested v0.54 JSON size on the reference fixture,
-- runtime-only import requires none of the historical v0.48-v0.54 runtime modules.
+- 16 Teacher queries,
+- 2 concept-macro levels / 3 concept macros,
+- 2 relation-macro levels / 3 relation macros,
+- 24 flat canonical facts,
+- 24 validated concept shortcuts,
+- 15 numeric relation routes,
+- 100% reference runtime-query accuracy,
+- direct flat core exactly equal to the legacy nested→flattened oracle,
+- exactly one deployable runtime artifact: `knowledge.eqkernel.json`,
+- Teacher and Forge DB removed before runtime evaluation.
+
+The flat execution format remains **v0.55** because v0.56 changes compilation, not runtime semantics.
 
 Run:
 
 ```bash
-eqforge-unified-numeric-kernel --out out/v0_55_unified_numeric_kernel
+eqforge-direct-teacher-flat --out out/v0_56_direct_teacher_flat
 ```
 
-See `RELEASE_V0_55.md` and `benchmarks/v0_55/` for the frozen contract. Historical release notes and regression tests remain included.
+See `RELEASE_V0_56.md` and `benchmarks/v0_56/` for the frozen contract. Historical release notes and regression tests remain included.
