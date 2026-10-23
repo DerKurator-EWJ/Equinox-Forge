@@ -1,24 +1,40 @@
-# Equinox Forge v0.33 — Evidence-Backed Novel Entity Admission
+# Equinox Forge v0.34 — Evidence-Backed Relation Composition
 
-v0.33 restores conservative novel-entity transfer without reopening v0.31 lexical guessing. An entity may be known to the BASE through an independent semantic source while remaining unseen in every predictive training prompt. A recalled predictive context may generalize over that entity only when compiled semantic evidence supports the aligned substitution.
+v0.34 attacks the frozen L5 relation-family case without allowing opaque zero-shot guessing. A relation family that was never compiled as direct `PREDICTION` evidence may execute only when the BASE already contains both an explicit stable **relation-composition schema** and the complete non-predictive semantic path required by that schema.
 
-Against the v0.33 benchmark:
+The deterministic fixture uses:
 
-- L0–L3 remain `1.0`;
-- L4 returns from `0.0` to **`1.0`** for semantically supported `Wolf ist ein → Tier`;
-- `Stein ist ein` still abstains;
-- merely adding the `Wolf` surface to the BASE without semantic evidence still abstains;
-- L5 remains `0.0`.
+```text
+query schema: [SLOT_0] wohnt in
+semantic path: Hund --is_a--> Haustier --property--> Haus
+
+Hund wohnt in  -> Haus
+Stein wohnt in -> ABSTAIN
+```
+
+Against the v0.34 benchmark:
+
+- L0–L4 remain `1.0`;
+- the frozen L5 prompt rises from `0.0` to **`1.0`** only with schema + complete path;
+- graph-only, schema-only and runtime-ablation controls remain `0.0`;
+- an entity with an incomplete path (`Stein wohnt in`) abstains;
+- an unmatched phrase (`Hund wohnt aus`) abstains.
+
+This does **not** claim that Equinox can invent a genuinely unknown relation. The v0.34 schema is fixture-authored and compiled explicitly; automatic induction is a later research problem. L5 here means held out from direct predictive training, not absent from every representation in the BASE.
 
 Run:
 
 ```bash
-eqforge-novel-entity --out out/v0_33_novel_entity
+eqforge-relation-compose --out out/v0_34_relation_composition
 ```
 
-See `RELEASE_V0_33.md` and `benchmarks/v0_33/`.
+See `RELEASE_V0_34.md` and `benchmarks/v0_34/`.
 
 ---
+
+## Previous milestone — v0.33 Evidence-Backed Novel Entity Admission
+
+v0.33 restored conservative L4 transfer by requiring independent compiled semantic evidence for a novel entity. `Wolf ist ein -> Tier` is admitted only when semantic support exists; `Stein ist ein` and a surface-only `Wolf` control abstain. The historical benchmark remains available through `eqforge-novel-entity`.
 
 ## Previous milestone — v0.32 Support-Gated Prediction
 

@@ -12,9 +12,11 @@ init_text = (ROOT / "equinox_forge" / "__init__.py").read_text(encoding="utf-8")
 readme = (ROOT / "README.md").read_text(encoding="utf-8")
 contract = json.loads((ROOT / "benchmarks" / "v0_33" / "novel_entity_contract.json").read_text(encoding="utf-8"))
 
-assert re.search(r'^version\s*=\s*"0\.33\.0"', pyproject, flags=re.M)
-assert '__version__ = "0.33.0"' in init_text
-assert readme.startswith("# Equinox Forge v0.33")
+project_version = re.search(r'^version\s*=\s*"([^"]+)"', pyproject, flags=re.M).group(1)
+init_version = re.search(r'__version__\s*=\s*"([^"]+)"', init_text).group(1)
+assert tuple(map(int, project_version.split('.'))) >= (0, 33, 0)
+assert init_version == project_version
+assert readme.startswith("# Equinox Forge v0.")
 assert 'eqforge-novel-entity = "equinox_forge.novel_entity_admission:main"' in pyproject
 assert contract["positive_case"]["prompt"] == "Wolf ist ein"
 assert contract["negative_case"]["prompt"] == "Stein ist ein"

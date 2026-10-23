@@ -1,5 +1,0 @@
-[console_scripts]
-eqforge = equinox_forge.cli:main
-eqforge-gauntlet = equinox_forge.baseline_gauntlet:main
-eqforge-novel-entity = equinox_forge.novel_entity_admission:main
-eqforge-support-gate = equinox_forge.support_gate_benchmark:main

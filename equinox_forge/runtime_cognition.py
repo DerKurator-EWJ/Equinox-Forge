@@ -12,7 +12,7 @@ from .runtime_pack import LoadedRuntimePack, RuntimeNode, load_base_pack
 from .runtime_query import RuntimeIndex
 
 RUNTIME_COGNITION_FORMAT = "equinox-runtime-cognition-v2"
-RUNTIME_COGNITION_VERSION = "0.33"
+RUNTIME_COGNITION_VERSION = "0.34"
 
 
 @dataclass
@@ -59,6 +59,24 @@ class RuntimeCognitionPolicy:
         RelationType.CONTEXTUAL_SIMILARITY.value,
     )
     novel_entity_min_semantic_quality: float = 0.65
+    # v0.34: a relation family that has never been compiled as direct predictive
+    # evidence may execute only through an explicit relation-composition schema.
+    # The schema binds one live entity slot and traverses a fixed, audited sequence
+    # of non-predictive semantic relations. Truly opaque relation families remain
+    # unsupported and must abstain.
+    enable_relation_composition_prediction: bool = True
+    relation_composition_weight: float = 0.86
+    relation_composition_min_path_quality: float = 0.50
+    relation_composition_max_hops: int = 4
+    relation_composition_max_matches: int = 8
+    relation_composition_allowed_premise_types: tuple[str, ...] = (
+        RelationType.IS_A.value,
+        RelationType.PROPERTY.value,
+        RelationType.ACTION.value,
+    )
+    relation_composition_allowed_statuses: tuple[str, ...] = ("stable",)
+    relation_composition_min_schema_sources: int = 1
+    relation_composition_min_schema_support: int = 1
     # v0.22: explicit induced frame schemas such as [SLOT_0] ist ein.
     enable_frame_schema_matching: bool = True
     # v0.23: if an induced slot carries a compiled semantic admission profile,
@@ -111,6 +129,14 @@ class RuntimeCognitionPolicy:
         if not 0 <= self.recalled_support_min_overlap_fraction <= 1: raise ValueError("recalled_support_min_overlap_fraction must be in [0,1]")
         if not 0 <= self.novel_entity_min_semantic_quality <= 1: raise ValueError("novel_entity_min_semantic_quality must be in [0,1]")
         if not self.novel_entity_semantic_relation_types: raise ValueError("novel_entity_semantic_relation_types must not be empty")
+        if not 0 < self.relation_composition_weight <= 1: raise ValueError("relation_composition_weight must be in (0,1]")
+        if not 0 <= self.relation_composition_min_path_quality <= 1: raise ValueError("relation_composition_min_path_quality must be in [0,1]")
+        if self.relation_composition_max_hops < 1: raise ValueError("relation_composition_max_hops must be >= 1")
+        if self.relation_composition_max_matches < 1: raise ValueError("relation_composition_max_matches must be >= 1")
+        if not self.relation_composition_allowed_premise_types: raise ValueError("relation_composition_allowed_premise_types must not be empty")
+        if not self.relation_composition_allowed_statuses: raise ValueError("relation_composition_allowed_statuses must not be empty")
+        if self.relation_composition_min_schema_sources < 1: raise ValueError("relation_composition_min_schema_sources must be >= 1")
+        if self.relation_composition_min_schema_support < 1: raise ValueError("relation_composition_min_schema_support must be >= 1")
         if not 0 <= self.min_activation <= 1: raise ValueError("min_activation must be in [0,1]")
         if not 0 <= self.min_prediction_score <= 1: raise ValueError("min_prediction_score must be in [0,1]")
         if not 0 < self.depth_decay <= 1: raise ValueError("depth_decay must be in (0,1]")
@@ -157,6 +183,7 @@ class PredictionCandidate:
     transition_score: float
     contribution_count: int
     contributions: list[PredictionContribution]
+    composition_score: float = 0.0
 
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)
@@ -176,6 +203,7 @@ class RuntimePredictionReport:
     work: dict[str, int]
     policy: dict[str, Any]
     frame_admission: list[dict[str, Any]] = field(default_factory=list)
+    relation_composition: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -189,6 +217,7 @@ class RuntimePredictionReport:
             "work": dict(self.work),
             "policy": self.policy,
             "frame_admission": list(self.frame_admission),
+            "relation_composition": list(self.relation_composition),
         }
 
 
@@ -247,9 +276,10 @@ class RuntimeCognition:
     """Bounded read-only recall and prediction over a compiled .eqbase graph.
 
     Recall may use structural and associative relations to expose relevant contexts.
-    A prediction candidate, however, is emitted only from a compiled directed
-    PREDICTION or TRANSITION relation. Semantic similarity never becomes a next-word
-    claim by itself.
+    Prediction authority comes from compiled directed PREDICTION/TRANSITION evidence
+    or, since v0.34, from an explicit stable relation-composition schema whose full
+    semantic premise path exists in the BASE. Semantic similarity alone never becomes
+    a next-word claim by itself.
     """
 
     def __init__(self, pack: LoadedRuntimePack, policy: RuntimeCognitionPolicy | None = None):
@@ -315,6 +345,62 @@ class RuntimeCognition:
             })
         for width in self._frames_by_width:
             self._frames_by_width[width].sort(key=lambda x: (-int(x["scope_rank"]), -int(x["support"]), str(x["node_id"])))
+
+        # v0.34 relation-composition schemas are explicit compiled rules. They are
+        # indexed by live token width but are not prediction relations themselves.
+        # A schema may therefore expose a held-out *predictive* relation family only
+        # when a fixed semantic path already exists in the BASE.
+        self._relation_composition_by_width: dict[int, list[dict[str, Any]]] = {}
+        allowed_premises = set(self.policy.relation_composition_allowed_premise_types)
+        for node in pack.nodes:
+            meta = node.metadata or {}
+            if meta.get("role") != "relation_composition_schema":
+                continue
+            pattern = meta.get("pattern_tokens")
+            path = meta.get("path")
+            status = str(meta.get("status") or "candidate")
+            source_count = int(meta.get("source_count", 0) or 0)
+            support_count = int(meta.get("support_count", 0) or 0)
+            if status not in set(self.policy.relation_composition_allowed_statuses):
+                continue
+            if source_count < self.policy.relation_composition_min_schema_sources:
+                continue
+            if support_count < self.policy.relation_composition_min_schema_support:
+                continue
+            if not isinstance(pattern, list) or not pattern or not all(isinstance(x, str) for x in pattern):
+                continue
+            if not isinstance(path, list) or not path or len(path) > self.policy.relation_composition_max_hops:
+                continue
+            slot_positions = [i for i, tok in enumerate(pattern) if tok.startswith("[SLOT_") and tok.endswith("]")]
+            if len(slot_positions) != 1:
+                continue
+            clean_path: list[dict[str, str]] = []
+            valid = True
+            for step in path:
+                if not isinstance(step, dict):
+                    valid = False; break
+                rtype = str(step.get("relation_type") or "")
+                direction = str(step.get("direction") or "out")
+                if rtype not in allowed_premises or direction not in {"out", "in"}:
+                    valid = False; break
+                clean_path.append({"relation_type": rtype, "direction": direction})
+            if not valid:
+                continue
+            self._relation_composition_by_width.setdefault(len(pattern), []).append({
+                "node_id": node.node_id,
+                "surface": node.surface,
+                "pattern": list(pattern),
+                "slot_position": slot_positions[0],
+                "path": clean_path,
+                "status": status,
+                "support_count": support_count,
+                "source_count": source_count,
+                "min_path_quality": float(meta.get("min_path_quality", self.policy.relation_composition_min_path_quality) or self.policy.relation_composition_min_path_quality),
+            })
+        for width in self._relation_composition_by_width:
+            self._relation_composition_by_width[width].sort(
+                key=lambda x: (-int(x["source_count"]), -int(x["support_count"]), str(x["node_id"]))
+            )
 
         # Tokens that have actually participated in a compiled predictive context.
         # v0.33 uses this vocabulary to distinguish "known somewhere in the BASE"
@@ -739,6 +825,132 @@ class RuntimeCognition:
         }
         return traces, meta
 
+    def _match_relation_composition_schema(self, live_tokens: list[str], schema: dict[str, Any]) -> tuple[bool, str | None]:
+        pattern = list(schema.get("pattern") or [])
+        if len(pattern) != len(live_tokens):
+            return False, None
+        slot_position = int(schema.get("slot_position", -1))
+        if slot_position < 0 or slot_position >= len(pattern):
+            return False, None
+        for i, (want, got) in enumerate(zip(pattern, live_tokens)):
+            if i == slot_position:
+                continue
+            if want != got:
+                return False, None
+        return True, live_tokens[slot_position]
+
+    def _execute_relation_composition(self, live_tokens: list[str]) -> tuple[list[dict[str, Any]], dict[str, int]]:
+        """Execute stable compiled semantic path schemas for the live query.
+
+        This mechanism deliberately does not invent a missing relation. The query
+        wording must match an explicit schema and each hop must be backed by a
+        compiled non-predictive relation. The terminal node becomes a prediction
+        candidate only if the complete path clears the configured quality floor.
+        """
+        diagnostics: list[dict[str, Any]] = []
+        work = {
+            "relation_composition_schema_checks": 0,
+            "relation_composition_path_relation_checks": 0,
+            "relation_composition_matches": 0,
+            "relation_composition_admissions": 0,
+            "relation_composition_rejections": 0,
+        }
+        if not self.policy.enable_relation_composition_prediction:
+            return diagnostics, work
+        schemas = self._relation_composition_by_width.get(len(live_tokens), [])
+        for schema in schemas[: self.policy.relation_composition_max_matches]:
+            work["relation_composition_schema_checks"] += 1
+            matched, slot_surface = self._match_relation_composition_schema(live_tokens, schema)
+            diag: dict[str, Any] = {
+                "schema_node_id": schema.get("node_id"),
+                "schema_surface": schema.get("surface"),
+                "pattern_tokens": list(schema.get("pattern") or []),
+                "path": list(schema.get("path") or []),
+                "status": schema.get("status"),
+                "source_count": int(schema.get("source_count", 0) or 0),
+                "support_count": int(schema.get("support_count", 0) or 0),
+                "matched": matched,
+                "admitted": False,
+                "reason": "pattern_mismatch" if not matched else "",
+                "slot_surface": slot_surface,
+                "terminals": [],
+            }
+            if not matched or not slot_surface:
+                diagnostics.append(diag)
+                continue
+            work["relation_composition_matches"] += 1
+            starts = [
+                nid for nid in self.index.surface_to_nodes.get(slot_surface, [])
+                if self.index.node_by_id.get(nid) is not None
+                and self.index.node_by_id[nid].kind != NodeKind.QUANT.value
+            ]
+            if not starts:
+                diag["reason"] = "slot_surface_unknown"
+                work["relation_composition_rejections"] += 1
+                diagnostics.append(diag)
+                continue
+
+            # state = (node_id, quality, path_node_ids, path_edges)
+            states: list[tuple[str, float, list[str], list[dict[str, Any]]]] = [
+                (nid, 1.0, [nid], []) for nid in starts
+            ]
+            for step in list(schema.get("path") or []):
+                next_states: dict[str, tuple[float, list[str], list[dict[str, Any]]]] = {}
+                rtype = str(step["relation_type"]); direction = str(step.get("direction") or "out")
+                table = self.index.relations_from if direction == "out" else self.index.relations_to
+                for current, quality, path_nodes, path_edges in states:
+                    bucket = table.get(current, [])
+                    work["relation_composition_path_relation_checks"] += len(bucket)
+                    for rel in bucket:
+                        if rel.relation_type != rtype:
+                            continue
+                        nxt = rel.to_id if direction == "out" else rel.from_id
+                        if nxt in path_nodes:
+                            continue
+                        target = self.index.node_by_id.get(nxt)
+                        if target is None or target.kind == NodeKind.QUANT.value:
+                            continue
+                        edge_q = max(0.0, min(1.0, float(rel.score) * float(rel.confidence)))
+                        nq = quality * edge_q
+                        edge = {
+                            "from_id": rel.from_id, "to_id": rel.to_id,
+                            "relation_type": rel.relation_type, "direction": direction,
+                            "score": float(rel.score), "confidence": float(rel.confidence),
+                            "source_count": int(rel.source_count), "edge_quality": edge_q,
+                        }
+                        old = next_states.get(nxt)
+                        candidate = (nq, path_nodes + [nxt], path_edges + [edge])
+                        if old is None or nq > old[0] + 1e-12:
+                            next_states[nxt] = candidate
+                states = [(nid, row[0], row[1], row[2]) for nid, row in next_states.items()]
+                if not states:
+                    break
+
+            threshold = max(0.0, min(1.0, float(schema.get("min_path_quality", self.policy.relation_composition_min_path_quality))))
+            terminals = []
+            for nid, quality, path_nodes, path_edges in states:
+                node = self.index.node_by_id.get(nid)
+                if node is None or node.kind == NodeKind.QUANT.value or not node.surface:
+                    continue
+                if quality + 1e-12 < threshold:
+                    continue
+                terminals.append({
+                    "target_id": nid, "target_surface": node.surface, "path_quality": quality,
+                    "path_node_ids": path_nodes, "path_edges": path_edges,
+                })
+            terminals.sort(key=lambda x: (-float(x["path_quality"]), str(x["target_surface"]), str(x["target_id"])))
+            diag["terminals"] = terminals[: self.policy.max_predictions]
+            diag["min_path_quality"] = threshold
+            if not terminals:
+                diag["reason"] = "no_supported_composition_path"
+                work["relation_composition_rejections"] += 1
+            else:
+                diag["admitted"] = True
+                diag["reason"] = "compiled_relation_composition_path"
+                work["relation_composition_admissions"] += 1
+            diagnostics.append(diag)
+        return diagnostics, work
+
     def _novel_entity_semantic_substitution_support(
         self,
         live_tokens: list[str],
@@ -939,6 +1151,31 @@ class RuntimeCognition:
                 if rel.relation_type == RelationType.TRANSITION.value:
                     add(rel, act, self.policy.transition_weight, True)
 
+        # v0.34 explicit relation-composition schemas can derive a target without
+        # any direct PREDICTION evidence for the live relation family. The schema
+        # and every semantic path hop are compiled in the BASE; opaque families
+        # therefore still abstain.
+        composition_diagnostics, composition_work = self._execute_relation_composition(list(meta.get("tokens", [])))
+        for diag in composition_diagnostics:
+            if not diag.get("admitted"):
+                continue
+            schema_id = str(diag.get("schema_node_id") or "")
+            schema_node = self.index.node_by_id.get(schema_id)
+            for terminal in diag.get("terminals", []):
+                target_id = str(terminal.get("target_id") or "")
+                target = self.index.node_by_id.get(target_id)
+                if target is None:
+                    continue
+                quality = max(0.0, min(1.0, float(terminal.get("path_quality", 0.0))))
+                contribution = quality * self.policy.relation_composition_weight
+                if contribution < self.policy.min_prediction_score:
+                    continue
+                contributions.setdefault(target_id, []).append(PredictionContribution(
+                    schema_id, schema_node.surface if schema_node else None, RelationType.COMPOSITION.value,
+                    quality, 1.0, int(diag.get("source_count", 1) or 1), 1.0,
+                    self.policy.relation_composition_weight, contribution, True,
+                ))
+
         # Recalled contexts can contribute prediction evidence at a lower weight.
         if self.policy.enable_recalled_context_prediction:
             live_tokens = list(meta.get("tokens", []))
@@ -971,16 +1208,18 @@ class RuntimeCognition:
             direct = _noisy_or(c.contribution for c in cs if c.relation_type == RelationType.PREDICTION.value and c.direct_context)
             recalled_score = _noisy_or(c.contribution for c in cs if c.relation_type == RelationType.PREDICTION.value and not c.direct_context)
             transition = _noisy_or(c.contribution for c in cs if c.relation_type == RelationType.TRANSITION.value)
+            composition = _noisy_or(c.contribution for c in cs if c.relation_type == RelationType.COMPOSITION.value)
             score = _noisy_or(c.contribution for c in cs)
             node = self.index.node_by_id[target_id]
             cs.sort(key=lambda c: (-c.contribution, c.relation_type, c.from_node_id))
             candidates.append(PredictionCandidate(
-                target_id, node.surface, score, direct, recalled_score, transition, len(cs), cs,
+                target_id, node.surface, score, direct, recalled_score, transition, len(cs), cs, composition,
             ))
         candidates.sort(key=lambda x: (-x.score, -x.direct_score, -x.transition_score, x.surface or "", x.node_id))
         candidates = candidates[:self.policy.max_predictions]
 
         work = dict(meta["work"])
+        work.update(composition_work)
         work["prediction_relation_checks"] = prediction_relations_checked
         work["support_gate_checks"] = support_gate_checks
         work["support_gate_rejections"] = support_gate_rejections
@@ -992,7 +1231,7 @@ class RuntimeCognition:
         return RuntimePredictionReport(
             RUNTIME_COGNITION_FORMAT, RUNTIME_COGNITION_VERSION, context,
             list(meta["resolved_context_ids"]), lexical_ids, recall, candidates, work,
-            asdict(self.policy), list(meta.get("frame_admission", [])),
+            asdict(self.policy), list(meta.get("frame_admission", [])), composition_diagnostics,
         )
 
 
