@@ -24,6 +24,7 @@ from .macro_discovery import MacroDiscoveryPolicy, discover_and_optionally_mater
 from .runtime_compression import MacroPromotionPolicy, compile_runtime_compression
 from .runtime_pack import compile_base_pack, load_base_pack, verify_base_pack
 from .runtime_query import query_runtime_pack, benchmark_runtime_pack
+from .runtime_cognition import RuntimeCognitionPolicy, RuntimeCognition, benchmark_predictions, load_prediction_cases
 
 
 def ingest(db_path: str, doc_path: str):
@@ -616,6 +617,51 @@ def _benchmark_base(args) -> int:
     print(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True))
     return 0
 
+
+def _predict_base(args) -> int:
+    policy = RuntimeCognitionPolicy(
+        max_recall_nodes=args.max_recall_nodes,
+        max_recall_depth=args.max_recall_depth,
+        max_relation_neighbors=args.max_relation_neighbors,
+        max_structural_parents=args.max_structural_parents,
+        max_predictions=args.max_predictions,
+        min_activation=args.min_activation,
+        min_prediction_score=args.min_prediction_score,
+    )
+    try:
+        report = RuntimeCognition.from_path(args.pack, policy).predict(args.context)
+        payload = report.to_dict()
+    except Exception as exc:
+        print(f"ERROR: runtime prediction failed: {exc}")
+        return 3
+    if args.output:
+        Path(args.output).write_text(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+    print(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True))
+    return 0
+
+
+def _benchmark_predictions(args) -> int:
+    policy = RuntimeCognitionPolicy(
+        max_recall_nodes=args.max_recall_nodes,
+        max_recall_depth=args.max_recall_depth,
+        max_relation_neighbors=args.max_relation_neighbors,
+        max_structural_parents=args.max_structural_parents,
+        max_predictions=max(args.top_k, args.max_predictions),
+        min_activation=args.min_activation,
+        min_prediction_score=args.min_prediction_score,
+    )
+    try:
+        cases = load_prediction_cases(args.datasets)
+        report = benchmark_predictions(args.pack, cases, policy=policy, top_k=args.top_k)
+        payload = report.to_dict()
+    except Exception as exc:
+        print(f"ERROR: prediction benchmark failed: {exc}")
+        return 3
+    if args.output:
+        Path(args.output).write_text(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+    print(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True))
+    return 0
+
 def _list_artifacts(args) -> int:
     with CanonicalDB(args.db) as c:
         rows = list_artifacts(c.db, build_target_id=args.target_id, statuses=args.status or None)
@@ -858,6 +904,31 @@ def main():
     bb.add_argument("--max-expanded-symbols",type=int,default=2000000)
     bb.add_argument("--output")
 
+    pb=sub.add_parser("predict-base", help="run bounded recall + next-surface prediction directly on a compiled .eqbase pack")
+    pb.add_argument("pack")
+    pb.add_argument("--context", required=True)
+    pb.add_argument("--max-recall-nodes", type=int, default=96)
+    pb.add_argument("--max-recall-depth", type=int, default=3)
+    pb.add_argument("--max-relation-neighbors", type=int, default=24)
+    pb.add_argument("--max-structural-parents", type=int, default=24)
+    pb.add_argument("--max-predictions", type=int, default=8)
+    pb.add_argument("--min-activation", type=float, default=0.06)
+    pb.add_argument("--min-prediction-score", type=float, default=0.01)
+    pb.add_argument("--output")
+
+    pbb=sub.add_parser("benchmark-predictions", help="evaluate compiled runtime predictions against JSONL/TSV context→expected cases")
+    pbb.add_argument("pack")
+    pbb.add_argument("datasets", nargs="+")
+    pbb.add_argument("--top-k", type=int, default=5)
+    pbb.add_argument("--max-recall-nodes", type=int, default=96)
+    pbb.add_argument("--max-recall-depth", type=int, default=3)
+    pbb.add_argument("--max-relation-neighbors", type=int, default=24)
+    pbb.add_argument("--max-structural-parents", type=int, default=24)
+    pbb.add_argument("--max-predictions", type=int, default=8)
+    pbb.add_argument("--min-activation", type=float, default=0.06)
+    pbb.add_argument("--min-prediction-score", type=float, default=0.01)
+    pbb.add_argument("--output")
+
     ar=sub.add_parser("artifacts", help="list current derived compiler artifacts")
     ar.add_argument("db"); ar.add_argument("--target-id"); ar.add_argument("--status", action="append", default=[])
 
@@ -968,6 +1039,10 @@ def main():
         raise SystemExit(_query_base(a))
     elif a.cmd=="benchmark-base":
         raise SystemExit(_benchmark_base(a))
+    elif a.cmd=="predict-base":
+        raise SystemExit(_predict_base(a))
+    elif a.cmd=="benchmark-predictions":
+        raise SystemExit(_benchmark_predictions(a))
     elif a.cmd=="artifacts":
         raise SystemExit(_list_artifacts(a))
     elif a.cmd=="source-policy":

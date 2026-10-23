@@ -15,7 +15,7 @@ from .ir import IRNode, CompiledRelation
 from .runtime_compression import ensure_runtime_compression_schema
 
 PACK_FORMAT = "equinox-runtime-base-v1"
-PACK_VERSION = "0.15"
+PACK_VERSION = "0.16"
 MAGIC = b"EQXBASE1"
 BINARY_MAJOR = 1
 BINARY_MINOR = 0

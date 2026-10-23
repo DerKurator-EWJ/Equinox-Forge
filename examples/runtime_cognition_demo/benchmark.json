@@ -1,0 +1,1860 @@
+{
+  "benchmark": {
+    "average_recall_nodes": 28.666666666666668,
+    "average_relation_checks": 64.66666666666667,
+    "cases": 3,
+    "details": [
+      {
+        "context": "Der Hund ist ein",
+        "expected": "Tier",
+        "rank": 1,
+        "recall_nodes": 31,
+        "relation_checks": 69,
+        "resolved_context_ids": [
+          "m_119d9a306a3cee44b56324ae"
+        ],
+        "top_surfaces": [
+          "Tier",
+          "ein",
+          "bellen"
+        ]
+      },
+      {
+        "context": "Der Hund kann",
+        "expected": "bellen",
+        "rank": 1,
+        "recall_nodes": 30,
+        "relation_checks": 65,
+        "resolved_context_ids": [
+          "m_c1bb0e5f32b1bdff3f8c3b43"
+        ],
+        "top_surfaces": [
+          "bellen",
+          "miauen",
+          "ein"
+        ]
+      },
+      {
+        "context": "Die Katze kann",
+        "expected": "miauen",
+        "rank": 1,
+        "recall_nodes": 25,
+        "relation_checks": 60,
+        "resolved_context_ids": [
+          "m_fa4a959ecd11c2ea711ef3dc"
+        ],
+        "top_surfaces": [
+          "miauen",
+          "bellen",
+          "ein"
+        ]
+      }
+    ],
+    "expected_not_in_pack": 0,
+    "format": "equinox-runtime-cognition-v1",
+    "hit_at_1": 1.0,
+    "hit_at_k": 1.0,
+    "mean_reciprocal_rank": 1.0,
+    "top_k": 3,
+    "unresolved_contexts": 0,
+    "version": "0.16"
+  },
+  "manifest": {
+    "binary_major": 1,
+    "binary_minor": 0,
+    "bytes_per_node": 55.911764705882355,
+    "bytes_per_relation": 13.0,
+    "compile_ms": 1.4936950001356308,
+    "compression_run_id": 1,
+    "file_bytes": 3802,
+    "forge_version": "0.16",
+    "format": "equinox-runtime-base-v1",
+    "full_file_sha256": "e5513440a3e85d3b98a68170c088d3498473f571a3d404d41675b2fd9a69a102",
+    "header_bytes": 112,
+    "index_bytes": 272,
+    "metadata_included": false,
+    "node_count": 68,
+    "node_section_bytes": 612,
+    "pack_id": "v016-cognition-demo",
+    "pack_version": 16,
+    "payload_sha256": "1e68bb684aeba75f81119c700098cf6176aed3d0536a7842466d67b60dd34ca1",
+    "relation_count": 37,
+    "relation_section_bytes": 481,
+    "roundtrip_valid": true,
+    "string_count": 128,
+    "string_table_bytes": 2325,
+    "verify_ms": 0.35508599921740824
+  },
+  "predictions": {
+    "Der Hund ist ein": {
+      "context": "Der Hund ist ein",
+      "format": "equinox-runtime-cognition-v1",
+      "lexical_seed_ids": [
+        "m_05b030545bfd9b4e72b7628b",
+        "m_42178d06f9c5e1b98384186a",
+        "m_adfbc192594d8f141843eac4",
+        "m_588b6b130b77b7313d77b23e"
+      ],
+      "policy": {
+        "depth_decay": 0.82,
+        "exact_context_prediction_weight": 1.0,
+        "max_predictions": 6,
+        "max_recall_depth": 3,
+        "max_recall_nodes": 64,
+        "max_relation_neighbors": 24,
+        "max_structural_parents": 24,
+        "min_activation": 0.06,
+        "min_prediction_score": 0.01,
+        "parent_weight": 0.72,
+        "recalled_prediction_weight": 0.72,
+        "relation_weights": {
+          "action": 0.46,
+          "association": 0.55,
+          "contextual_similarity": 0.48,
+          "contextual_use": 0.45,
+          "crossmodal": 0.44,
+          "is_a": 0.5,
+          "property": 0.46,
+          "semantic_similarity": 0.5,
+          "substitution": 0.42
+        },
+        "seed_older_word_weight": 0.48,
+        "seed_recent_word_weight": 0.82,
+        "transition_weight": 0.72
+      },
+      "predictions": [
+        {
+          "contribution_count": 5,
+          "contributions": [
+            {
+              "channel_weight": 1.0,
+              "context_activation": 1.0,
+              "contribution": 0.8999999761581421,
+              "direct_context": true,
+              "from_node_id": "m_119d9a306a3cee44b56324ae",
+              "from_surface": "Hund ist ein",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.82,
+              "contribution": 0.5313599859237671,
+              "direct_context": true,
+              "from_node_id": "m_588b6b130b77b7313d77b23e",
+              "from_surface": "ein",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "transition",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.4841279999999999,
+              "contribution": 0.313714935689392,
+              "direct_context": false,
+              "from_node_id": "m_70ba1cc826fe8615c1c5d711",
+              "from_surface": "Katze ist ein",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.4841279999999999,
+              "contribution": 0.313714935689392,
+              "direct_context": false,
+              "from_node_id": "m_b0d91ddc4bd2dfa91b7ef9bd",
+              "from_surface": "ein",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.4841279999999999,
+              "contribution": 0.313714935689392,
+              "direct_context": false,
+              "from_node_id": "m_f1e3b440ff6a03306e37dfdc",
+              "from_surface": "ist ein",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            }
+          ],
+          "direct_score": 0.8999999761581421,
+          "node_id": "m_57daeeb6b1f4d6a5ae840cbc",
+          "recalled_score": 0.6767685263673918,
+          "score": 0.9848520761531477,
+          "surface": "Tier",
+          "transition_score": 0.5313599859237671
+        },
+        {
+          "contribution_count": 5,
+          "contributions": [
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.283392,
+              "contribution": 0.18363801113525388,
+              "direct_context": false,
+              "from_node_id": "m_0ee911fa9a3ee8af4cc123bc",
+              "from_surface": "Der Hund ist",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.283392,
+              "contribution": 0.18363801113525388,
+              "direct_context": false,
+              "from_node_id": "m_2df048275aafec7b23a6ab29",
+              "from_surface": "Hund ist",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.283392,
+              "contribution": 0.18363801113525388,
+              "direct_context": false,
+              "from_node_id": "m_32a85873445e74c55ac42145",
+              "from_surface": "ist",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.283392,
+              "contribution": 0.18363801113525388,
+              "direct_context": false,
+              "from_node_id": "m_ceaff7206beecab88d2d5f51",
+              "from_surface": "Katze ist",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.283392,
+              "contribution": 0.18363801113525388,
+              "direct_context": false,
+              "from_node_id": "m_df451b747bed966552e46c49",
+              "from_surface": "Die Katze ist",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            }
+          ],
+          "direct_score": 0.0,
+          "node_id": "m_588b6b130b77b7313d77b23e",
+          "recalled_score": 0.6374116255826322,
+          "score": 0.6374116255826322,
+          "surface": "ein",
+          "transition_score": 0.0
+        },
+        {
+          "contribution_count": 2,
+          "contributions": [
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.23238143999999997,
+              "contribution": 0.1505831691309082,
+              "direct_context": false,
+              "from_node_id": "m_c1bb0e5f32b1bdff3f8c3b43",
+              "from_surface": "Der Hund kann",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.23238143999999997,
+              "contribution": 0.1505831691309082,
+              "direct_context": false,
+              "from_node_id": "m_e0cdc496e0ce63bae5d64b78",
+              "from_surface": "Hund kann",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            }
+          ],
+          "direct_score": 0.0,
+          "node_id": "m_98d566404ba2ee8c8f5f6ec2",
+          "recalled_score": 0.2784910474363087,
+          "score": 0.2784910474363087,
+          "surface": "bellen",
+          "transition_score": 0.0
+        },
+        {
+          "contribution_count": 2,
+          "contributions": [
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.23238143999999997,
+              "contribution": 0.0752915845654541,
+              "direct_context": false,
+              "from_node_id": "m_78ab83ac070c42c003a31ab6",
+              "from_surface": "Der Hund",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 0.5,
+              "relation_type": "prediction",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.23238143999999997,
+              "contribution": 0.0752915845654541,
+              "direct_context": false,
+              "from_node_id": "m_ab62ab05efc9078bcff9b40c",
+              "from_surface": "Hund",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 0.5,
+              "relation_type": "prediction",
+              "source_count": 1
+            }
+          ],
+          "direct_score": 0.0,
+          "node_id": "m_adfbc192594d8f141843eac4",
+          "recalled_score": 0.14491434642453116,
+          "score": 0.14491434642453116,
+          "surface": "ist",
+          "transition_score": 0.0
+        },
+        {
+          "contribution_count": 2,
+          "contributions": [
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.23238143999999997,
+              "contribution": 0.0752915845654541,
+              "direct_context": false,
+              "from_node_id": "m_78ab83ac070c42c003a31ab6",
+              "from_surface": "Der Hund",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 0.5,
+              "relation_type": "prediction",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.23238143999999997,
+              "contribution": 0.0752915845654541,
+              "direct_context": false,
+              "from_node_id": "m_ab62ab05efc9078bcff9b40c",
+              "from_surface": "Hund",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 0.5,
+              "relation_type": "prediction",
+              "source_count": 1
+            }
+          ],
+          "direct_score": 0.0,
+          "node_id": "m_43991d5d200b6bec3e174b48",
+          "recalled_score": 0.14491434642453116,
+          "score": 0.14491434642453116,
+          "surface": "kann",
+          "transition_score": 0.0
+        },
+        {
+          "contribution_count": 1,
+          "contributions": [
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.19055278079999993,
+              "contribution": 0.12347819868734466,
+              "direct_context": false,
+              "from_node_id": "m_a95776c645ef673ce9d54c0e",
+              "from_surface": "Der",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            }
+          ],
+          "direct_score": 0.0,
+          "node_id": "m_42178d06f9c5e1b98384186a",
+          "recalled_score": 0.12347819868734466,
+          "score": 0.12347819868734466,
+          "surface": "Hund",
+          "transition_score": 0.0
+        }
+      ],
+      "recall": [
+        {
+          "activation": 1.0,
+          "depth": 0,
+          "from_node_id": null,
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_119d9a306a3cee44b56324ae",
+          "surface": "Hund ist ein",
+          "via": "exact_or_suffix_context"
+        },
+        {
+          "activation": 0.82,
+          "depth": 0,
+          "from_node_id": null,
+          "kind": "surface",
+          "level": 1,
+          "node_id": "m_588b6b130b77b7313d77b23e",
+          "surface": "ein",
+          "via": "lexical_seed"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_588b6b130b77b7313d77b23e",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_12c9aaeba258ec11ca3d7265",
+          "surface": "Hund ist ein Tier",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_588b6b130b77b7313d77b23e",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_186bfc2dd5a48941e87bfdc9",
+          "surface": "Der Hund ist ein",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_588b6b130b77b7313d77b23e",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_70ba1cc826fe8615c1c5d711",
+          "surface": "Katze ist ein",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_588b6b130b77b7313d77b23e",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_74213ab1c74615073f696779",
+          "surface": "ein Tier",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_588b6b130b77b7313d77b23e",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_980fb93189ca923366d20b61",
+          "surface": "Hund ist ein",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_588b6b130b77b7313d77b23e",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_b0d91ddc4bd2dfa91b7ef9bd",
+          "surface": "ein",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_588b6b130b77b7313d77b23e",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_e023e538e682b2ffac2a534b",
+          "surface": "ist ein Tier",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_588b6b130b77b7313d77b23e",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_f1e3b440ff6a03306e37dfdc",
+          "surface": "ist ein",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_588b6b130b77b7313d77b23e",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_f8cad8d490bacf0db8075713",
+          "surface": "ist ein",
+          "via": "parent"
+        },
+        {
+          "activation": 0.48,
+          "depth": 0,
+          "from_node_id": null,
+          "kind": "surface",
+          "level": 1,
+          "node_id": "m_adfbc192594d8f141843eac4",
+          "surface": "ist",
+          "via": "lexical_seed"
+        },
+        {
+          "activation": 0.39359999999999995,
+          "depth": 0,
+          "from_node_id": null,
+          "kind": "surface",
+          "level": 1,
+          "node_id": "m_42178d06f9c5e1b98384186a",
+          "surface": "Hund",
+          "via": "lexical_seed"
+        },
+        {
+          "activation": 0.32275199999999993,
+          "depth": 0,
+          "from_node_id": null,
+          "kind": "surface",
+          "level": 1,
+          "node_id": "m_05b030545bfd9b4e72b7628b",
+          "surface": "Der",
+          "via": "lexical_seed"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_adfbc192594d8f141843eac4",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_0ee911fa9a3ee8af4cc123bc",
+          "surface": "Der Hund ist",
+          "via": "parent"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_adfbc192594d8f141843eac4",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_2df048275aafec7b23a6ab29",
+          "surface": "Hund ist",
+          "via": "parent"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_adfbc192594d8f141843eac4",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_32a85873445e74c55ac42145",
+          "surface": "ist",
+          "via": "parent"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_adfbc192594d8f141843eac4",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_9b82ad78f5d553a6cfd2f682",
+          "surface": "Der Hund ist",
+          "via": "parent"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_adfbc192594d8f141843eac4",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_c4efce1c3af9c721a4109972",
+          "surface": "Hund ist",
+          "via": "parent"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_adfbc192594d8f141843eac4",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_ceaff7206beecab88d2d5f51",
+          "surface": "Katze ist",
+          "via": "parent"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_adfbc192594d8f141843eac4",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_df451b747bed966552e46c49",
+          "surface": "Die Katze ist",
+          "via": "parent"
+        },
+        {
+          "activation": 0.23238143999999997,
+          "depth": 1,
+          "from_node_id": "m_42178d06f9c5e1b98384186a",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_0e31ad24800394dc237e7f20",
+          "surface": "Hund kann",
+          "via": "parent"
+        },
+        {
+          "activation": 0.23238143999999997,
+          "depth": 1,
+          "from_node_id": "m_42178d06f9c5e1b98384186a",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_35b5af17ad7c4c6c5ad4169e",
+          "surface": "Der Hund kann",
+          "via": "parent"
+        },
+        {
+          "activation": 0.23238143999999997,
+          "depth": 1,
+          "from_node_id": "m_42178d06f9c5e1b98384186a",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_78ab83ac070c42c003a31ab6",
+          "surface": "Der Hund",
+          "via": "parent"
+        },
+        {
+          "activation": 0.23238143999999997,
+          "depth": 1,
+          "from_node_id": "m_42178d06f9c5e1b98384186a",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_7cfc3a4d64e7106e40a48d60",
+          "surface": "Hund kann bellen",
+          "via": "parent"
+        },
+        {
+          "activation": 0.23238143999999997,
+          "depth": 1,
+          "from_node_id": "m_42178d06f9c5e1b98384186a",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_8297dfca0e3a4cfff413f44f",
+          "surface": "Der Hund kann bellen",
+          "via": "parent"
+        },
+        {
+          "activation": 0.23238143999999997,
+          "depth": 1,
+          "from_node_id": "m_42178d06f9c5e1b98384186a",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_ab62ab05efc9078bcff9b40c",
+          "surface": "Hund",
+          "via": "parent"
+        },
+        {
+          "activation": 0.23238143999999997,
+          "depth": 1,
+          "from_node_id": "m_42178d06f9c5e1b98384186a",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_c1bb0e5f32b1bdff3f8c3b43",
+          "surface": "Der Hund kann",
+          "via": "parent"
+        },
+        {
+          "activation": 0.23238143999999997,
+          "depth": 1,
+          "from_node_id": "m_42178d06f9c5e1b98384186a",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_e0cdc496e0ce63bae5d64b78",
+          "surface": "Hund kann",
+          "via": "parent"
+        },
+        {
+          "activation": 0.23238143999999997,
+          "depth": 1,
+          "from_node_id": "m_42178d06f9c5e1b98384186a",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_f126488f9cac6fc0e1efd2be",
+          "surface": "Der Hund",
+          "via": "parent"
+        },
+        {
+          "activation": 0.19055278079999993,
+          "depth": 1,
+          "from_node_id": "m_05b030545bfd9b4e72b7628b",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_a95776c645ef673ce9d54c0e",
+          "surface": "Der",
+          "via": "parent"
+        }
+      ],
+      "resolved_context_ids": [
+        "m_119d9a306a3cee44b56324ae"
+      ],
+      "version": "0.16",
+      "work": {
+        "parent_checks": 82,
+        "prediction_candidates_before_limit": 6,
+        "prediction_candidates_returned": 6,
+        "prediction_relation_checks": 17,
+        "queue_pops": 31,
+        "recall_nodes": 31,
+        "relation_checks": 52
+      }
+    },
+    "Der Hund kann": {
+      "context": "Der Hund kann",
+      "format": "equinox-runtime-cognition-v1",
+      "lexical_seed_ids": [
+        "m_05b030545bfd9b4e72b7628b",
+        "m_42178d06f9c5e1b98384186a",
+        "m_43991d5d200b6bec3e174b48"
+      ],
+      "policy": {
+        "depth_decay": 0.82,
+        "exact_context_prediction_weight": 1.0,
+        "max_predictions": 6,
+        "max_recall_depth": 3,
+        "max_recall_nodes": 64,
+        "max_relation_neighbors": 24,
+        "max_structural_parents": 24,
+        "min_activation": 0.06,
+        "min_prediction_score": 0.01,
+        "parent_weight": 0.72,
+        "recalled_prediction_weight": 0.72,
+        "relation_weights": {
+          "action": 0.46,
+          "association": 0.55,
+          "contextual_similarity": 0.48,
+          "contextual_use": 0.45,
+          "crossmodal": 0.44,
+          "is_a": 0.5,
+          "property": 0.46,
+          "semantic_similarity": 0.5,
+          "substitution": 0.42
+        },
+        "seed_older_word_weight": 0.48,
+        "seed_recent_word_weight": 0.82,
+        "transition_weight": 0.72
+      },
+      "predictions": [
+        {
+          "contribution_count": 4,
+          "contributions": [
+            {
+              "channel_weight": 1.0,
+              "context_activation": 1.0,
+              "contribution": 0.8999999761581421,
+              "direct_context": true,
+              "from_node_id": "m_c1bb0e5f32b1bdff3f8c3b43",
+              "from_surface": "Der Hund kann",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.4841279999999999,
+              "contribution": 0.313714935689392,
+              "direct_context": false,
+              "from_node_id": "m_e0cdc496e0ce63bae5d64b78",
+              "from_surface": "Hund kann",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.82,
+              "contribution": 0.26567999296188355,
+              "direct_context": true,
+              "from_node_id": "m_43991d5d200b6bec3e174b48",
+              "from_surface": "kann",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 0.5,
+              "relation_type": "transition",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.4841279999999999,
+              "contribution": 0.156857467844696,
+              "direct_context": false,
+              "from_node_id": "m_ede657b980d53945515a47af",
+              "from_surface": "kann",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 0.5,
+              "relation_type": "prediction",
+              "source_count": 1
+            }
+          ],
+          "direct_score": 0.8999999761581421,
+          "node_id": "m_98d566404ba2ee8c8f5f6ec2",
+          "recalled_score": 0.42136387309678835,
+          "score": 0.9575095813914897,
+          "surface": "bellen",
+          "transition_score": 0.2656799929618836
+        },
+        {
+          "contribution_count": 4,
+          "contributions": [
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.4841279999999999,
+              "contribution": 0.313714935689392,
+              "direct_context": false,
+              "from_node_id": "m_440aba46c51639ec2806c68d",
+              "from_surface": "Katze kann",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.4841279999999999,
+              "contribution": 0.313714935689392,
+              "direct_context": false,
+              "from_node_id": "m_fa4a959ecd11c2ea711ef3dc",
+              "from_surface": "Die Katze kann",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.82,
+              "contribution": 0.26567999296188355,
+              "direct_context": true,
+              "from_node_id": "m_43991d5d200b6bec3e174b48",
+              "from_surface": "kann",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 0.5,
+              "relation_type": "transition",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.4841279999999999,
+              "contribution": 0.156857467844696,
+              "direct_context": false,
+              "from_node_id": "m_ede657b980d53945515a47af",
+              "from_surface": "kann",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 0.5,
+              "relation_type": "prediction",
+              "source_count": 1
+            }
+          ],
+          "direct_score": 0.0,
+          "node_id": "m_887e02db0ce6351adc922c44",
+          "recalled_score": 0.6028906684357882,
+          "score": 0.7083946728508663,
+          "surface": "miauen",
+          "transition_score": 0.2656799929618836
+        },
+        {
+          "contribution_count": 2,
+          "contributions": [
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.283392,
+              "contribution": 0.18363801113525388,
+              "direct_context": false,
+              "from_node_id": "m_0ee911fa9a3ee8af4cc123bc",
+              "from_surface": "Der Hund ist",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.283392,
+              "contribution": 0.18363801113525388,
+              "direct_context": false,
+              "from_node_id": "m_2df048275aafec7b23a6ab29",
+              "from_surface": "Hund ist",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            }
+          ],
+          "direct_score": 0.0,
+          "node_id": "m_588b6b130b77b7313d77b23e",
+          "recalled_score": 0.3335531031367962,
+          "score": 0.3335531031367962,
+          "surface": "ein",
+          "transition_score": 0.0
+        },
+        {
+          "contribution_count": 1,
+          "contributions": [
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.283392,
+              "contribution": 0.18363801113525388,
+              "direct_context": false,
+              "from_node_id": "m_119d9a306a3cee44b56324ae",
+              "from_surface": "Hund ist ein",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            }
+          ],
+          "direct_score": 0.0,
+          "node_id": "m_57daeeb6b1f4d6a5ae840cbc",
+          "recalled_score": 0.1836380111352539,
+          "score": 0.1836380111352539,
+          "surface": "Tier",
+          "transition_score": 0.0
+        },
+        {
+          "contribution_count": 2,
+          "contributions": [
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.283392,
+              "contribution": 0.09181900556762694,
+              "direct_context": false,
+              "from_node_id": "m_78ab83ac070c42c003a31ab6",
+              "from_surface": "Der Hund",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 0.5,
+              "relation_type": "prediction",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.283392,
+              "contribution": 0.09181900556762694,
+              "direct_context": false,
+              "from_node_id": "m_ab62ab05efc9078bcff9b40c",
+              "from_surface": "Hund",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 0.5,
+              "relation_type": "prediction",
+              "source_count": 1
+            }
+          ],
+          "direct_score": 0.0,
+          "node_id": "m_adfbc192594d8f141843eac4",
+          "recalled_score": 0.17520728135182595,
+          "score": 0.17520728135182595,
+          "surface": "ist",
+          "transition_score": 0.0
+        },
+        {
+          "contribution_count": 2,
+          "contributions": [
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.283392,
+              "contribution": 0.09181900556762694,
+              "direct_context": false,
+              "from_node_id": "m_78ab83ac070c42c003a31ab6",
+              "from_surface": "Der Hund",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 0.5,
+              "relation_type": "prediction",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.283392,
+              "contribution": 0.09181900556762694,
+              "direct_context": false,
+              "from_node_id": "m_ab62ab05efc9078bcff9b40c",
+              "from_surface": "Hund",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 0.5,
+              "relation_type": "prediction",
+              "source_count": 1
+            }
+          ],
+          "direct_score": 0.0,
+          "node_id": "m_43991d5d200b6bec3e174b48",
+          "recalled_score": 0.17520728135182595,
+          "score": 0.17520728135182595,
+          "surface": "kann",
+          "transition_score": 0.0
+        }
+      ],
+      "recall": [
+        {
+          "activation": 1.0,
+          "depth": 0,
+          "from_node_id": null,
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_c1bb0e5f32b1bdff3f8c3b43",
+          "surface": "Der Hund kann",
+          "via": "exact_or_suffix_context"
+        },
+        {
+          "activation": 0.82,
+          "depth": 0,
+          "from_node_id": null,
+          "kind": "surface",
+          "level": 1,
+          "node_id": "m_43991d5d200b6bec3e174b48",
+          "surface": "kann",
+          "via": "lexical_seed"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_0e31ad24800394dc237e7f20",
+          "surface": "Hund kann",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_35b5af17ad7c4c6c5ad4169e",
+          "surface": "Der Hund kann",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_3c13b3977fbad2f208a89ec4",
+          "surface": "kann bellen",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_440aba46c51639ec2806c68d",
+          "surface": "Katze kann",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_745f7824ca9c86914b28bb91",
+          "surface": "Katze kann miauen",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_7cfc3a4d64e7106e40a48d60",
+          "surface": "Hund kann bellen",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_8297dfca0e3a4cfff413f44f",
+          "surface": "Der Hund kann bellen",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_9842266b601dffe827bc5657",
+          "surface": "Die Katze kann miauen",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_d228c8e92a466c5e0bec120e",
+          "surface": "kann miauen",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_df8dbb41b47786ada5a04aaf",
+          "surface": "Katze kann",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_e0cdc496e0ce63bae5d64b78",
+          "surface": "Hund kann",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_ede657b980d53945515a47af",
+          "surface": "kann",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_f0d241a7fce022a02b05c715",
+          "surface": "Die Katze kann",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_fa4a959ecd11c2ea711ef3dc",
+          "surface": "Die Katze kann",
+          "via": "parent"
+        },
+        {
+          "activation": 0.48,
+          "depth": 0,
+          "from_node_id": null,
+          "kind": "surface",
+          "level": 1,
+          "node_id": "m_42178d06f9c5e1b98384186a",
+          "surface": "Hund",
+          "via": "lexical_seed"
+        },
+        {
+          "activation": 0.39359999999999995,
+          "depth": 0,
+          "from_node_id": null,
+          "kind": "surface",
+          "level": 1,
+          "node_id": "m_05b030545bfd9b4e72b7628b",
+          "surface": "Der",
+          "via": "lexical_seed"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_42178d06f9c5e1b98384186a",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_0ee911fa9a3ee8af4cc123bc",
+          "surface": "Der Hund ist",
+          "via": "parent"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_42178d06f9c5e1b98384186a",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_119d9a306a3cee44b56324ae",
+          "surface": "Hund ist ein",
+          "via": "parent"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_42178d06f9c5e1b98384186a",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_12c9aaeba258ec11ca3d7265",
+          "surface": "Hund ist ein Tier",
+          "via": "parent"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_42178d06f9c5e1b98384186a",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_186bfc2dd5a48941e87bfdc9",
+          "surface": "Der Hund ist ein",
+          "via": "parent"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_42178d06f9c5e1b98384186a",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_2df048275aafec7b23a6ab29",
+          "surface": "Hund ist",
+          "via": "parent"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_42178d06f9c5e1b98384186a",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_78ab83ac070c42c003a31ab6",
+          "surface": "Der Hund",
+          "via": "parent"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_42178d06f9c5e1b98384186a",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_980fb93189ca923366d20b61",
+          "surface": "Hund ist ein",
+          "via": "parent"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_42178d06f9c5e1b98384186a",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_9b82ad78f5d553a6cfd2f682",
+          "surface": "Der Hund ist",
+          "via": "parent"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_42178d06f9c5e1b98384186a",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_ab62ab05efc9078bcff9b40c",
+          "surface": "Hund",
+          "via": "parent"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_42178d06f9c5e1b98384186a",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_c4efce1c3af9c721a4109972",
+          "surface": "Hund ist",
+          "via": "parent"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_42178d06f9c5e1b98384186a",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_f126488f9cac6fc0e1efd2be",
+          "surface": "Der Hund",
+          "via": "parent"
+        },
+        {
+          "activation": 0.23238143999999997,
+          "depth": 1,
+          "from_node_id": "m_05b030545bfd9b4e72b7628b",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_a95776c645ef673ce9d54c0e",
+          "surface": "Der",
+          "via": "parent"
+        }
+      ],
+      "resolved_context_ids": [
+        "m_c1bb0e5f32b1bdff3f8c3b43"
+      ],
+      "version": "0.16",
+      "work": {
+        "parent_checks": 71,
+        "prediction_candidates_before_limit": 7,
+        "prediction_candidates_returned": 6,
+        "prediction_relation_checks": 16,
+        "queue_pops": 30,
+        "recall_nodes": 30,
+        "relation_checks": 49
+      }
+    },
+    "Die Katze kann": {
+      "context": "Die Katze kann",
+      "format": "equinox-runtime-cognition-v1",
+      "lexical_seed_ids": [
+        "m_81eebfe6abe6942f9f9b8989",
+        "m_8f8d6efd0bd55cf0022982ac",
+        "m_43991d5d200b6bec3e174b48"
+      ],
+      "policy": {
+        "depth_decay": 0.82,
+        "exact_context_prediction_weight": 1.0,
+        "max_predictions": 6,
+        "max_recall_depth": 3,
+        "max_recall_nodes": 64,
+        "max_relation_neighbors": 24,
+        "max_structural_parents": 24,
+        "min_activation": 0.06,
+        "min_prediction_score": 0.01,
+        "parent_weight": 0.72,
+        "recalled_prediction_weight": 0.72,
+        "relation_weights": {
+          "action": 0.46,
+          "association": 0.55,
+          "contextual_similarity": 0.48,
+          "contextual_use": 0.45,
+          "crossmodal": 0.44,
+          "is_a": 0.5,
+          "property": 0.46,
+          "semantic_similarity": 0.5,
+          "substitution": 0.42
+        },
+        "seed_older_word_weight": 0.48,
+        "seed_recent_word_weight": 0.82,
+        "transition_weight": 0.72
+      },
+      "predictions": [
+        {
+          "contribution_count": 4,
+          "contributions": [
+            {
+              "channel_weight": 1.0,
+              "context_activation": 1.0,
+              "contribution": 0.8999999761581421,
+              "direct_context": true,
+              "from_node_id": "m_fa4a959ecd11c2ea711ef3dc",
+              "from_surface": "Die Katze kann",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.4841279999999999,
+              "contribution": 0.313714935689392,
+              "direct_context": false,
+              "from_node_id": "m_440aba46c51639ec2806c68d",
+              "from_surface": "Katze kann",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.82,
+              "contribution": 0.26567999296188355,
+              "direct_context": true,
+              "from_node_id": "m_43991d5d200b6bec3e174b48",
+              "from_surface": "kann",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 0.5,
+              "relation_type": "transition",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.4841279999999999,
+              "contribution": 0.156857467844696,
+              "direct_context": false,
+              "from_node_id": "m_ede657b980d53945515a47af",
+              "from_surface": "kann",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 0.5,
+              "relation_type": "prediction",
+              "source_count": 1
+            }
+          ],
+          "direct_score": 0.8999999761581421,
+          "node_id": "m_887e02db0ce6351adc922c44",
+          "recalled_score": 0.42136387309678835,
+          "score": 0.9575095813914897,
+          "surface": "miauen",
+          "transition_score": 0.2656799929618836
+        },
+        {
+          "contribution_count": 4,
+          "contributions": [
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.4841279999999999,
+              "contribution": 0.313714935689392,
+              "direct_context": false,
+              "from_node_id": "m_c1bb0e5f32b1bdff3f8c3b43",
+              "from_surface": "Der Hund kann",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.4841279999999999,
+              "contribution": 0.313714935689392,
+              "direct_context": false,
+              "from_node_id": "m_e0cdc496e0ce63bae5d64b78",
+              "from_surface": "Hund kann",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.82,
+              "contribution": 0.26567999296188355,
+              "direct_context": true,
+              "from_node_id": "m_43991d5d200b6bec3e174b48",
+              "from_surface": "kann",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 0.5,
+              "relation_type": "transition",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.4841279999999999,
+              "contribution": 0.156857467844696,
+              "direct_context": false,
+              "from_node_id": "m_ede657b980d53945515a47af",
+              "from_surface": "kann",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 0.5,
+              "relation_type": "prediction",
+              "source_count": 1
+            }
+          ],
+          "direct_score": 0.0,
+          "node_id": "m_98d566404ba2ee8c8f5f6ec2",
+          "recalled_score": 0.6028906684357882,
+          "score": 0.7083946728508663,
+          "surface": "bellen",
+          "transition_score": 0.2656799929618836
+        },
+        {
+          "contribution_count": 2,
+          "contributions": [
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.283392,
+              "contribution": 0.18363801113525388,
+              "direct_context": false,
+              "from_node_id": "m_ceaff7206beecab88d2d5f51",
+              "from_surface": "Katze ist",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.283392,
+              "contribution": 0.18363801113525388,
+              "direct_context": false,
+              "from_node_id": "m_df451b747bed966552e46c49",
+              "from_surface": "Die Katze ist",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            }
+          ],
+          "direct_score": 0.0,
+          "node_id": "m_588b6b130b77b7313d77b23e",
+          "recalled_score": 0.3335531031367962,
+          "score": 0.3335531031367962,
+          "surface": "ein",
+          "transition_score": 0.0
+        },
+        {
+          "contribution_count": 2,
+          "contributions": [
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.283392,
+              "contribution": 0.12242534440539539,
+              "direct_context": false,
+              "from_node_id": "m_15a674d60e233336149b4e2d",
+              "from_surface": "Die Katze",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 0.6666666865348816,
+              "relation_type": "prediction",
+              "source_count": 1
+            },
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.283392,
+              "contribution": 0.12242534440539539,
+              "direct_context": false,
+              "from_node_id": "m_a5ab11c8d273fc3f5834d753",
+              "from_surface": "Katze",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 0.6666666865348816,
+              "relation_type": "prediction",
+              "source_count": 1
+            }
+          ],
+          "direct_score": 0.0,
+          "node_id": "m_43991d5d200b6bec3e174b48",
+          "recalled_score": 0.2298627238580112,
+          "score": 0.2298627238580112,
+          "surface": "kann",
+          "transition_score": 0.0
+        },
+        {
+          "contribution_count": 1,
+          "contributions": [
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.283392,
+              "contribution": 0.18363801113525388,
+              "direct_context": false,
+              "from_node_id": "m_70ba1cc826fe8615c1c5d711",
+              "from_surface": "Katze ist ein",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            }
+          ],
+          "direct_score": 0.0,
+          "node_id": "m_57daeeb6b1f4d6a5ae840cbc",
+          "recalled_score": 0.1836380111352539,
+          "score": 0.1836380111352539,
+          "surface": "Tier",
+          "transition_score": 0.0
+        },
+        {
+          "contribution_count": 1,
+          "contributions": [
+            {
+              "channel_weight": 0.72,
+              "context_activation": 0.23238143999999997,
+              "contribution": 0.1505831691309082,
+              "direct_context": false,
+              "from_node_id": "m_2b52ace05458fe98d60fd0ff",
+              "from_surface": "Die",
+              "relation_confidence": 0.8999999761581421,
+              "relation_score": 1.0,
+              "relation_type": "prediction",
+              "source_count": 1
+            }
+          ],
+          "direct_score": 0.0,
+          "node_id": "m_8f8d6efd0bd55cf0022982ac",
+          "recalled_score": 0.1505831691309082,
+          "score": 0.1505831691309082,
+          "surface": "Katze",
+          "transition_score": 0.0
+        }
+      ],
+      "recall": [
+        {
+          "activation": 1.0,
+          "depth": 0,
+          "from_node_id": null,
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_fa4a959ecd11c2ea711ef3dc",
+          "surface": "Die Katze kann",
+          "via": "exact_or_suffix_context"
+        },
+        {
+          "activation": 0.82,
+          "depth": 0,
+          "from_node_id": null,
+          "kind": "surface",
+          "level": 1,
+          "node_id": "m_43991d5d200b6bec3e174b48",
+          "surface": "kann",
+          "via": "lexical_seed"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_0e31ad24800394dc237e7f20",
+          "surface": "Hund kann",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_35b5af17ad7c4c6c5ad4169e",
+          "surface": "Der Hund kann",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_3c13b3977fbad2f208a89ec4",
+          "surface": "kann bellen",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_440aba46c51639ec2806c68d",
+          "surface": "Katze kann",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_745f7824ca9c86914b28bb91",
+          "surface": "Katze kann miauen",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_7cfc3a4d64e7106e40a48d60",
+          "surface": "Hund kann bellen",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_8297dfca0e3a4cfff413f44f",
+          "surface": "Der Hund kann bellen",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_9842266b601dffe827bc5657",
+          "surface": "Die Katze kann miauen",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_c1bb0e5f32b1bdff3f8c3b43",
+          "surface": "Der Hund kann",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_d228c8e92a466c5e0bec120e",
+          "surface": "kann miauen",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_df8dbb41b47786ada5a04aaf",
+          "surface": "Katze kann",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_e0cdc496e0ce63bae5d64b78",
+          "surface": "Hund kann",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_ede657b980d53945515a47af",
+          "surface": "kann",
+          "via": "parent"
+        },
+        {
+          "activation": 0.4841279999999999,
+          "depth": 1,
+          "from_node_id": "m_43991d5d200b6bec3e174b48",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_f0d241a7fce022a02b05c715",
+          "surface": "Die Katze kann",
+          "via": "parent"
+        },
+        {
+          "activation": 0.48,
+          "depth": 0,
+          "from_node_id": null,
+          "kind": "surface",
+          "level": 1,
+          "node_id": "m_8f8d6efd0bd55cf0022982ac",
+          "surface": "Katze",
+          "via": "lexical_seed"
+        },
+        {
+          "activation": 0.39359999999999995,
+          "depth": 0,
+          "from_node_id": null,
+          "kind": "surface",
+          "level": 1,
+          "node_id": "m_81eebfe6abe6942f9f9b8989",
+          "surface": "Die",
+          "via": "lexical_seed"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_8f8d6efd0bd55cf0022982ac",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_15a674d60e233336149b4e2d",
+          "surface": "Die Katze",
+          "via": "parent"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_8f8d6efd0bd55cf0022982ac",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_70ba1cc826fe8615c1c5d711",
+          "surface": "Katze ist ein",
+          "via": "parent"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_8f8d6efd0bd55cf0022982ac",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_a5ab11c8d273fc3f5834d753",
+          "surface": "Katze",
+          "via": "parent"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_8f8d6efd0bd55cf0022982ac",
+          "kind": "composite",
+          "level": 2,
+          "node_id": "m_c74e18db4109cc7f518ceded",
+          "surface": "Die Katze",
+          "via": "parent"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_8f8d6efd0bd55cf0022982ac",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_ceaff7206beecab88d2d5f51",
+          "surface": "Katze ist",
+          "via": "parent"
+        },
+        {
+          "activation": 0.283392,
+          "depth": 1,
+          "from_node_id": "m_8f8d6efd0bd55cf0022982ac",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_df451b747bed966552e46c49",
+          "surface": "Die Katze ist",
+          "via": "parent"
+        },
+        {
+          "activation": 0.23238143999999997,
+          "depth": 1,
+          "from_node_id": "m_81eebfe6abe6942f9f9b8989",
+          "kind": "template",
+          "level": 2,
+          "node_id": "m_2b52ace05458fe98d60fd0ff",
+          "surface": "Die",
+          "via": "parent"
+        }
+      ],
+      "resolved_context_ids": [
+        "m_fa4a959ecd11c2ea711ef3dc"
+      ],
+      "version": "0.16",
+      "work": {
+        "parent_checks": 59,
+        "prediction_candidates_before_limit": 7,
+        "prediction_candidates_returned": 6,
+        "prediction_relation_checks": 16,
+        "queue_pops": 25,
+        "recall_nodes": 25,
+        "relation_checks": 44
+      }
+    }
+  }
+}

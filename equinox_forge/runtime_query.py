@@ -12,7 +12,7 @@ from .ir import CompiledRelation
 from .runtime_pack import LoadedRuntimePack, RuntimeNode, load_base_pack
 
 RUNTIME_QUERY_FORMAT = "equinox-runtime-query-v1"
-RUNTIME_QUERY_VERSION = "0.15"
+RUNTIME_QUERY_VERSION = "0.16"
 
 
 @dataclass

@@ -1,6 +1,6 @@
-# Equinox Forge v0.14 — Runtime BASE Pack Compiler + Round-Trip Loader
+# Equinox Forge v0.16 — Runtime Recall + Prediction Engine
 
-**Current milestone:** v0.14 turns the realized v0.13 runtime rewrite plan into a deterministic binary `.eqbase` file with integrity checking, a round-trip loader, a compact node-offset index, and persisted build provenance. The historical sections below document how the Forge architecture arrived at this point; the dedicated v0.14 specification is appended at the end.
+**Current milestone:** v0.16 executes bounded recall and ranked prediction directly on the compiled `.eqbase` runtime, preserving a hard distinction between recall links and directed prediction channels. It adds contribution traces plus a context→expected benchmark harness for measuring how much compiled behaviour survives into the runtime. Historical sections below document the earlier Forge milestones.
 
 ## Previous milestone: v0.13 runtime compression plan
 
@@ -1102,3 +1102,98 @@ FORGE_V15_ALL_TESTS_OK
 **Runtime Recall + Prediction Engine.**
 
 The runtime can now load, index and route through the compiled hierarchy. The next meaningful step is to consume the compiled relation channels themselves: activate a context, retrieve bounded candidates, score relation support / hierarchy relevance, and produce a next-state or next-token prediction directly from `.eqbase` without SQLite or a teacher model. That will let the benchmark move from pure graph traversal to actual retained behaviour.
+
+
+---
+
+# v0.16 — Runtime Recall + Prediction Engine
+
+v0.16 turns the compiled `.eqbase` into a bounded, read-only cognitive runtime. The runtime never consults the Forge SQLite database and never learns or mutates the BASE pack.
+
+```text
+live text context
+      ↓
+context/surface resolution
+      ↓
+bounded structural + associative recall
+      ↓
+compiled directed prediction channels
+      ↓
+ranked next-surface candidates
+```
+
+## Hard separation: recall is not prediction
+
+Recall may expand through parent routing and associative relations such as `semantic_similarity`, `substitution`, `is_a`, or contextual similarity. A node becomes a next-surface prediction **only** when a compiled `prediction` or `transition` relation supports it. Semantic similarity by itself is never converted into a next-token claim.
+
+## Context resolution
+
+The first text consumer remains tokenizer-independent. It resolves exact predictive contexts already present in the pack. If a longer prompt is not represented directly, it falls back to the longest known predictive suffix. Example: a BASE trained with a three-word context can answer `Der Hund ist ein` through the stored context `Hund ist ein`.
+
+## Bounded recall
+
+`RuntimeCognitionPolicy` caps:
+
+- recalled nodes,
+- recall depth,
+- structural parents per node,
+- associative relation neighbors,
+- output prediction candidates,
+- minimum activation and minimum prediction contribution.
+
+This prevents an increasingly large BASE from automatically turning each request into an unbounded graph traversal.
+
+## Candidate traces
+
+Every returned prediction retains a contribution trace with:
+
+- source context node,
+- relation type,
+- compiled relation score,
+- compiled confidence,
+- independent source count,
+- context activation,
+- runtime channel weight,
+- final contribution.
+
+The trace distinguishes direct context predictions, recalled-context predictions, and lexical transition predictions.
+
+## Prediction benchmark harness
+
+`benchmark-predictions` accepts JSONL or TSV pairs:
+
+```json
+{"context":"Der Hund ist ein","expected":"Tier"}
+{"context":"Der Hund kann","expected":"bellen"}
+```
+
+It reports:
+
+- Hit@1,
+- Hit@K,
+- mean reciprocal rank,
+- unresolved contexts,
+- expected surfaces missing from the pack,
+- average recalled nodes,
+- average relation checks.
+
+These are runtime-retention diagnostics, not a claim that a small fixture reproduces a full teacher model.
+
+## CLI
+
+```bash
+eqforge predict-base knowledge.eqbase --context "Der Hund ist ein"
+eqforge benchmark-predictions knowledge.eqbase cases.jsonl --top-k 5
+```
+
+## v0.16 regression fixture
+
+The deterministic language fixture compiles only corpus-derived directed relations into `.eqbase` and verifies:
+
+```text
+Der Hund ist ein -> Tier
+Der Hund kann    -> bellen
+Die Katze kann   -> miauen
+```
+
+All three expected surfaces are ranked first by the compiled runtime. The fixture also verifies that all candidate contributions originate exclusively from `prediction` or `transition` channels.

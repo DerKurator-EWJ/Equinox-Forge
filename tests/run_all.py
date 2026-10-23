@@ -20,10 +20,11 @@ TESTS=[
     'test_runtime_compression.py',
     'test_runtime_base_pack.py',
     'test_runtime_query_benchmark.py',
+    'test_runtime_cognition.py',
 ]
 env=os.environ.copy()
 old=env.get('PYTHONPATH','')
 env['PYTHONPATH']=str(ROOT)+(os.pathsep+old if old else '')
 for name in TESTS:
     subprocess.run([sys.executable, str(ROOT/'tests'/name)], check=True, cwd=ROOT, env=env)
-print('FORGE_V15_ALL_TESTS_OK')
+print('FORGE_V16_ALL_TESTS_OK')
