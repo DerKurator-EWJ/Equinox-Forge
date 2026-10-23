@@ -1,4 +1,33 @@
-# Equinox Forge v0.51 — Canonical Relation IDs / Multi-valued Structural Closure
+# Equinox Forge v0.52 — Recursive Relation-ID Collapse
+
+v0.52 applies Equinox's recursive collapse principle to the predicate position itself. Canonical relation-facet IDs are treated as ordinary numeric relation objects, grouped by shared structural meta-relations, collapsed into deterministic relation-macro IDs, and then collapsed again at a higher relation level. Relation-macro IDs live in the canonical `relation` namespace, so they are legal first-class predicate handles for later triples.
+
+```text
+facet relation IDs
+      ↓ shared relation structure
+relation Macro-ID (level 1)
+      ↓ shared meta-structure
+relation Macro-ID (level 2)
+      ↓ ...
+
+subject ID → relation/macro ID → object ID
+```
+
+The frozen fixture yields 8 relation facets → 2 level-1 relation macros → 1 level-2 relation macro. Child relation macros retain only family-specific residual meta-facts and recover shared structure recursively. The v0.51 concept/runtime path remains unchanged.
+
+Run:
+
+```bash
+eqforge-relation-macro --out out/v0_52_recursive_relation_macro
+```
+
+See `RELEASE_V0_52.md` and `benchmarks/v0_52/`.
+
+---
+
+## Previous milestone — v0.51 Canonical Relation IDs / Multi-valued Structural Closure
+
+### Equinox Forge v0.51 — Canonical Relation IDs / Multi-valued Structural Closure
 
 v0.51 makes relation identities first-class numeric objects. Coarse `PROPERTY`/`ACTION` teacher facts are deterministically faceted by their object IDs, so one concept can address multiple inherited values without scalar collisions. The same faceted graph then feeds Structural Closure, Recursive Macro Collapse, and the DB-free numeric runtime. In the frozen teacher fixture, safe macro shortcuts recover from 0 to 24 and hierarchy work drops 21.43%.
 
