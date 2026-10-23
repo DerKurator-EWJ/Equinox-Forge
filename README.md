@@ -1,3 +1,140 @@
+# Equinox Forge v0.25 — Prototype Hierarchy / Recursive Concept Induction
+
+**Current milestone:** v0.25 lets Equinox concepts become the inputs of a higher abstraction step. v0.24 created a latent class from surface fillers; v0.25 can now merge independently supported latent classes into new concept nodes, then recursively repeat the same operation.
+
+## Core transition
+
+```text
+Hund / Katze      → Concept_A ─┐
+                              ├─→ Concept_AB ─┐
+Adler / Falke      → Concept_B ─┘              │
+                                             ├─→ Concept_ROOT
+Lachs / Forelle    → Concept_C ─┐              │
+                              ├─→ Concept_CD ─┘
+Eiche / Buche      → Concept_D ─┘
+```
+
+The names remain intentionally latent (`Concept_*`). Forge does **not** assert labels such as `animal`, `organism`, or any other ontology term unless separate evidence grounds those labels.
+
+## What v0.25 adds
+
+- `recursive_latent_concept` nodes whose members are already-derived concept nodes;
+- deterministic recursive concept IDs;
+- complete-link concept merging: every child concept in a merge must be independently compatible with every other child concept;
+- independent grounding through the underlying leaf fillers rather than concept names or graph position;
+- depth-aware semantic thresholds with a hard configurable floor;
+- explicit `child_concept --is_a→ parent_concept` evidence;
+- full leaf-support provenance on every higher concept;
+- non-overlapping leaf support by default, preventing a concept from "proving" a parent using the same leaves twice;
+- recursive iteration until no further supported merge exists or `max_depth` is reached;
+- generic `.eqbase` relation traversal through `RuntimeIndex.traverse_relation(...)`;
+- CLI command `induce-prototype-hierarchy`;
+- standalone hierarchy IR/report and a reproducible demo pack.
+
+## Why the recursion is evidence-grounded
+
+A higher concept is **not** created merely because two children are already `Concept_*` nodes.
+
+For two child concepts `A` and `B`, Forge inspects their underlying leaf fillers and measures independent semantic support across the cross product:
+
+```text
+leaves(A) × leaves(B)
+```
+
+A merge requires:
+
+```text
+cross-pair support fraction >= configured minimum
+and
+mean cross-leaf score >= threshold(depth)
+```
+
+By default the threshold may relax with abstraction depth, but never below a hard floor:
+
+```text
+threshold(depth) = max(
+    min_score_floor,
+    min_cross_leaf_score - (depth-1) * score_decay_per_depth
+)
+```
+
+This is a compiler policy, not an ontological claim. The full threshold and cross-leaf statistics are stored in node metadata and the induction report.
+
+## Controlled recursive fixture
+
+The v0.25 regression starts with **four** independently induced v0.24 prototypes. Independent semantic evidence is constructed so that:
+
+- at depth 1, prototype A can merge only with B;
+- prototype C can merge only with D;
+- cross-group support is deliberately below the depth-1 threshold;
+- at depth 2, the broader threshold admits the two parent concepts into one root.
+
+Result:
+
+```text
+base prototypes:          4
+recursive concepts:       3
+  depth 1:                2
+  depth 2:                1
+derived IS_A memberships: 6
+highest hierarchy depth:  2
+```
+
+The resulting demo `.eqbase` contains:
+
+```text
+71 runtime nodes
+66 compiled relations
+17,933 bytes
+```
+
+All four base prototypes reach the same root through two compiled `IS_A` steps.
+
+For this synthetic fixture, indexed relation traversal reports:
+
+```text
+scan-style work model: 198 units
+indexed traversal:       5 units
+reduction:             97.47 %
+```
+
+That number is a deterministic fixture/work-unit comparison, **not** a general CPU, latency, or energy claim.
+
+## CLI
+
+```bash
+eqforge induce-prototype-hierarchy master.sqlite hierarchy.eqir.json \
+  --min-cross-leaf-score 0.88 \
+  --score-decay-per-depth 0.10 \
+  --min-score-floor 0.68 \
+  --min-cross-leaf-pair-fraction 1.0 \
+  --max-depth 4 \
+  --persist
+```
+
+Optional `--relation-type` flags can select the independent semantic channels used to support recursive abstraction.
+
+## Runtime traversal
+
+The compiled BASE can now traverse a concept hierarchy without consulting SQLite:
+
+```python
+rows, metrics = runtime_index.traverse_relation(
+    concept_id,
+    "is_a",
+    max_depth=4,
+)
+```
+
+This primitive is generic and can later support other recursively compiled relation hierarchies.
+
+## Boundary
+
+v0.25 proves that the current Forge representation can **construct and navigate recursively composed concepts**. It does not yet show that the resulting latent hierarchy corresponds to human ontology, improves held-out reasoning, or is the optimal hierarchy for a large knowledge base.
+
+The next scientific question is whether higher concepts become useful rather than merely structurally valid: can they support new frame admission, prediction, routing, and held-out transfer that lower concepts alone cannot provide?
+
+---
 # Equinox Forge v0.24 — Slot Prototype / Latent Class Induction
 
 **Current milestone:** v0.24 turns a coherent typed slot filler cohort into a reusable provisional Equinox concept. Instead of asking at runtime whether a new filler is independently similar to every observed filler, Forge can compile a latent class once and preclassify independently known surfaces into it.

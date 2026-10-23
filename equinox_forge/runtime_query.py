@@ -226,6 +226,65 @@ class RuntimeIndex:
             _median_ns(index_fn, timing_repeat), _median_ns(linear_fn, timing_repeat),
         )
 
+    def traverse_relation(
+        self,
+        start_id: str,
+        relation_type: str,
+        *,
+        direction: str = "out",
+        max_depth: int = 8,
+    ) -> tuple[list[dict[str, Any]], QueryMetrics]:
+        """Breadth-first traversal over one compiled relation channel.
+
+        The method operates only on the loaded .eqbase indexes. It is intentionally
+        generic so recursive concept IS_A chains and future relation hierarchies use
+        the same runtime primitive. The start node itself is not returned.
+        """
+        if direction not in {"out", "in"}:
+            raise ValueError("direction must be 'out' or 'in'")
+        if max_depth < 0:
+            raise ValueError("max_depth must be >= 0")
+        table = self.relations_from if direction == "out" else self.relations_to
+        queue: list[tuple[str, int]] = [(start_id, 0)]
+        seen = {start_id}
+        rows: list[dict[str, Any]] = []
+        index_lookups = 0
+        relation_checks = 0
+        qpos = 0
+        while qpos < len(queue):
+            current, depth = queue[qpos]; qpos += 1
+            if depth >= max_depth:
+                continue
+            index_lookups += 1
+            bucket = table.get(current, [])
+            relation_checks += len(bucket)
+            for rel in bucket:
+                if rel.relation_type != relation_type:
+                    continue
+                nxt = rel.to_id if direction == "out" else rel.from_id
+                if nxt in seen:
+                    continue
+                seen.add(nxt)
+                nd = depth + 1
+                queue.append((nxt, nd))
+                rows.append({
+                    "node_id": nxt,
+                    "depth": nd,
+                    "score": float(rel.score),
+                    "confidence": float(rel.confidence),
+                    "source_count": int(rel.source_count),
+                    "evidence_count": int(rel.evidence_count),
+                })
+        # A scan-based reference would inspect every compiled relation once per
+        # frontier node. This is a deterministic work model, not a wall-clock claim.
+        frontier_nodes = max(1, index_lookups)
+        baseline = len(self.relations) * frontier_nodes
+        indexed = index_lookups + relation_checks
+        return rows, QueryMetrics(
+            f"relation_traversal:{relation_type}", baseline, indexed, len(rows),
+            _reduction(baseline, indexed), None, None,
+        )
+
     def expand_leaves(self, node_id: str, *, max_visits: int = 1_000_000) -> tuple[list[str], dict[str, int]]:
         if node_id not in self.node_by_id:
             raise KeyError(node_id)

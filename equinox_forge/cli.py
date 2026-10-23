@@ -31,6 +31,7 @@ from .generalization import compile_and_benchmark_heldout_generalization
 from .generalization_ladder import compile_and_benchmark_generalization_ladder, load_ladder_train_jsonl, load_ladder_eval_jsonl
 from .mechanism_attribution import compile_and_benchmark_mechanism_attribution
 from .frame_induction import FrameInductionPolicy, induce_relation_frames, persist_frame_document
+from .prototype_hierarchy import PrototypeHierarchyPolicy, induce_prototype_hierarchy
 from .frame_schema_benchmark import compile_and_benchmark_frame_schemas, load_frame_eval_jsonl
 
 
@@ -918,6 +919,51 @@ def _induce_frames(args) -> int:
     return 0
 
 
+def _induce_prototype_hierarchy(args) -> int:
+    policy = PrototypeHierarchyPolicy(
+        min_children=args.min_children,
+        max_depth=args.max_depth,
+        min_cross_leaf_score=args.min_cross_leaf_score,
+        score_decay_per_depth=args.score_decay_per_depth,
+        min_score_floor=args.min_score_floor,
+        min_cross_leaf_pair_fraction=args.min_cross_leaf_pair_fraction,
+        relation_types=tuple(args.relation_type or [
+            "semantic_similarity", "substitution", "contextual_similarity"
+        ]),
+        membership_confidence=args.membership_confidence,
+        require_disjoint_leaf_sets=not args.allow_overlapping_leaf_sets,
+    )
+    try:
+        with CanonicalDB(args.db) as c:
+            doc, report = induce_prototype_hierarchy(
+                c.db, policy, source_id=args.source_id, source_version=args.source_version
+            )
+            errors = [x for x in validate_document(doc) if x.severity == "error"]
+            if errors:
+                raise ValueError("prototype hierarchy IR invalid: " + "; ".join(x.message for x in errors))
+            save_document(doc, args.output)
+            report_path = Path(args.report) if args.report else Path(args.output).with_suffix(".report.json")
+            report_path.write_text(
+                json.dumps(report.to_dict(), ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+            if args.persist:
+                persist_frame_document(c.db, doc)
+                c.db.commit()
+            payload = {
+                "output": str(Path(args.output)),
+                "report": str(report_path),
+                "persisted": bool(args.persist),
+                "prototype_hierarchy": report.to_dict(),
+                "db_stats": c.stats(),
+            }
+    except Exception as exc:
+        print(f"ERROR: prototype hierarchy induction failed: {exc}")
+        return 3
+    print(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
+
 def _benchmark_frames(args) -> int:
     probe_cfg=BehaviourProbeConfig(
         top_k=args.teacher_top_k,temperature=args.temperature,min_probability=args.min_probability,
@@ -1423,6 +1469,23 @@ def main():
     fi.add_argument("--prototype-membership-confidence",type=float,default=0.92)
     fi.add_argument("--persist",action="store_true",help="persist induced frame nodes/evidence into the canonical DB")
 
+    ph=sub.add_parser("induce-prototype-hierarchy", help="recursively induce higher concepts from latent slot prototypes")
+    ph.add_argument("db"); ph.add_argument("output")
+    ph.add_argument("--report")
+    ph.add_argument("--source-id",default="derived:prototype-hierarchy")
+    ph.add_argument("--source-version",default="0.25")
+    ph.add_argument("--min-children",type=int,default=2)
+    ph.add_argument("--max-depth",type=int,default=4)
+    ph.add_argument("--min-cross-leaf-score",type=float,default=0.80)
+    ph.add_argument("--score-decay-per-depth",type=float,default=0.10)
+    ph.add_argument("--min-score-floor",type=float,default=0.55)
+    ph.add_argument("--min-cross-leaf-pair-fraction",type=float,default=1.0)
+    ph.add_argument("--relation-type",action="append",default=[],help="semantic relation channel usable as independent hierarchy support; repeatable")
+    ph.add_argument("--membership-confidence",type=float,default=0.92)
+    ph.add_argument("--allow-overlapping-leaf-sets",action="store_true")
+    ph.add_argument("--persist",action="store_true",help="persist recursive concept nodes/evidence into the canonical DB")
+
+
     fb=sub.add_parser("benchmark-frames", help="compile induced relation frames and benchmark isolated held-out schema transfer")
     fb.add_argument("model_dir"); fb.add_argument("output_dir")
     fb.add_argument("--train",action="append",required=True,help="UTF-8 train prompt file; repeatable")
@@ -1584,6 +1647,8 @@ def main():
         raise SystemExit(_benchmark_mechanism_attribution(a))
     elif a.cmd=="induce-frames":
         raise SystemExit(_induce_frames(a))
+    elif a.cmd=="induce-prototype-hierarchy":
+        raise SystemExit(_induce_prototype_hierarchy(a))
     elif a.cmd=="benchmark-frames":
         raise SystemExit(_benchmark_frames(a))
     elif a.cmd=="artifacts":
