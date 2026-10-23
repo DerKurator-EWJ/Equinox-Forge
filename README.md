@@ -1,237 +1,316 @@
-# Equinox Forge v0.7 — Evidence Fusion + Provisional Sense Compiler
+# Equinox Forge v0.8 — Cross-Teacher Consensus & Hypothesis Stability
 
-Forge v0.7 is the first release that turns the evidence collected in v0.3–v0.6 into a **new Equinox-native higher-order hypothesis**.
+Forge v0.8 adds a persistent **quality-control layer for derived Equinox knowledge**.
 
-Until v0.6 Forge only collected evidence:
+The previous pipeline can already create provisional higher-order concepts from multiple evidence channels:
 
 ```text
-static teacher embedding geometry
-+ controlled corpus observations
-+ executed next-token behaviour
-+ contextual hidden-state geometry
+embeddings
++ corpus observations
++ teacher next-token behaviour
++ contextual hidden-state evidence
         ↓
-Canonical DB
+Evidence Fusion
+        ↓
+Provisional Sense / Concept
 ```
 
-v0.7 adds:
+v0.8 asks the next necessary question:
+
+> Does that derived concept remain supported when independent sources and later rebuilds are taken into account?
+
+The new pipeline is:
 
 ```text
-Canonical DB
-   ↓
-source-aware relation aggregation
-   ↓
-multi-channel context fusion
-   ↓
-complete-link contextual clustering
-   ↓
-provisional Equinox sense/concept nodes
+raw source evidence
+        ↓
+provisional sense compiler
+        ↓
+source-specific re-evaluation
+        ↓
+support / conflict / abstain votes
+        ↓
+cross-source consensus
+        ↓
+persistent rebuild history
+        ↓
+candidate / stable / contested / quarantined
 ```
 
-The central rule is still:
+## Central rule
 
-> A compiled sense is an Equinox hypothesis supported by evidence. It is not a copied teacher label, activation, token ID or ontology entry.
+A high fused score is **not sufficient** to make a derived concept stable.
 
-## Why this step matters
+A hypothesis becomes `stable` only when it receives enough independent support and survives repeated compiler runs under the same policy.
 
-A surface such as `Bank` should remain one canonical text surface. Different uses can later support different higher structures:
+Stability is reversible:
 
 ```text
-                 ┌─ provisional sense A
-canonical Bank ──┤
-                 └─ provisional sense B
+candidate
+   ↓ repeated independent confirmation
+stable
+   ↓ later conflicting evidence
+contested
+   ↓ stronger/multiple conflict
+quarantined
 ```
 
-Forge must discover those higher structures from evidence rather than pre-programming `Bank(finance)` and `Bank(seat)`.
+A hypothesis that disappears on later rebuilds is also downgraded and may eventually be quarantined.
 
-## Inputs used by the fusion compiler
+## Source-specific voting
 
-For each pair of contextual uses of one canonical surface, v0.7 can combine six channels:
+v0.8 reconstructs evidence per independent `source_id@source_version` instead of using only the already aggregated relation graph.
 
-1. `contextual_similarity`
-   - hidden-state similarity from v0.6;
-2. lexical overlap
-   - exact overlap of canonical context members;
-3. `semantic_similarity`
-   - static teacher embedding evidence from v0.3;
-4. `substitution`
-   - corpus slot evidence from v0.4;
-5. `transition`
-   - directed corpus transition evidence from v0.4;
-6. prediction-signature similarity
-   - similarity of compiled next-token distributions from v0.4/v0.5 canonical prediction contexts.
+For each provisional cluster, a source is evaluated against:
 
-The default weights are:
+- internal affinity between contexts that belong to the cluster;
+- competing affinity from those contexts to contexts outside the cluster;
+- the source-specific evidence channels that were actually observed.
+
+A source can vote:
 
 ```text
-hidden_similarity     0.55
-lexical_overlap       0.05
-semantic_similarity   0.15
-substitution          0.10
-transition            0.05
-prediction_signature  0.10
+support
+conflict
+abstain
 ```
 
-They are policy, not ontology. They can be changed and recomputed without re-extracting the raw teacher/corpus evidence.
+Structural lexical overlap is deliberately **not** counted as an independent source vote, because it does not originate from an external teacher/corpus source.
 
-## No opaque universal weight
-
-Every pair in the compiler report preserves:
-
-- each channel score separately;
-- the weights actually used;
-- the fused score;
-- the number of positively supporting channels.
-
-Missing channels are not silently treated as positive evidence. Available zero-valued channels may penalize the weighted score, while `min_channels` counts only channels with positive support.
-
-## Relation aggregation remains source-aware
-
-Raw evidence remains in the Canonical DB. Before fusion, evidence for an identical canonical relation is aggregated using the existing v0.1 compiler logic:
+Current source-specific channels can include:
 
 ```text
-raw evidence A ─┐
-raw evidence B ─┼→ compiled relation score/confidence
-raw evidence C ─┘
+contextual_similarity
+semantic_similarity
+substitution
+transition
+prediction_signature
 ```
 
-The compiled relation retains evidence/source counts. The sense compiler consumes that derived view; it does not destroy or overwrite raw evidence.
+Missing channels remain missing; they are not silently converted into positive support.
 
-## Complete-link clustering
+## Consensus score
 
-v0.7 deliberately does **not** use simple connected components.
-
-With connected components:
+For decisive source votes:
 
 ```text
-A ~ B
-B ~ C
+consensus = support_sources / (support_sources + conflict_sources)
 ```
 
-could merge `A,B,C` even if `A` and `C` are incompatible.
+Abstaining sources do not artificially penalize consensus.
 
-Instead the compiler uses deterministic complete-link merging. Two clusters merge only when **every cross-cluster pair**:
+The default lifecycle policy is:
 
 ```text
-fused_score >= threshold
-AND
-supporting_channels >= min_channels
+source_vote_threshold      0.58
+source_vote_margin         0.08
+stable_min_sources         2
+stable_min_runs            2
+stable_consensus           0.75
+quarantine_conflicts       2
+quarantine_after_misses    2
 ```
 
-This makes provisional senses harder to create and reduces bridge-collapse.
+These values are compiler policy, not Equinox ontology. They can be changed and the derived state rebuilt.
 
-## Provisional sense identity
+## Persistent hypothesis history
 
-A sense node is a canonical `concept` node whose members are:
+The Canonical DB now contains two new tables:
+
+### `hypothesis_runs`
+
+One record per tracked derived compile:
 
 ```text
-[target surface, context 1, context 2, ...]
+run_id
+compiler
+target_id
+policy_hash
+output_hash
+created_at
+metadata
 ```
 
-Its ID is deterministic from that canonical composition. Therefore the same DB + policy + cluster membership yields the same sense ID.
+### `hypothesis_states`
 
-The node metadata explicitly marks:
+Persistent state for every derived hypothesis under a specific policy:
 
-```json
-{
-  "provisional": true,
-  "compiler": "equinox-forge-sense-compiler-v1",
-  "compiler_version": "0.7"
-}
+```text
+hypothesis_id
+target_id
+policy_hash
+membership_hash
+status
+first_seen_run
+last_seen_run
+seen_runs
+consecutive_seen
+missed_runs
+consensus_score
+support_sources
+conflict_sources
+metadata
 ```
 
-A provisional sense is not claimed to be a permanent truth. Later compiler passes may strengthen, split, merge, quarantine or discard it.
+The raw evidence store remains untouched. Lifecycle state is derived metadata and can be rebuilt.
 
-## Benchmark-label isolation
+## Reversible status rules
 
-The existing `Bank` probe dataset contains labels only for evaluation. The sense compiler receives only the Canonical DB.
+### `candidate`
 
-The v0.7 regression test verifies that:
+The concept exists, but has not yet accumulated enough independent and temporal confirmation.
 
-- the compiler forms two three-context clusters;
-- the external benchmark labels correspond to the two clusters;
-- the strings `finance` and `seat` never appear in the derived Equinox IR;
-- repeated compilation yields identical concept IDs.
+### `stable`
 
-This prevents evaluation truth from leaking into the knowledge graph.
+Requires all of the configured conditions, including:
+
+```text
+support_sources >= stable_min_sources
+consecutive_seen >= stable_min_runs
+consensus_score >= stable_consensus
+```
+
+### `contested`
+
+Used when later source conflict weakens a previously accepted hypothesis or when a hypothesis disappears from a rebuild but has not yet crossed the quarantine threshold.
+
+### `quarantined`
+
+Used conservatively when:
+
+```text
+conflict_sources >= quarantine_conflicts
+```
+
+or when a previously known hypothesis repeatedly disappears from rebuilds.
+
+Quarantine means "do not trust this derived structure as normal BASE knowledge". It does not delete raw evidence.
 
 ## CLI
 
-After ingesting contextual and other evidence into one Canonical DB:
+The existing sense compiler can now track stability:
 
 ```bash
 python -m equinox_forge.cli compile-senses \
-  out/master.sqlite \
-  out/bank_senses.eqir.json \
-  --surface Bank
-```
-
-Important controls:
-
-```text
---threshold 0.62
---min-channels 2
---min-contexts 2
---include-singletons
---w-hidden
---w-lexical
---w-semantic
---w-substitution
---w-transition
---w-prediction
-```
-
-By default this is a dry derived compile: it writes IR + report but does not mutate the Canonical DB.
-
-To persist the provisional nodes/evidence:
-
-```bash
-python -m equinox_forge.cli compile-senses \
-  out/master.sqlite \
-  out/bank_senses.eqir.json \
+  master.sqlite \
+  bank_senses.eqir.json \
   --surface Bank \
-  --ingest-derived
+  --track-stability
 ```
 
-This explicit switch is intentional because derived hypotheses should not silently contaminate the evidence store.
-
-## Output report
-
-The report contains:
+Useful controls:
 
 ```text
-target surface/id
-contexts found
-all context-pair channel scores
-fused pair scores
-accepted-pair count
-cluster membership
-mean/min internal cluster score
-evidence channels supporting each cluster
-unresolved contexts
-fusion policy
+--source-vote-threshold 0.58
+--source-vote-margin 0.08
+--min-observed-pairs 1
+--stable-min-sources 2
+--stable-min-runs 2
+--stable-consensus 0.75
+--quarantine-conflicts 2
+--quarantine-after-misses 2
+--consensus-report path.json
 ```
 
-No raw hidden vectors are required.
+The resulting derived IR concept nodes are annotated with fields such as:
 
-## Current Bank fixture
+```json
+{
+  "lifecycle_status": "stable",
+  "consensus_score": 1.0,
+  "support_sources": 2,
+  "conflict_sources": 0,
+  "seen_runs": 2,
+  "consecutive_seen": 2
+}
+```
 
-The deterministic integration fixture has six uses of `Bank`:
+The persistent DB state is authoritative even if an older copy of a derived node already exists in the Canonical DB.
+
+## Inspecting hypothesis state
+
+```bash
+python -m equinox_forge.cli hypotheses master.sqlite
+```
+
+Optionally filter by target ID:
+
+```bash
+python -m equinox_forge.cli hypotheses master.sqlite --target-id <canonical-id>
+```
+
+`stats` now also reports:
 
 ```text
-3 financial uses
-3 bench/seating uses
+hypothesis_runs
+hypotheses
 ```
 
-The compiler does not see those labels. With scripted hidden evidence plus independent semantic evidence, it produces:
+## Reproducible v0.8 demo
+
+Run:
+
+```bash
+python examples/build_consensus_demo.py
+```
+
+The demo creates two `Bank` sense hypotheses and applies four rebuild stages:
 
 ```text
-6 contexts
-2 provisional concepts
-3 contexts per concept
-0 unresolved contexts
+Run 1:
+Teacher A supports
+Teacher B supports
+→ candidate
+
+Run 2:
+same independent support again
+→ stable
+
+Run 3:
+Teacher C prefers competing cross-sense coupling
+→ contested
+
+Run 4:
+Teacher D independently adds the same conflict
+→ quarantined
 ```
 
-The labels are then used only to verify the result externally.
+The demo writes:
+
+```text
+out/consensus_demo.sqlite
+out/consensus_demo.eqir.json
+out/consensus_demo.states.json
+out/consensus_demo.timeline.json
+```
+
+The benchmark labels used to verify the fixture are never imported as Equinox knowledge.
+
+## Why this matters before large-scale import
+
+Without this layer, a Master Compiler could promote a mistake simply because one teacher was very confident.
+
+v0.8 changes the model to:
+
+```text
+one source says X
+        ↓
+possible evidence
+
+several independent sources say X
+        ↓
+stronger candidate
+
+same structure survives rebuilds
+        ↓
+stable derived knowledge
+
+later sources contradict X
+        ↓
+downgrade / quarantine
+```
+
+This is especially important once Forge begins combining many Hugging-Face models, datasets and future vision/audio teachers.
 
 ## Regression suite
 
@@ -244,54 +323,59 @@ python tests/run_all.py
 Expected final marker:
 
 ```text
-FORGE_V07_ALL_TESTS_OK
+FORGE_V08_ALL_TESTS_OK
 ```
 
-The suite covers:
+The suite currently covers:
 
 ```text
-v0.1 canonical IR / DB / aggregation
+v0.1 canonical IR / database / relation aggregation
 v0.2 Hugging-Face adapter contract
-v0.3 static embedding extraction
-v0.4 controlled corpus language evidence
-v0.5 executed causal teacher behaviour
+v0.3 static teacher embedding extraction
+v0.4 controlled corpus evidence
+v0.5 executed causal-teacher behaviour
 v0.5 real tiny causal neural runtime
 v0.6 contextual hidden-state evidence
 v0.6 real tiny contextual neural runtime
-v0.7 multi-channel evidence fusion
-v0.7 deterministic provisional sense compilation
+v0.7 evidence fusion / provisional sense compilation
 v0.7 benchmark-label non-leakage
-v0.7 idempotent derived ingest
+v0.8 source-specific consensus voting
+v0.8 candidate → stable promotion
+v0.8 stable → contested downgrade
+v0.8 multi-source quarantine
+v0.8 persistent run/state history
 ```
 
-## What v0.7 does NOT claim
+## What v0.8 does NOT prove
 
-v0.7 does not prove that its provisional concepts correspond to human meanings in general.
+v0.8 does not prove that the compiled concepts are semantically correct in general.
 
-It proves that Forge now has a deterministic mechanism for:
+It establishes the infrastructure required to distinguish:
 
 ```text
-independent evidence
-→ source-aware aggregation
-→ multi-channel support
-→ conservative clustering
-→ higher Equinox-native structure
+high score
 ```
 
-Real semantic quality must be measured on larger labelled and unlabelled datasets and across multiple teachers.
-
-## Recommended next step — v0.8
-
-**Conflict, Stability & Cross-Teacher Consensus Compiler**.
-
-The next compiler should test whether a provisional structure survives when:
+from:
 
 ```text
-Teacher A agrees
-Teacher B disagrees
-Corpus evidence is weak/strong
-new contexts arrive
-sources are removed/reweighted
+independently supported + temporally stable derived knowledge
 ```
 
-That requires explicit support/conflict accounting, stability across recompilations, source ablation and promotion rules from `provisional` to a stronger derived state.
+Real quality still has to be tested on larger datasets and real independent teacher models.
+
+## Recommended next step — v0.9
+
+**Source Ablation, Reweighting & Rebuild Engine**.
+
+The next step should make provenance operational:
+
+```text
+remove Teacher C
+change trust weight of Teacher B
+upgrade one source version
+rebuild derived knowledge
+compare which hypotheses survive/change
+```
+
+That will allow Forge to repair the Master DB without re-extracting every source and will be a prerequisite for safely merging many large external models.

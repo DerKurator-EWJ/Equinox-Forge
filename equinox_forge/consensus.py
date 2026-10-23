@@ -1,0 +1,386 @@
+from __future__ import annotations
+
+from dataclasses import dataclass, asdict
+from typing import Any
+import hashlib
+import json
+import math
+import sqlite3
+
+from .ir import ForgeDocument, IRNode, RelationType, NodeKind
+from .sense_compiler import (
+    SenseCompilePolicy,
+    FusionWeights,
+    _members,
+    _node_from_db,
+    _jaccard,
+    _cross_affinity,
+    _cosine_dict,
+    _weighted_fuse,
+)
+
+CONSENSUS_FORMAT = "equinox-forge-consensus-v1"
+CONSENSUS_VERSION = "0.8"
+
+
+@dataclass(frozen=True)
+class ConsensusPolicy:
+    source_vote_threshold: float = 0.58
+    source_vote_margin: float = 0.08
+    min_observed_pairs: int = 1
+    stable_min_sources: int = 2
+    stable_min_runs: int = 2
+    stable_consensus: float = 0.75
+    quarantine_conflicts: int = 2
+    quarantine_after_misses: int = 2
+
+    def validate(self) -> None:
+        for name in ("source_vote_threshold", "source_vote_margin", "stable_consensus"):
+            value = float(getattr(self, name))
+            if not 0.0 <= value <= 1.0:
+                raise ValueError(f"{name} must be in [0,1]")
+        for name in ("min_observed_pairs", "stable_min_sources", "stable_min_runs", "quarantine_conflicts", "quarantine_after_misses"):
+            if int(getattr(self, name)) < 1:
+                raise ValueError(f"{name} must be >= 1")
+
+
+@dataclass
+class SourceVote:
+    source_key: str
+    vote: str
+    internal_score: float | None
+    competing_score: float | None
+    internal_pairs: int
+    competing_pairs: int
+    channel_observations: dict[str, int]
+    quality: float
+
+
+@dataclass
+class HypothesisAssessment:
+    hypothesis_id: str
+    membership_hash: str
+    status: str
+    consensus_score: float
+    support_sources: int
+    conflict_sources: int
+    abstain_sources: int
+    decisive_sources: int
+    mean_support_quality: float
+    votes: list[dict[str, Any]]
+    previous_status: str | None = None
+    seen_runs: int = 0
+    consecutive_seen: int = 0
+    missed_runs: int = 0
+
+
+@dataclass
+class ConsensusReport:
+    format: str
+    version: str
+    target_id: str
+    policy_hash: str
+    run_id: int | None
+    hypotheses: list[dict[str, Any]]
+    missing_hypotheses: list[dict[str, Any]]
+    policy: dict[str, Any]
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+def _policy_hash(sense_policy: SenseCompilePolicy, consensus_policy: ConsensusPolicy) -> str:
+    raw = {
+        "sense": {
+            "threshold": sense_policy.threshold,
+            "min_channels": sense_policy.min_channels,
+            "min_contexts": sense_policy.min_contexts,
+            "include_singletons": sense_policy.include_singletons,
+            "weights": asdict(sense_policy.weights),
+        },
+        "consensus": asdict(consensus_policy),
+    }
+    return hashlib.sha256(json.dumps(raw, sort_keys=True, separators=(",", ":")).encode()).hexdigest()[:20]
+
+
+def _source_relation_maps(db: sqlite3.Connection) -> dict[str, dict[tuple[str, str, str], float]]:
+    rows = db.execute(
+        "SELECT from_id,to_id,relation_type,score,confidence,source_id,source_version FROM evidence ORDER BY evidence_id"
+    ).fetchall()
+    buckets: dict[str, dict[tuple[str, str, str], list[tuple[float, float]]]] = {}
+    for a, b, typ, score, conf, src, ver in rows:
+        key = f"{src}@{ver}"
+        buckets.setdefault(key, {}).setdefault((a, b, typ), []).append((float(score), float(conf)))
+    out: dict[str, dict[tuple[str, str, str], float]] = {}
+    for src, rels in buckets.items():
+        out[src] = {}
+        for key, evs in rels.items():
+            den = sum(c for _, c in evs)
+            if den > 0:
+                out[src][key] = max(0.0, min(1.0, sum(s * c for s, c in evs) / den))
+    return out
+
+
+def _sym(relmap: dict[tuple[str, str, str], float], a: str, b: str, typ: str) -> float | None:
+    vals = []
+    if (a, b, typ) in relmap:
+        vals.append(relmap[(a, b, typ)])
+    if (b, a, typ) in relmap:
+        vals.append(relmap[(b, a, typ)])
+    return max(vals) if vals else None
+
+
+def _prediction_signature_for_source(db: sqlite3.Connection, relmap: dict[tuple[str, str, str], float], members: list[str]) -> dict[str, float]:
+    if not members:
+        return {}
+    sig: dict[str, float] = {}
+    tids = [r[0] for r in db.execute("SELECT node_id FROM nodes WHERE kind=?", (NodeKind.TEMPLATE.value,)).fetchall()]
+    for tid in tids:
+        tm = _members(db, tid)
+        if not tm or len(tm) > len(members):
+            continue
+        if not any(members[i:i+len(tm)] == tm for i in range(len(members)-len(tm)+1)):
+            continue
+        for (a, b, typ), value in relmap.items():
+            if a == tid and typ == RelationType.PREDICTION.value:
+                sig[b] = max(sig.get(b, 0.0), value)
+    return sig
+
+
+def _source_pair_score(
+    db: sqlite3.Connection,
+    relmap: dict[tuple[str, str, str], float],
+    a: str,
+    b: str,
+    context_lex: dict[str, list[str]],
+    context_members: dict[str, list[str]],
+    weights: FusionWeights,
+) -> tuple[float | None, int, dict[str, int]]:
+    hidden = _sym(relmap, a, b, RelationType.CONTEXTUAL_SIMILARITY.value)
+
+    def cross(typ: str) -> float | None:
+        aa, bb = context_lex[a], context_lex[b]
+        if not aa or not bb:
+            return None
+        vals: list[float] = []
+        for x in aa:
+            for y in bb:
+                v = _sym(relmap, x, y, typ)
+                if v is not None:
+                    vals.append(v)
+        return max(vals) if vals else None
+
+    semantic = cross(RelationType.SEMANTIC_SIMILARITY.value)
+    substitution = cross(RelationType.SUBSTITUTION.value)
+    transition = cross(RelationType.TRANSITION.value)
+    pa = _prediction_signature_for_source(db, relmap, context_members[a])
+    pb = _prediction_signature_for_source(db, relmap, context_members[b])
+    prediction = _cosine_dict(pa, pb)
+    scores = {
+        "hidden_similarity": hidden,
+        # lexical overlap is structural, not an independent source vote.
+        "lexical_overlap": None,
+        "semantic_similarity": semantic,
+        "substitution": substitution,
+        "transition": transition,
+        "prediction_signature": prediction,
+    }
+    fused, channels, _ = _weighted_fuse(scores, weights)
+    observations = {k: int(v is not None) for k, v in scores.items() if k != "lexical_overlap"}
+    if channels == 0:
+        return None, 0, observations
+    return fused, channels, observations
+
+
+def _vote_for_cluster(
+    db: sqlite3.Connection,
+    relmap: dict[tuple[str, str, str], float],
+    cluster: list[str],
+    all_contexts: list[str],
+    context_lex: dict[str, list[str]],
+    context_members: dict[str, list[str]],
+    weights: FusionWeights,
+    policy: ConsensusPolicy,
+    source_key: str,
+) -> SourceVote:
+    internal: list[float] = []
+    competing: list[float] = []
+    observations: dict[str, int] = {}
+    for i, a in enumerate(cluster):
+        for b in cluster[i+1:]:
+            score, nch, obs = _source_pair_score(db, relmap, a, b, context_lex, context_members, weights)
+            for k, v in obs.items(): observations[k] = observations.get(k, 0) + v
+            if score is not None and nch > 0:
+                internal.append(score)
+    outside = [x for x in all_contexts if x not in set(cluster)]
+    for a in cluster:
+        for b in outside:
+            score, nch, obs = _source_pair_score(db, relmap, a, b, context_lex, context_members, weights)
+            for k, v in obs.items(): observations[k] = observations.get(k, 0) + v
+            if score is not None and nch > 0:
+                competing.append(score)
+    internal_score = None if not internal else sum(internal) / len(internal)
+    competing_score = None if not competing else max(competing)
+    vote = "abstain"
+    quality = 0.0
+    if len(internal) >= policy.min_observed_pairs:
+        comp = 0.0 if competing_score is None else competing_score
+        if internal_score is not None and internal_score >= policy.source_vote_threshold and internal_score >= comp + policy.source_vote_margin:
+            vote = "support"
+            quality = max(0.0, min(1.0, internal_score - comp))
+    if competing_score is not None and competing_score >= policy.source_vote_threshold:
+        base = 0.0 if internal_score is None else internal_score
+        if competing_score >= base + policy.source_vote_margin:
+            vote = "conflict"
+            quality = max(0.0, min(1.0, competing_score - base))
+    return SourceVote(source_key, vote, internal_score, competing_score, len(internal), len(competing), observations, quality)
+
+
+def assess_hypotheses(
+    db: sqlite3.Connection,
+    doc: ForgeDocument,
+    target_id: str,
+    sense_policy: SenseCompilePolicy,
+    consensus_policy: ConsensusPolicy | None = None,
+) -> tuple[list[HypothesisAssessment], str]:
+    cp = consensus_policy or ConsensusPolicy()
+    cp.validate()
+    policy_hash = _policy_hash(sense_policy, cp)
+    source_maps = _source_relation_maps(db)
+    all_contexts = sorted({r[0] for r in db.execute(
+        "SELECT DISTINCT to_id FROM evidence WHERE from_id=? AND relation_type=?",
+        (target_id, RelationType.CONTEXTUAL_USE.value),
+    ).fetchall()})
+    context_members = {c: _members(db, c) for c in all_contexts}
+    context_lex = {c: [m for m in context_members[c] if m != target_id] for c in all_contexts}
+    assessments: list[HypothesisAssessment] = []
+    for node in sorted((n for n in doc.nodes if n.metadata.get("provisional") and n.metadata.get("target_id") == target_id), key=lambda n: n.node_id):
+        cluster = sorted(node.metadata.get("contexts") or [m for m in node.members if m != target_id])
+        votes = [
+            _vote_for_cluster(db, relmap, cluster, all_contexts, context_lex, context_members, sense_policy.weights, cp, src)
+            for src, relmap in sorted(source_maps.items())
+        ]
+        support = [v for v in votes if v.vote == "support"]
+        conflict = [v for v in votes if v.vote == "conflict"]
+        abstain = [v for v in votes if v.vote == "abstain"]
+        decisive = len(support) + len(conflict)
+        consensus = 0.0 if decisive == 0 else len(support) / decisive
+        mean_quality = 0.0 if not support else sum(v.quality for v in support) / len(support)
+        membership_hash = hashlib.sha256("\n".join(cluster).encode()).hexdigest()[:20]
+        assessments.append(HypothesisAssessment(
+            node.node_id, membership_hash, "candidate", consensus,
+            len(support), len(conflict), len(abstain), decisive, mean_quality,
+            [asdict(v) for v in votes],
+        ))
+    return assessments, policy_hash
+
+
+def track_hypothesis_run(
+    db: sqlite3.Connection,
+    doc: ForgeDocument,
+    target_id: str,
+    sense_policy: SenseCompilePolicy,
+    consensus_policy: ConsensusPolicy | None = None,
+) -> ConsensusReport:
+    cp = consensus_policy or ConsensusPolicy()
+    assessments, policy_hash = assess_hypotheses(db, doc, target_id, sense_policy, cp)
+    output_hash = hashlib.sha256(json.dumps(doc.to_dict(), sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()
+    cur = db.execute(
+        "INSERT INTO hypothesis_runs(compiler,target_id,policy_hash,output_hash,metadata_json) VALUES(?,?,?,?,?)",
+        (CONSENSUS_FORMAT, target_id, policy_hash, output_hash, json.dumps({"version": CONSENSUS_VERSION}, sort_keys=True)),
+    )
+    run_id = int(cur.lastrowid)
+    current_ids = {a.hypothesis_id for a in assessments}
+    missing_reports: list[dict[str, Any]] = []
+
+    # Mark previously known hypotheses that disappeared under the same policy.
+    previous = db.execute(
+        "SELECT hypothesis_id,status,seen_runs,consecutive_seen,missed_runs,metadata_json FROM hypothesis_states WHERE target_id=? AND policy_hash=?",
+        (target_id, policy_hash),
+    ).fetchall()
+    for hid, status, seen_runs, consecutive, missed, meta_json in previous:
+        if hid in current_ids:
+            continue
+        new_missed = int(missed) + 1
+        new_status = "quarantined" if new_missed >= cp.quarantine_after_misses else "contested"
+        meta = json.loads(meta_json or "{}")
+        meta["last_transition_reason"] = "missing_from_rebuild"
+        db.execute(
+            "UPDATE hypothesis_states SET status=?,consecutive_seen=0,missed_runs=?,metadata_json=? WHERE hypothesis_id=? AND policy_hash=?",
+            (new_status, new_missed, json.dumps(meta, sort_keys=True), hid, policy_hash),
+        )
+        missing_reports.append({"hypothesis_id": hid, "previous_status": status, "status": new_status, "missed_runs": new_missed})
+
+    node_map = {n.node_id: n for n in doc.nodes}
+    for a in assessments:
+        row = db.execute(
+            "SELECT status,first_seen_run,last_seen_run,seen_runs,consecutive_seen,missed_runs,membership_hash FROM hypothesis_states WHERE hypothesis_id=? AND policy_hash=?",
+            (a.hypothesis_id, policy_hash),
+        ).fetchone()
+        if row:
+            prev_status, first_run, last_run, seen_runs, consecutive, missed, old_membership = row
+            consecutive_seen = int(consecutive) + 1 if int(last_run) == run_id - 1 and old_membership == a.membership_hash else 1
+            seen_runs = int(seen_runs) + 1
+            first_seen = int(first_run)
+        else:
+            prev_status = None
+            consecutive_seen = 1
+            seen_runs = 1
+            first_seen = run_id
+        status = "candidate"
+        reason = "insufficient_independent_confirmation"
+        if a.conflict_sources >= cp.quarantine_conflicts:
+            status = "quarantined"; reason = "multi_source_conflict"
+        elif a.conflict_sources > 0 and a.consensus_score < cp.stable_consensus:
+            status = "contested"; reason = "source_conflict"
+        elif a.support_sources >= cp.stable_min_sources and consecutive_seen >= cp.stable_min_runs and a.consensus_score >= cp.stable_consensus:
+            status = "stable"; reason = "repeated_cross_source_consensus"
+        a.previous_status = prev_status
+        a.status = status
+        a.seen_runs = seen_runs
+        a.consecutive_seen = consecutive_seen
+        a.missed_runs = 0
+        meta = {
+            "version": CONSENSUS_VERSION,
+            "reason": reason,
+            "votes": a.votes,
+            "mean_support_quality": a.mean_support_quality,
+        }
+        db.execute(
+            "INSERT INTO hypothesis_states(hypothesis_id,target_id,policy_hash,membership_hash,status,first_seen_run,last_seen_run,seen_runs,consecutive_seen,missed_runs,consensus_score,support_sources,conflict_sources,metadata_json) "
+            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) "
+            "ON CONFLICT(hypothesis_id,policy_hash) DO UPDATE SET membership_hash=excluded.membership_hash,status=excluded.status,last_seen_run=excluded.last_seen_run,seen_runs=excluded.seen_runs,consecutive_seen=excluded.consecutive_seen,missed_runs=0,consensus_score=excluded.consensus_score,support_sources=excluded.support_sources,conflict_sources=excluded.conflict_sources,metadata_json=excluded.metadata_json",
+            (a.hypothesis_id, target_id, policy_hash, a.membership_hash, status, first_seen, run_id, seen_runs, consecutive_seen, 0, a.consensus_score, a.support_sources, a.conflict_sources, json.dumps(meta, ensure_ascii=False, sort_keys=True)),
+        )
+        if a.hypothesis_id in node_map:
+            node_map[a.hypothesis_id].metadata.update({
+                "lifecycle_status": status,
+                "consensus_score": a.consensus_score,
+                "support_sources": a.support_sources,
+                "conflict_sources": a.conflict_sources,
+                "seen_runs": seen_runs,
+                "consecutive_seen": consecutive_seen,
+                "consensus_policy_hash": policy_hash,
+            })
+    db.commit()
+    return ConsensusReport(
+        CONSENSUS_FORMAT, CONSENSUS_VERSION, target_id, policy_hash, run_id,
+        [asdict(a) for a in assessments], missing_reports, asdict(cp),
+    )
+
+
+def list_hypothesis_states(db: sqlite3.Connection, target_id: str | None = None) -> list[dict[str, Any]]:
+    sql = "SELECT hypothesis_id,target_id,policy_hash,status,first_seen_run,last_seen_run,seen_runs,consecutive_seen,missed_runs,consensus_score,support_sources,conflict_sources,metadata_json FROM hypothesis_states"
+    args: tuple[Any, ...] = ()
+    if target_id:
+        sql += " WHERE target_id=?"; args = (target_id,)
+    sql += " ORDER BY target_id,policy_hash,hypothesis_id"
+    out = []
+    for row in db.execute(sql, args).fetchall():
+        out.append({
+            "hypothesis_id": row[0], "target_id": row[1], "policy_hash": row[2], "status": row[3],
+            "first_seen_run": row[4], "last_seen_run": row[5], "seen_runs": row[6], "consecutive_seen": row[7],
+            "missed_runs": row[8], "consensus_score": row[9], "support_sources": row[10], "conflict_sources": row[11],
+            "metadata": json.loads(row[12] or "{}"),
+        })
+    return out

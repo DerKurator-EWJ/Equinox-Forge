@@ -13,6 +13,7 @@ from .language_evidence import LanguageEvidenceConfig, build_controlled_language
 from .teacher_behavior import BehaviourProbeConfig, TransformersCausalLMBackend, extract_teacher_behaviour, load_prompts
 from .hidden_state import HiddenStateConfig, TransformersHiddenStateBackend, extract_contextual_hidden_evidence, load_probe_dataset
 from .sense_compiler import SenseCompilePolicy, FusionWeights, compile_provisional_senses, find_text_surface_id
+from .consensus import ConsensusPolicy, track_hypothesis_run, list_hypothesis_states
 
 
 def ingest(db_path: str, doc_path: str):
@@ -263,6 +264,19 @@ def _compile_senses(args) -> int:
         try:
             target_id = args.target_id or find_text_surface_id(c.db, args.surface)
             doc, report = compile_provisional_senses(c.db, target_id, policy)
+            consensus_report = None
+            if args.track_stability:
+                consensus_policy = ConsensusPolicy(
+                    source_vote_threshold=args.source_vote_threshold,
+                    source_vote_margin=args.source_vote_margin,
+                    min_observed_pairs=args.min_observed_pairs,
+                    stable_min_sources=args.stable_min_sources,
+                    stable_min_runs=args.stable_min_runs,
+                    stable_consensus=args.stable_consensus,
+                    quarantine_conflicts=args.quarantine_conflicts,
+                    quarantine_after_misses=args.quarantine_after_misses,
+                )
+                consensus_report = track_hypothesis_run(c.db, doc, target_id, policy, consensus_policy)
         except Exception as exc:
             print(f"ERROR: sense compile failed: {exc}")
             return 3
@@ -274,12 +288,19 @@ def _compile_senses(args) -> int:
         save_document(doc,args.output)
         report_path=Path(args.report) if args.report else Path(args.output).with_suffix('.report.json')
         report_path.write_text(json.dumps(report.to_dict(),ensure_ascii=False,indent=2,sort_keys=True)+'\n',encoding='utf-8')
+        consensus_path = None
+        if consensus_report is not None:
+            consensus_path = Path(args.consensus_report) if args.consensus_report else Path(args.output).with_suffix('.consensus.json')
+            consensus_path.write_text(json.dumps(consensus_report.to_dict(),ensure_ascii=False,indent=2,sort_keys=True)+'\n',encoding='utf-8')
         if args.ingest_derived:
             for n in doc.nodes: c.upsert_node(n)
             for e in doc.evidence: c.add_evidence(e)
             c.commit()
         result={"output":str(Path(args.output)),"report":str(report_path),"sense_compile":report.to_dict()}
-        if args.ingest_derived: result["db_stats"]=c.stats()
+        if consensus_report is not None:
+            result["consensus_report"] = str(consensus_path)
+            result["consensus"] = consensus_report.to_dict()
+        if args.ingest_derived or args.track_stability: result["db_stats"]=c.stats()
         print(json.dumps(result,ensure_ascii=False,indent=2,sort_keys=True))
     return 0
 
@@ -396,6 +417,20 @@ def main():
     sc.add_argument("--w-substitution",type=float,default=0.10)
     sc.add_argument("--w-transition",type=float,default=0.05)
     sc.add_argument("--w-prediction",type=float,default=0.10)
+    sc.add_argument("--track-stability",action="store_true",help="persist cross-source consensus and rebuild stability state")
+    sc.add_argument("--consensus-report")
+    sc.add_argument("--source-vote-threshold",type=float,default=0.58)
+    sc.add_argument("--source-vote-margin",type=float,default=0.08)
+    sc.add_argument("--min-observed-pairs",type=int,default=1)
+    sc.add_argument("--stable-min-sources",type=int,default=2)
+    sc.add_argument("--stable-min-runs",type=int,default=2)
+    sc.add_argument("--stable-consensus",type=float,default=0.75)
+    sc.add_argument("--quarantine-conflicts",type=int,default=2)
+    sc.add_argument("--quarantine-after-misses",type=int,default=2)
+
+    hl=sub.add_parser("hypotheses", help="list persisted derived-hypothesis lifecycle states")
+    hl.add_argument("db")
+    hl.add_argument("--target-id")
 
     a=p.parse_args()
     if a.cmd=="validate":
@@ -438,6 +473,9 @@ def main():
         raise SystemExit(_probe_teacher(a))
     elif a.cmd=="probe-hidden":
         raise SystemExit(_probe_hidden(a))
+    elif a.cmd=="hypotheses":
+        with CanonicalDB(a.db) as db:
+            print(json.dumps(list_hypothesis_states(db.db,a.target_id),ensure_ascii=False,indent=2,sort_keys=True))
     elif a.cmd=="compile-senses":
         raise SystemExit(_compile_senses(a))
 

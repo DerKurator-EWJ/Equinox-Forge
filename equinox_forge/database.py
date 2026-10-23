@@ -55,6 +55,34 @@ CREATE TABLE IF NOT EXISTS source_aliases(
   metadata_json TEXT NOT NULL DEFAULT '{}',
   PRIMARY KEY(source_id,source_version,external_id)
 );
+CREATE TABLE IF NOT EXISTS hypothesis_runs(
+  run_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  compiler TEXT NOT NULL,
+  target_id TEXT NOT NULL,
+  policy_hash TEXT NOT NULL,
+  output_hash TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  metadata_json TEXT NOT NULL DEFAULT '{}'
+);
+CREATE INDEX IF NOT EXISTS idx_hypothesis_runs_target ON hypothesis_runs(target_id,policy_hash,run_id);
+CREATE TABLE IF NOT EXISTS hypothesis_states(
+  hypothesis_id TEXT NOT NULL,
+  target_id TEXT NOT NULL,
+  policy_hash TEXT NOT NULL,
+  membership_hash TEXT NOT NULL,
+  status TEXT NOT NULL,
+  first_seen_run INTEGER NOT NULL,
+  last_seen_run INTEGER NOT NULL,
+  seen_runs INTEGER NOT NULL DEFAULT 1,
+  consecutive_seen INTEGER NOT NULL DEFAULT 1,
+  missed_runs INTEGER NOT NULL DEFAULT 0,
+  consensus_score REAL NOT NULL DEFAULT 0.0,
+  support_sources INTEGER NOT NULL DEFAULT 0,
+  conflict_sources INTEGER NOT NULL DEFAULT 0,
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  PRIMARY KEY(hypothesis_id,policy_hash)
+);
+CREATE INDEX IF NOT EXISTS idx_hypothesis_states_target ON hypothesis_states(target_id,policy_hash,status);
 """
 
 class CanonicalDB:
@@ -123,4 +151,4 @@ class CanonicalDB:
 
     def stats(self):
         q = lambda sql: self.db.execute(sql).fetchone()[0]
-        return {"nodes":q("SELECT COUNT(*) FROM nodes"),"evidence":q("SELECT COUNT(*) FROM evidence"),"sources":q("SELECT COUNT(DISTINCT source_id||'@'||source_version) FROM evidence"),"registered_models":q("SELECT COUNT(*) FROM source_models")}
+        return {"nodes":q("SELECT COUNT(*) FROM nodes"),"evidence":q("SELECT COUNT(*) FROM evidence"),"sources":q("SELECT COUNT(DISTINCT source_id||'@'||source_version) FROM evidence"),"registered_models":q("SELECT COUNT(*) FROM source_models"),"hypothesis_runs":q("SELECT COUNT(*) FROM hypothesis_runs"),"hypotheses":q("SELECT COUNT(*) FROM hypothesis_states")}
