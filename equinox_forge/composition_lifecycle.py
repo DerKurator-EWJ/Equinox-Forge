@@ -13,6 +13,7 @@ from typing import Any
 
 from .ir import ForgeDocument, IRNode, RelationType, SourceRef
 from .novel_entity_admission import _support_document as novel_entity_support_document
+from .source_lineage import LineageComponent, SourceLineageGraph
 from .relation_composition_induction import (
     InducedCompositionCandidate,
     RelationCompositionInductionPolicy,
@@ -72,7 +73,10 @@ class CompositionLifecycleAssessment:
     seen_runs: int
     missed_runs: int
     current_sources: list[str]
+    current_lineage_roots: list[str]
+    independent_lineage_count: int
     novel_sources_this_epoch: int
+    novel_lineage_components_this_epoch: int
     reason: str
 
 
@@ -202,6 +206,13 @@ def _load_state_row(db: sqlite3.Connection, hypothesis_id: str, policy_hash: str
     return dict(zip(keys, row))
 
 
+def _candidate_lineage_components(candidate: InducedCompositionCandidate) -> list[LineageComponent]:
+    raw = getattr(candidate, "supporting_lineage_components", None) or []
+    if raw:
+        return [LineageComponent(sources=tuple(), roots=tuple(sorted(set(map(str, roots))))) for roots in raw]
+    return [LineageComponent(sources=(str(src),), roots=(str(src),)) for src in candidate.supporting_sources]
+
+
 def track_composition_induction_run(
     db: sqlite3.Connection,
     result: RelationCompositionInductionResult,
@@ -275,14 +286,20 @@ def track_composition_induction_run(
         support_sources_seen = set(_parse_json_list(prev["support_sources_seen_json"])) if prev else set()
         conflict_sources_seen = set(_parse_json_list(prev["conflict_sources_seen_json"])) if prev else set()
         current_sources = set(str(x) for x in candidate.supporting_sources)
+        lineage_components = _candidate_lineage_components(candidate)
+        current_lineage_roots = set(root for component in lineage_components for root in component.roots)
+        independent_lineage_count = len(lineage_components)
 
         support_streak = previous_support_streak
         conflict_streak = previous_conflict_streak
         novel_sources = 0
         reason = "insufficient_current_evidence"
 
-        if candidate.status == "stable" and candidate.source_count >= policy.min_sources_per_support_epoch:
-            novel_sources = len(current_sources - support_sources_seen) if previous_support_streak > 0 else len(current_sources)
+        if candidate.status == "stable" and independent_lineage_count >= policy.min_sources_per_support_epoch:
+            novel_sources = (
+                SourceLineageGraph.novel_component_count(lineage_components, support_sources_seen)
+                if previous_support_streak > 0 else independent_lineage_count
+            )
             source_novel = (
                 previous_support_streak == 0
                 or novel_sources >= policy.min_new_support_sources_after_first
@@ -292,7 +309,7 @@ def track_composition_induction_run(
                 conflict_streak = 0
                 status = "stable" if support_streak >= policy.stable_min_support_epochs else "candidate"
                 reason = "repeated_source_novel_support" if status == "stable" else "first_clean_support_epoch"
-                support_sources_seen |= current_sources
+                support_sources_seen |= current_lineage_roots
                 conflict_sources_seen = set()
             elif previous_status == "stable":
                 # Idempotent rebuilds must not demote an already stable program merely
@@ -304,7 +321,10 @@ def track_composition_induction_run(
                 status = "candidate"
                 reason = "support_rebuild_without_new_sources"
         elif candidate.status == "contested":
-            novel_sources = len(current_sources - conflict_sources_seen) if previous_conflict_streak > 0 else len(current_sources)
+            novel_sources = (
+                SourceLineageGraph.novel_component_count(lineage_components, conflict_sources_seen)
+                if previous_conflict_streak > 0 else independent_lineage_count
+            )
             source_novel = (
                 previous_conflict_streak == 0
                 or novel_sources >= policy.min_new_conflict_sources_after_first
@@ -314,7 +334,7 @@ def track_composition_induction_run(
                 conflict_streak = previous_conflict_streak + 1
                 status = "quarantined" if conflict_streak >= policy.quarantine_conflict_epochs else "contested"
                 reason = "repeated_source_novel_conflict" if status == "quarantined" else "first_source_novel_conflict"
-                conflict_sources_seen |= current_sources
+                conflict_sources_seen |= current_lineage_roots
                 support_sources_seen = set()
             elif previous_status == "quarantined":
                 status = "quarantined"
@@ -333,7 +353,10 @@ def track_composition_induction_run(
             "reason": reason,
             "induction_status": candidate.status,
             "current_sources": sorted(current_sources),
+            "current_lineage_roots": sorted(current_lineage_roots),
+            "independent_lineage_count": independent_lineage_count,
             "novel_sources_this_epoch": novel_sources,
+            "novel_lineage_components_this_epoch": novel_sources,
             "version": COMPOSITION_LIFECYCLE_VERSION,
         }
         db.execute(
@@ -390,7 +413,10 @@ def track_composition_induction_run(
                     seen_runs=seen_runs,
                     missed_runs=0,
                     current_sources=sorted(current_sources),
+                    current_lineage_roots=sorted(current_lineage_roots),
+                    independent_lineage_count=independent_lineage_count,
                     novel_sources_this_epoch=novel_sources,
+                    novel_lineage_components_this_epoch=novel_sources,
                     reason=reason,
                 )
             )

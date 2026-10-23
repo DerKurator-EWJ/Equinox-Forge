@@ -1,4 +1,39 @@
-# Equinox Forge v0.36 — Composition Hypothesis Lifecycle
+# Equinox Forge v0.37 — Source Lineage / Correlated Evidence
+
+v0.37 attacks pseudo-consensus caused by correlated teachers. Different `source_id`s no longer automatically count as independent evidence for relation-composition induction or lifecycle promotion. Forge can now register explicit parent/child source ancestry, resolve transitive roots, cluster sources that share ancestry, and count those clusters as conservative independent lineage components.
+
+Frozen controls:
+
+```text
+3 sibling source IDs -> 1 effective lineage -> no stable induction
+3 sources across 2 disjoint roots -> 2 effective lineages -> stable induction allowed
+multi-parent blend + its ancestor families -> 1 correlated component
+```
+
+Lifecycle novelty is lineage-aware as well:
+
+```text
+support_1               -> candidate
+same-lineage aliases    -> candidate
+new independent lineage -> stable
+conflict_1              -> contested
+same-lineage aliases    -> contested
+new conflict lineage    -> quarantined
+```
+
+Unregistered sources remain backward-compatible and are treated as independent roots of themselves.
+
+Run:
+
+```bash
+eqforge-source-lineage --out out/v0_37_source_lineage
+```
+
+See `RELEASE_V0_37.md` and `benchmarks/v0_37/`.
+
+---
+
+## Previous milestone — v0.36 Composition Hypothesis Lifecycle
 
 v0.36 adds persistent governance for the relation-composition programs introduced in v0.35. A program that is strong in one induction rebuild is no longer automatically authoritative at runtime. Single-run induction status and persistent lifecycle status are now separate concepts.
 

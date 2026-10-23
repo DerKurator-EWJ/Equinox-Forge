@@ -15,6 +15,7 @@ from .ir import ForgeDocument, IRNode, NodeKind, RelationEvidence, RelationType,
 from .novel_entity_admission import _support_document as novel_entity_support_document
 from .runtime_cognition import RuntimeCognition, RuntimeCognitionPolicy
 from .runtime_pack import load_base_pack
+from .source_lineage import LineageComponent, SourceLineageGraph
 from .teacher_behavior import BehaviourProbeConfig
 
 RELATION_COMPOSITION_INDUCTION_FORMAT = "equinox-forge-v0.35-relation-composition-induction-v1"
@@ -54,6 +55,7 @@ class InducedCompositionCandidate:
     support_count: int
     example_count: int
     source_count: int
+    raw_source_count: int
     distinct_filler_count: int
     coverage: float
     mean_path_quality: float
@@ -63,6 +65,7 @@ class InducedCompositionCandidate:
     supporting_prompts: list[str] = field(default_factory=list)
     supporting_targets: list[str] = field(default_factory=list)
     supporting_sources: list[str] = field(default_factory=list)
+    supporting_lineage_components: list[list[str]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -175,6 +178,8 @@ def _schema_node(candidate: InducedCompositionCandidate, policy: RelationComposi
         "status": candidate.status,
         "support_count": candidate.support_count,
         "source_count": candidate.source_count,
+        "raw_source_count": candidate.raw_source_count,
+        "supporting_lineage_components": [list(x) for x in candidate.supporting_lineage_components],
         "example_count": candidate.example_count,
         "distinct_filler_count": candidate.distinct_filler_count,
         "coverage": candidate.coverage,
@@ -195,6 +200,7 @@ def induce_relation_composition_schemas(
     semantic_document: ForgeDocument,
     observations: list[RelationCompositionObservation],
     policy: RelationCompositionInductionPolicy | None = None,
+    lineage_graph: SourceLineageGraph | None = None,
 ) -> RelationCompositionInductionResult:
     """Induce one-slot relation-composition programs from repeated direct observations.
 
@@ -204,6 +210,7 @@ def induce_relation_composition_schemas(
     programs from the varying slot filler to the observed target.
     """
     policy = policy or RelationCompositionInductionPolicy()
+    lineage_graph = lineage_graph or SourceLineageGraph()
     surface = _surface_nodes(semantic_document)
     edges = _edge_index(semantic_document, set(policy.allowed_premise_types))
 
@@ -246,11 +253,14 @@ def induce_relation_composition_schemas(
 
         if not per_signature:
             continue
+        def lineage_components(data: dict[str, Any]) -> list[LineageComponent]:
+            return lineage_graph.components(data["sources"])
+
         ranked = sorted(
             per_signature.items(),
             key=lambda item: (
                 -len(item[1]["examples"]),
-                -len(item[1]["sources"]),
+                -len(lineage_components(item[1])),
                 -sum(item[1]["examples"].values()) / max(1, len(item[1]["examples"])),
                 item[0],
             ),
@@ -263,7 +273,9 @@ def induce_relation_composition_schemas(
             example_ids = sorted(data["examples"])
             qualities = [float(data["examples"][i]) for i in example_ids]
             support = len(example_ids)
-            source_count = len(data["sources"])
+            raw_source_count = len(data["sources"])
+            components = lineage_components(data)
+            source_count = len(components)
             coverage = support / len(rows)
             margin = support - second_support if support == top_support else support - top_support
             meets_thresholds = (
@@ -285,6 +297,7 @@ def induce_relation_composition_schemas(
                 support_count=support,
                 example_count=len(rows),
                 source_count=source_count,
+                raw_source_count=raw_source_count,
                 distinct_filler_count=len(distinct_fillers),
                 coverage=coverage,
                 mean_path_quality=sum(qualities) / len(qualities),
@@ -294,6 +307,7 @@ def induce_relation_composition_schemas(
                 supporting_prompts=[rows[i].prompt for i in example_ids],
                 supporting_targets=[rows[i].target_surface for i in example_ids],
                 supporting_sources=sorted(data["sources"]),
+                supporting_lineage_components=[list(component.roots) for component in components],
             ))
 
     # Include token surfaces required by the schema nodes so their member references

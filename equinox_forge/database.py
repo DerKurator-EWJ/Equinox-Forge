@@ -38,6 +38,17 @@ CREATE TABLE IF NOT EXISTS evidence(
 );
 CREATE INDEX IF NOT EXISTS idx_evidence_relation ON evidence(from_id,to_id,relation_type);
 CREATE INDEX IF NOT EXISTS idx_evidence_source ON evidence(source_id,source_version);
+CREATE TABLE IF NOT EXISTS source_lineage_edges(
+  child_source_id TEXT NOT NULL,
+  child_source_version TEXT NOT NULL,
+  parent_source_id TEXT NOT NULL,
+  parent_source_version TEXT NOT NULL,
+  relation TEXT NOT NULL DEFAULT 'derived_from',
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  PRIMARY KEY(child_source_id,child_source_version,parent_source_id,parent_source_version,relation)
+);
+CREATE INDEX IF NOT EXISTS idx_source_lineage_parent ON source_lineage_edges(parent_source_id,parent_source_version);
+CREATE INDEX IF NOT EXISTS idx_source_lineage_child ON source_lineage_edges(child_source_id,child_source_version);
 CREATE TABLE IF NOT EXISTS source_models(
   source_id TEXT NOT NULL,
   source_version TEXT NOT NULL,
@@ -217,4 +228,4 @@ class CanonicalDB:
 
     def stats(self):
         q = lambda sql: self.db.execute(sql).fetchone()[0]
-        return {"nodes":q("SELECT COUNT(*) FROM nodes"),"evidence":q("SELECT COUNT(*) FROM evidence"),"sources":q("SELECT COUNT(DISTINCT source_id||'@'||source_version) FROM evidence"),"registered_models":q("SELECT COUNT(*) FROM source_models"),"hypothesis_runs":q("SELECT COUNT(*) FROM hypothesis_runs"),"hypotheses":q("SELECT COUNT(*) FROM hypothesis_states"),"source_policies":q("SELECT COUNT(*) FROM source_policies"),"rebuild_runs":q("SELECT COUNT(*) FROM rebuild_runs"),"dependency_edges":q("SELECT COUNT(*) FROM dependency_edges"),"build_targets":q("SELECT COUNT(*) FROM build_targets"),"incremental_rebuild_runs":q("SELECT COUNT(*) FROM incremental_rebuild_runs"),"derived_artifacts":q("SELECT COUNT(*) FROM derived_artifacts"),"derived_artifact_versions":q("SELECT COUNT(*) FROM derived_artifact_versions"),"macro_discovery_runs":q("SELECT COUNT(*) FROM macro_discovery_runs"),"macro_candidates":q("SELECT COUNT(*) FROM macro_candidates"),"runtime_compression_runs":q("SELECT COUNT(*) FROM runtime_compression_runs"),"runtime_promoted_macros":q("SELECT COUNT(*) FROM runtime_promoted_macros"),"runtime_parent_rewrites":q("SELECT COUNT(*) FROM runtime_parent_rewrites"),"runtime_base_pack_runs":q("SELECT COUNT(*) FROM runtime_base_pack_runs"),"exception_hypothesis_runs":q("SELECT COUNT(*) FROM exception_hypothesis_runs"),"exception_hypotheses":q("SELECT COUNT(*) FROM exception_hypothesis_states"),"composition_hypothesis_runs":q("SELECT COUNT(*) FROM composition_hypothesis_runs"),"composition_hypotheses":q("SELECT COUNT(*) FROM composition_hypothesis_states")}
+        return {"nodes":q("SELECT COUNT(*) FROM nodes"),"evidence":q("SELECT COUNT(*) FROM evidence"),"sources":q("SELECT COUNT(DISTINCT source_id||'@'||source_version) FROM evidence"),"source_lineage_edges":q("SELECT COUNT(*) FROM source_lineage_edges"),"registered_models":q("SELECT COUNT(*) FROM source_models"),"hypothesis_runs":q("SELECT COUNT(*) FROM hypothesis_runs"),"hypotheses":q("SELECT COUNT(*) FROM hypothesis_states"),"source_policies":q("SELECT COUNT(*) FROM source_policies"),"rebuild_runs":q("SELECT COUNT(*) FROM rebuild_runs"),"dependency_edges":q("SELECT COUNT(*) FROM dependency_edges"),"build_targets":q("SELECT COUNT(*) FROM build_targets"),"incremental_rebuild_runs":q("SELECT COUNT(*) FROM incremental_rebuild_runs"),"derived_artifacts":q("SELECT COUNT(*) FROM derived_artifacts"),"derived_artifact_versions":q("SELECT COUNT(*) FROM derived_artifact_versions"),"macro_discovery_runs":q("SELECT COUNT(*) FROM macro_discovery_runs"),"macro_candidates":q("SELECT COUNT(*) FROM macro_candidates"),"runtime_compression_runs":q("SELECT COUNT(*) FROM runtime_compression_runs"),"runtime_promoted_macros":q("SELECT COUNT(*) FROM runtime_promoted_macros"),"runtime_parent_rewrites":q("SELECT COUNT(*) FROM runtime_parent_rewrites"),"runtime_base_pack_runs":q("SELECT COUNT(*) FROM runtime_base_pack_runs"),"exception_hypothesis_runs":q("SELECT COUNT(*) FROM exception_hypothesis_runs"),"exception_hypotheses":q("SELECT COUNT(*) FROM exception_hypothesis_states"),"composition_hypothesis_runs":q("SELECT COUNT(*) FROM composition_hypothesis_runs"),"composition_hypotheses":q("SELECT COUNT(*) FROM composition_hypothesis_states")}
