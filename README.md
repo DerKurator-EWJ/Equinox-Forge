@@ -1,4 +1,33 @@
-# Equinox Forge v0.38 — Global Lineage-Aware Consensus
+# Equinox Forge v0.39 — Real Teacher Domain Trial
+
+v0.39 is a measurement release. It adds the first larger end-to-end neural-teacher domain trial without changing the v0.38 cognition mechanisms. A deterministic PyTorch next-token teacher is trained on a fixed 32-entity animal domain, Forge may probe only part of its knowledge, and the compiled `.eqbase` is then evaluated after the teacher is removed from the runtime answer path.
+
+Frozen reference highlights:
+
+```text
+Teacher controlled-domain accuracy:       100%
+Direct compiler/pack replay Top-1:         100%
+Normal-runtime replay Top-1:               92.1875%
+Paraphrase Top-1:                          92.1875%
+Teacher-known but unprobed fact Top-1:     14.0625%
+Unprobed relation-family abstention:       100%
+Outside-domain abstention:                 100%
+```
+
+The important new finding is a scale-dependent runtime conflict: broad associative recall can outrank an exact compiled context for minority targets. v0.39 also quantifies the separate extraction-coverage limit: knowledge that remains only inside the teacher and was never probed/represented is usually unavailable to Equinox. Both failures are intentionally left unfixed in this release.
+
+Run:
+
+```bash
+eqforge-domain-trial --out out/v0_39_real_teacher_domain_trial
+```
+
+See `RELEASE_V0_39.md` and `benchmarks/v0_39/`.
+
+---
+
+## Previous milestone — v0.38 Global Lineage-Aware Consensus
+
 
 v0.38 extends the source-lineage model introduced in v0.37 across the general evidence stack. Correlated source descendants no longer manufacture artificial source count or confidence in compiled relations, provisional-sense consensus, or exception consensus.
 
