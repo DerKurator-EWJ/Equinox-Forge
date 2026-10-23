@@ -58,7 +58,7 @@ def fixture():
 
 with tempfile.TemporaryDirectory() as td:
     cfg=BehaviourProbeConfig(top_k=3,min_probability=0.0,evidence_confidence=0.95)
-    policy=RuntimeCognitionPolicy(max_recall_nodes=96,max_recall_depth=3,max_predictions=3,min_prediction_score=0.0)
+    policy=RuntimeCognitionPolicy(max_recall_nodes=96,max_recall_depth=3,max_predictions=3,min_prediction_score=0.0,enable_support_gated_recalled_prediction=False)
     train,evaluation=fixture()
     out=Path(td)/'attribution'
     report=compile_and_benchmark_mechanism_attribution(

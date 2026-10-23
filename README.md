@@ -1,18 +1,43 @@
-# Equinox Forge v0.31 — Baseline Gauntlet
+# Equinox Forge v0.32 — Support-Gated Prediction
 
-v0.31 adds **no new cognitive mechanism**. It stress-tests the frozen v0.30 baseline with a deterministic multi-track gauntlet and records where the current runtime succeeds and where it fails.
+v0.32 separates **recall** from **prediction authority**. Associative recall may still surface related predictive contexts, but a recalled context may execute a `PREDICTION` relation only when the live query provides enough structural support.
 
-The most important newly frozen failure is **unsupported recombination rejection**: completely unknown prompts are rejected, but known lexical material in an unsupported combination can still activate unrelated predictions through lexical recall. The gauntlet therefore gives the next cognitive release a concrete adversarial target instead of another feature wish-list.
+The release directly attacks the v0.31 failure where known tokens in unsupported combinations produced confident-looking outputs. Against the unchanged v0.31 gauntlet cases:
 
-Run the full gauntlet with:
+- L0 exact replay: `1.0`
+- L1 known-suffix transfer: `1.0`
+- L2 known-parts recombination: `1.0`
+- L3 novel order / known lexicon: `1.0`
+- L4 lexical-only novel entity: `0.0` (intentionally no longer guessed)
+- L5 held-out relation family: `0.0`
+- unsupported-query rejection: `1.0` (was `0.25`)
+- unsupported known/mixed recombination rejection: `1.0` (was `0.0`)
+- typed-frame precision / recall: `1.0 / 1.0`
+
+The important scientific correction is the pair `Wolf ist ein` vs. `Stein ist ein`: in the generic ladder pack both are one unseen entity plus the same known suffix `ist ein`. Without independent semantic admission, there is no runtime-visible justification for accepting one and rejecting the other. v0.32 abstains on both in lexical-only transfer. The separately typed frame/prototype path still admits semantically supported `Wolf`/`Fuchs` and rejects `Stein`.
+
+Run the v0.32 benchmark with:
+
+```bash
+eqforge-support-gate --out out/v0_32_support_gate
+```
+
+The historical v0.31 baseline remains reproducible with:
 
 ```bash
 eqforge-gauntlet --out out/v0_31_baseline_gauntlet
 ```
 
-The fixed cases, contract extension and deterministic reference metrics live under `benchmarks/v0_31/`. See `RELEASE_V0_31.md` for the baseline results.
+See `RELEASE_V0_32.md` and `benchmarks/v0_32/`.
 
 ---
+
+## Previous milestone — v0.31 Baseline Gauntlet
+
+v0.31 added no cognitive mechanism. It froze the adversarial benchmark that exposed unsupported lexical recombination false positives. The original case set and baseline metrics remain unchanged under `benchmarks/v0_31/`, and `eqforge-gauntlet` intentionally executes the historical v0.31 cognition semantics for reproducibility.
+
+---
+
 
 ## Previous milestone — v0.30 Engineering Freeze
 

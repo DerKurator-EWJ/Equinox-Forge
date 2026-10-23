@@ -261,9 +261,18 @@ def _top1(cog: RuntimeCognition, prompt: str) -> str | None:
     return report.predictions[0].surface if report.predictions else None
 
 
-def run_generalization_and_rejection(out: Path) -> dict[str, Any]:
+def run_generalization_and_rejection(
+    out: Path,
+    cognition_policy: RuntimeCognitionPolicy | None = None,
+) -> dict[str, Any]:
     cfg = BehaviourProbeConfig(top_k=3, min_probability=0.0, evidence_confidence=0.95)
-    policy = RuntimeCognitionPolicy(max_recall_nodes=96, max_recall_depth=3, max_predictions=3, min_prediction_score=0.0)
+    # No supplied policy means the *historical v0.31 baseline semantics*. This
+    # keeps eqforge-gauntlet reproducible after later runtime releases change
+    # defaults. New releases may pass their current policy against the same data.
+    policy = cognition_policy or RuntimeCognitionPolicy(
+        max_recall_nodes=96, max_recall_depth=3, max_predictions=3, min_prediction_score=0.0,
+        enable_support_gated_recalled_prediction=False,
+    )
     train = [LadderTrainCase(*row) for row in GAUNTLET_DATA["generalization"]["train"]]
     evaluation = [LadderEvalCase(*row) for row in GAUNTLET_DATA["generalization"]["eval"]]
     ladder = compile_and_benchmark_generalization_ladder(

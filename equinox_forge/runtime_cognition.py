@@ -11,8 +11,8 @@ from .ir import CompiledRelation, NodeKind, RelationType
 from .runtime_pack import LoadedRuntimePack, RuntimeNode, load_base_pack
 from .runtime_query import RuntimeIndex
 
-RUNTIME_COGNITION_FORMAT = "equinox-runtime-cognition-v1"
-RUNTIME_COGNITION_VERSION = "0.29"
+RUNTIME_COGNITION_FORMAT = "equinox-runtime-cognition-v2"
+RUNTIME_COGNITION_VERSION = "0.32"
 
 
 @dataclass
@@ -40,6 +40,15 @@ class RuntimeCognitionPolicy:
     enable_direct_context_prediction: bool = True
     enable_transition_prediction: bool = True
     enable_recalled_context_prediction: bool = True
+    # v0.32: recalled predictive contexts are candidates for memory/association,
+    # not automatically sufficient evidence for output. Require live-context
+    # overlap before a recalled PREDICTION relation can execute. Unknown live
+    # tokens must be admitted by an explicit compiled context/frame rather than
+    # guessed through lexical recall alone.
+    enable_support_gated_recalled_prediction: bool = True
+    recalled_support_min_shared_tokens: int = 2
+    recalled_support_min_overlap_fraction: float = 0.66
+    recalled_support_allow_unknown_tokens_without_context: bool = False
     # v0.22: explicit induced frame schemas such as [SLOT_0] ist ein.
     enable_frame_schema_matching: bool = True
     # v0.23: if an induced slot carries a compiled semantic admission profile,
@@ -88,6 +97,8 @@ class RuntimeCognitionPolicy:
         if self.max_predictions < 1: raise ValueError("max_predictions must be >= 1")
         if self.max_frame_matches < 1: raise ValueError("max_frame_matches must be >= 1")
         if self.max_hierarchical_slot_hops < 1: raise ValueError("max_hierarchical_slot_hops must be >= 1")
+        if self.recalled_support_min_shared_tokens < 1: raise ValueError("recalled_support_min_shared_tokens must be >= 1")
+        if not 0 <= self.recalled_support_min_overlap_fraction <= 1: raise ValueError("recalled_support_min_overlap_fraction must be in [0,1]")
         if not 0 <= self.min_activation <= 1: raise ValueError("min_activation must be in [0,1]")
         if not 0 <= self.min_prediction_score <= 1: raise ValueError("min_prediction_score must be in [0,1]")
         if not 0 < self.depth_decay <= 1: raise ValueError("depth_decay must be in (0,1]")
@@ -704,6 +715,71 @@ class RuntimeCognition:
         }
         return traces, meta
 
+    def _recalled_prediction_support(
+        self,
+        source: RuntimeNode | None,
+        live_tokens: list[str],
+        lexical_ids: list[str],
+        *,
+        has_resolved_context: bool,
+    ) -> tuple[bool, dict[str, Any]]:
+        """Decide whether associative recall is sufficient to execute a prediction.
+
+        v0.31 showed that a remembered predictive parent could fire merely because
+        one known token was present. v0.32 separates *memory access* from
+        *prediction authority*. A recalled context needs substantial lexical
+        overlap with the live context. If the live context contains an unseen token,
+        lexical recall alone may not generalize over it; a compiled exact/suffix or
+        admitted frame context must provide that authority.
+        """
+        diag: dict[str, Any] = {
+            "source_node_id": source.node_id if source else None,
+            "source_surface": source.surface if source else None,
+            "admitted": False,
+            "reason": "",
+            "shared_tokens": [],
+            "shared_token_count": 0,
+            "overlap_fraction": 0.0,
+            "unknown_live_tokens": [],
+        }
+        if not self.policy.enable_support_gated_recalled_prediction:
+            diag["admitted"] = True
+            diag["reason"] = "support_gate_disabled"
+            return True, diag
+        if source is None or not source.surface:
+            diag["reason"] = "source_has_no_surface_support"
+            return False, diag
+
+        known_live_surfaces = {
+            self.index.node_by_id[nid].surface
+            for nid in lexical_ids
+            if nid in self.index.node_by_id and self.index.node_by_id[nid].surface
+        }
+        unknown = [tok for tok in live_tokens if tok not in known_live_surfaces]
+        diag["unknown_live_tokens"] = unknown
+        if (unknown and not has_resolved_context
+                and not self.policy.recalled_support_allow_unknown_tokens_without_context):
+            diag["reason"] = "unknown_live_token_without_compiled_context"
+            return False, diag
+
+        live_set = set(live_tokens)
+        source_set = set(_surface_tokens(source.surface))
+        shared = sorted(live_set & source_set)
+        denom = min(len(live_set), len(source_set))
+        fraction = (len(shared) / denom) if denom else 0.0
+        diag["shared_tokens"] = shared
+        diag["shared_token_count"] = len(shared)
+        diag["overlap_fraction"] = fraction
+        if len(shared) < self.policy.recalled_support_min_shared_tokens:
+            diag["reason"] = "insufficient_shared_tokens"
+            return False, diag
+        if fraction + 1e-12 < self.policy.recalled_support_min_overlap_fraction:
+            diag["reason"] = "insufficient_overlap_fraction"
+            return False, diag
+        diag["admitted"] = True
+        diag["reason"] = "context_overlap_supported"
+        return True, diag
+
     def predict(self, context: str) -> RuntimePredictionReport:
         recall, meta = self.recall(context)
         context_ids = set(meta["resolved_context_ids"])
@@ -711,6 +787,9 @@ class RuntimeCognition:
         recalled = {x.node_id: x for x in recall}
         contributions: dict[str, list[PredictionContribution]] = {}
         prediction_relations_checked = 0
+        support_gate_checks = 0
+        support_gate_rejections = 0
+        support_gate_reasons: dict[str, int] = {}
 
         def add(rel: CompiledRelation, activation: float, weight: float, direct: bool) -> None:
             nonlocal prediction_relations_checked
@@ -749,15 +828,30 @@ class RuntimeCognition:
 
         # Recalled contexts can contribute prediction evidence at a lower weight.
         if self.policy.enable_recalled_context_prediction:
+            live_tokens = list(meta.get("tokens", []))
             for trace in recall:
                 if trace.node_id in context_ids:
                     continue
                 trace_node = self.index.node_by_id.get(trace.node_id)
                 if trace_node is not None and not self._exception_metadata_allowed(trace_node.metadata or {}):
                     continue
-                for rel in self.index.relations_from.get(trace.node_id, []):
-                    if rel.relation_type == RelationType.PREDICTION.value:
-                        add(rel, trace.activation, self.policy.recalled_prediction_weight, False)
+                predictive = [
+                    rel for rel in self.index.relations_from.get(trace.node_id, [])
+                    if rel.relation_type == RelationType.PREDICTION.value
+                ]
+                if not predictive:
+                    continue
+                admitted, gate = self._recalled_prediction_support(
+                    trace_node, live_tokens, lexical_ids, has_resolved_context=bool(context_ids)
+                )
+                support_gate_checks += 1
+                reason = str(gate.get("reason", "unknown"))
+                support_gate_reasons[reason] = support_gate_reasons.get(reason, 0) + 1
+                if not admitted:
+                    support_gate_rejections += 1
+                    continue
+                for rel in predictive:
+                    add(rel, trace.activation, self.policy.recalled_prediction_weight, False)
 
         candidates: list[PredictionCandidate] = []
         for target_id, cs in contributions.items():
@@ -775,6 +869,11 @@ class RuntimeCognition:
 
         work = dict(meta["work"])
         work["prediction_relation_checks"] = prediction_relations_checked
+        work["support_gate_checks"] = support_gate_checks
+        work["support_gate_rejections"] = support_gate_rejections
+        work["support_gate_admissions"] = support_gate_checks - support_gate_rejections
+        for reason, count in sorted(support_gate_reasons.items()):
+            work[f"support_gate_reason:{reason}"] = count
         work["prediction_candidates_before_limit"] = len(contributions)
         work["prediction_candidates_returned"] = len(candidates)
         return RuntimePredictionReport(

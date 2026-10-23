@@ -16,9 +16,12 @@ assert reference["dataset_sha256"] == gauntlet_dataset_sha256()
 pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
 init_text = (ROOT / "equinox_forge" / "__init__.py").read_text(encoding="utf-8")
 readme = (ROOT / "README.md").read_text(encoding="utf-8")
-assert 'version = "0.31.0"' in pyproject
-assert '__version__ = "0.31.0"' in init_text
-assert readme.startswith("# Equinox Forge v0.31")
+import re
+project_version = re.search(r'^version\s*=\s*"([^"]+)"', pyproject, flags=re.M).group(1)
+init_version = re.search(r'__version__\s*=\s*"([^"]+)"', init_text).group(1)
+assert tuple(map(int, project_version.split('.'))) >= (0, 31, 0)
+assert init_version == project_version
+assert readme.startswith("# Equinox Forge v0.")
 assert 'eqforge-gauntlet = "equinox_forge.baseline_gauntlet:main"' in pyproject
 
 with tempfile.TemporaryDirectory() as td:
