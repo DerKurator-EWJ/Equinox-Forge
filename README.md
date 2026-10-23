@@ -3287,3 +3287,13 @@ Databases without registered lineage metadata retain historical behavior. See `R
 ```bash
 eqforge-global-lineage --out out/v0_38_global_lineage_consensus
 ```
+
+# Step 0.50 — Teacher → Numeric Equinox Compiler Trial
+
+v0.50 connects the v0.44–v0.49 architecture into one end-to-end compiler path: neural teacher → top-down structure → canonical numeric IDs → structural closure → recursive macro collapse → DB-free macro-aware numeric runtime. The default benchmark is offline and reproducible with a locally trained neural teacher; it does not claim an external pretrained Hugging Face result in environments where no such local model/runtime is available.
+
+```bash
+eqforge-teacher-numeric-compiler --out out/v0_50_teacher_numeric_compiler
+```
+
+The release also makes one remaining limitation explicit: the numeric pack preserves all extracted `PROPERTY`/`ACTION` facts, while the current scalar runtime query API returns the nearest value rather than the complete multi-valued inherited closure. Because those coarse predicates are multi-valued inside the teacher-derived macros, v0.49 correctly refuses to emit ambiguous macro shortcuts in this trial. See `RELEASE_V0_50.md`.
