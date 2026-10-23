@@ -1,0 +1,21 @@
+{
+  "db_stats": {
+    "evidence": 40,
+    "nodes": 54,
+    "registered_models": 0,
+    "sources": 1
+  },
+  "extraction": {
+    "documents": 1,
+    "lexical_tokens": 30,
+    "phrase_nodes": 10,
+    "prediction_evidence": 22,
+    "q_nodes": 18,
+    "sentences": 8,
+    "substitution_evidence": 6,
+    "transition_evidence": 12,
+    "unique_surfaces": 11
+  },
+  "output": "out/v04_corpus.eqir.json",
+  "report": "out/v04_corpus.eqir.report.json"
+}

@@ -1,185 +1,186 @@
-# Equinox Forge v0.3 — First Text Teacher Extractor
+# Equinox Forge v0.4 — Controlled Language Evidence
 
-Forge v0.3 is the first step that turns **actual Hugging Face Safetensors data** into Canonical Equinox IR.
+Forge v0.4 adds the first **directed language evidence** above the static embedding geometry introduced in v0.3.
 
-It keeps the architectural boundary introduced in v0.2:
+The architecture is now:
 
-`teacher checkpoint -> adapter -> bounded extraction -> Canonical IR -> Canonical DB -> compile`
+`teacher embeddings + controlled corpus -> canonical text nodes -> typed evidence channels -> Canonical DB -> compiler`
 
-The teacher tensor is **never** treated as an Equinox runtime weight. It is only an evidence source.
+The important rule remains: **evidence source is not runtime representation**. Corpus statistics, teacher embeddings and later teacher behaviour can all support the same canonical Equinox nodes without being collapsed into one opaque source weight.
 
-## What v0.3 extracts
+## What v0.4 adds
 
-The first extraction channel is deliberately narrow:
+A UTF-8 controlled-corpus extractor now creates:
 
-1. inspect a local Hugging Face model;
-2. resolve its `input_embeddings` tensor through the v0.2 adapter contract;
-3. read a bounded subset of token embeddings from Safetensors;
-4. decode token surfaces from local tokenizer JSON;
-5. convert each accepted text surface into Equinox character-Q nodes plus a level-1 surface macro;
-6. average duplicate token surfaces into one canonical surface vector;
-7. compute sparse top-k cosine neighbours;
-8. emit `semantic_similarity` evidence with full source/adapter/tensor provenance;
-9. optionally ingest nodes, evidence, source model metadata and token aliases into the Canonical SQLite DB.
+1. Unicode text surfaces over character-Q nodes;
+2. sentence-local ordered token streams;
+3. directed `transition` evidence using empirical `P(next | current)`;
+4. canonical context-template nodes;
+5. directed `prediction` evidence using empirical `P(target | context)` for bounded n-gram contexts;
+6. repeated phrase composite nodes;
+7. symmetric `substitution` evidence when different words occur in overlapping immediate `(left,right)` slots;
+8. full source/version/extraction provenance for every evidence record.
 
-This is **not yet language understanding** and does not claim that cosine similarity equals meaning. It is the first measurable bridge from a real teacher representation into the Equinox evidence system.
+No language relation is inferred from its tier name. Tiers remain **composition depth only**.
 
-## Why the Q layer is characters
+## Canonical text structure
 
-For the text branch, the first Equinox representation uses:
+The current text branch uses:
 
 `Q = Unicode character`
 
-A teacher token such as `Hund` becomes a surface macro over:
+A surface such as `Hund` is a level-1 macro over:
 
 `H -> u -> n -> d`
 
-The teacher tokenizer remains source provenance only. Therefore two different models can map their own token IDs to the same canonical Equinox surface node.
+Phrase and context structures are ordered composites of these canonical surfaces. Word boundaries therefore exist structurally between members and do not require a teacher-specific token ID.
 
-Teacher token IDs are deliberately **not stored on canonical nodes**. They live in `source_aliases`, so importing another teacher cannot contaminate a shared canonical node with model-specific identity.
+Example:
 
-## Subwords are not silently called words
+`Der Hund -> [Der, Hund]`
 
-Hugging Face vocabularies often contain BPE / WordPiece / SentencePiece fragments. Forge v0.3 therefore labels imported level-1 nodes as generic text surfaces rather than pretending every teacher token is a whole word.
+The predictive context role and an observed repeated phrase are intentionally represented as different node kinds even when their visible label is identical. This keeps **"observed composition"** separate from **"context used to predict"**.
 
-Common static decoding is supported for:
+## Evidence channels
 
-- GPT-2 / ByteLevel BPE reversible byte alphabet;
-- `Ġ` word boundaries;
-- SentencePiece `▁` boundaries;
-- WordPiece `##` continuation markers;
-- JSON BPE / WordPiece vocabularies;
-- JSON Unigram vocabularies.
+### Transition
 
-A checkpoint that only exposes a binary `tokenizer.model` / `spiece.model` without `tokenizer.json` or `vocab.json` is not parsed in v0.3.
+For every sentence-local adjacent pair:
 
-## Sparse extraction
+`w_t -> w_(t+1)`
 
-The extractor never creates every possible pair. For each canonical surface it keeps at most `top_k` embedding neighbours above `min_similarity`.
+Forge stores:
 
-The implementation computes cosine similarities in row batches and uses partial top-k selection rather than fully sorting each vocabulary row.
+`score = count(w_t,w_(t+1)) / count(w_t,*)`
 
-For a bounded extraction of `N` surfaces with `k` neighbours, stored relation evidence is approximately `O(N*k)`, not `O(N²)`.
+The metadata preserves the raw count and context total.
 
-The similarity search is still `O(N²)` arithmetic in v0.3. ANN indexing is a later scaling step.
+### Prediction
 
-## Bounded Safetensors reads
+For context widths `1..max_context`, Forge creates ordered context templates and stores:
 
-Forge uses `safetensors.safe_open(...).get_slice()` and reads only the row interval needed by the selected token IDs rather than materializing the complete embedding matrix.
+`context -> next surface`
 
-This matters for future large teachers where the full embedding matrix may be many gigabytes.
+with:
 
-## Score and confidence are separate
+`score = count(context,target) / count(context,*)`
 
-For embedding-neighbour evidence:
+This is the first directed context evidence in Forge. It is corpus MLE evidence, not yet a Transformer forward-pass probability.
 
-- `score` = cosine similarity, clamped to the canonical `[0,1]` relation-score range after applying the configured minimum threshold;
-- `confidence` = trust assigned to this extraction channel (`0.55` by default).
+### Repeated phrase macros
 
-Confidence is intentionally **not** calculated from cosine magnitude. A very high cosine value does not prove that the relation has semantic truth.
+Contiguous token sequences of length `2..max_phrase_words` are counted. Phrases reaching `min_phrase_count` are materialized as canonical composite observations.
 
-Later channels can add independent evidence to the same canonical pair:
+A four-word phrase is not automatically placed four tiers deeper. Its tier follows the actual composition graph. This preserves the Equinox rule that tier means **recursive composition depth**, not linguistic importance or length.
 
-- controlled teacher predictions;
+### Substitution
+
+For every word, Forge records immediate `(left,right)` context slots. Two words become substitution candidates when those slot distributions overlap.
+
+v0.4 uses weighted Jaccard:
+
+`sum(min(count_a(slot), count_b(slot))) / sum(max(count_a(slot), count_b(slot)))`
+
+This is stored as symmetric `substitution` evidence. It means **contextual replaceability evidence**, not identity or synonymy.
+
+## Why channels stay separate
+
+A relation such as `Hund <-> Tier` can later receive evidence from several independent sources:
+
+- static teacher embedding neighbourhood;
+- corpus transition/prediction;
 - hidden-state probes;
-- corpus observations;
+- teacher output probabilities;
 - structured knowledge graphs;
-- other teacher models.
+- another teacher model.
 
-The compiler can then aggregate those independent sources.
+Forge stores these as separate evidence records with separate relation types and provenance. Only the compiler decides how compatible evidence is aggregated.
 
-## Idempotent ingestion
+The same canonical `Hund` node can therefore participate in, for example:
 
-v0.3 adds an `evidence_fingerprint` to the Canonical DB. Re-running the exact same extraction does not duplicate the same evidence record.
+- `semantic_similarity`
+- `transition`
+- `prediction`
+- `substitution`
+- later `is_a`
 
-Existing v0.1/v0.2 SQLite databases are migrated non-destructively when opened:
-
-- `evidence_fingerprint` is added when absent;
-- `source_aliases.metadata_json` is added when absent.
-
-## Included adapters
-
-- `adapters/deepseek_v3.json`
-- `adapters/qwen2.json`
-- `adapters/gpt2.json`
-
-The actual local checkpoint is always inspected before extraction. Adapter tensor names are not blindly trusted.
+without pretending those scores mean the same thing.
 
 ## CLI
 
-### Inspect and plan
+### Extract a controlled corpus
 
 ```bash
-python -m equinox_forge.cli inspect-hf /path/to/model
-python -m equinox_forge.cli plan-hf /path/to/model adapters/gpt2.json --output out/plan.json
-```
-
-### Extract bounded text evidence
-
-```bash
-python -m equinox_forge.cli extract-text \
-  /path/to/model \
-  adapters/gpt2.json \
-  out/teacher.eqir.json \
-  --source-id my-teacher \
+python -m equinox_forge.cli extract-corpus \
+  examples/corpus/german_mini.txt \
+  out/german.eqir.json \
+  --source-id corpus/german-mini \
   --source-version v1 \
   --db out/master.sqlite \
-  --max-tokens 10000 \
-  --top-k 8 \
-  --min-similarity 0.30
+  --max-context 2 \
+  --min-phrase-count 2
 ```
 
-Useful bounds:
+Multiple UTF-8 files can be supplied before the output path.
 
-- `--start-token-id`
-- `--max-tokens`
-- `--top-k`
-- `--min-similarity`
-- `--batch-size`
-- `--max-surface-chars`
+Useful controls:
+
+- `--lowercase`
+- `--include-punctuation`
+- `--max-context`
+- `--min-transition-count`
+- `--min-prediction-count`
+- `--min-phrase-count`
+- `--max-phrase-words`
+- `--max-substitutions-per-word`
+- `--min-substitution-score`
 - `--evidence-confidence`
 
-### Compile current evidence
+### Combine with a teacher extraction
 
-```bash
-python -m equinox_forge.cli compile out/master.sqlite
-```
-
-## Offline Safetensors integration fixture
-
-`examples/hf_teacher_synthetic/` is a complete Hugging-Face-like local directory containing:
-
-- `config.json`;
-- `tokenizer.json`;
-- `tokenizer_config.json`;
-- a real `model.safetensors` file.
-
-Its vectors are deliberately hand-authored so the test can prove that expected clusters such as `Hund/Hunde`, `Auto/Wagen` and `laufen/rennen` are recovered. It is **not a trained language model** and is not used as evidence for model quality.
-
-Example:
+The same Canonical DB can receive v0.3 embedding evidence:
 
 ```bash
 python -m equinox_forge.cli extract-text \
   examples/hf_teacher_synthetic \
   adapters/deepseek_v3.json \
-  out/synthetic.eqir.json \
+  out/teacher.eqir.json \
   --source-id synthetic/semantic \
   --source-version v1 \
-  --db out/synthetic.sqlite \
+  --db out/master.sqlite \
   --max-tokens 32 \
   --top-k 2 \
   --min-similarity 0.60
 ```
 
-Expected current fixture result:
+Both paths resolve canonical surfaces independently. `Hund` from the corpus and `Hund` decoded from the teacher therefore receive the same deterministic Equinox node ID.
+
+## Current deterministic fixture result
+
+For `examples/corpus/german_mini.txt` with `max_context=2` and `min_phrase_count=2`:
 
 ```text
-11 accepted teacher tokens
-11 canonical text surfaces
-24 unique character-Q nodes
-14 sparse relation-evidence records
-35 total nodes
+8 sentences
+30 lexical tokens
+11 unique surfaces
+18 character-Q nodes
+10 repeated phrase nodes
+12 transition evidence records
+22 prediction evidence records
+6 substitution evidence records
+54 total canonical nodes
+40 total evidence records
 ```
+
+The merged demonstration with the v0.3 synthetic embedding teacher currently yields:
+
+```text
+72 canonical nodes
+54 evidence records
+2 independent evidence sources
+```
+
+The canonical `Hund` surface is shared between both extraction paths and currently participates in `prediction`, `transition` and `semantic_similarity` evidence channels.
 
 ## Tests
 
@@ -188,46 +189,54 @@ python tests/test_forge.py
 python tests/test_hf_adapter.py
 python tests/test_text_teacher.py
 python tests/test_db_migration_v02.py
+python tests/test_language_evidence.py
 ```
 
-The tests cover:
+Current expected markers:
 
-- v0.1 canonical ID / relation aggregation behaviour;
-- v0.2 adapter planning;
-- real Safetensors row extraction;
-- tokenizer surface conversion;
-- expected nearest-neighbour relations;
-- idempotent evidence ingestion;
-- migration of an older v0.2-style database.
+```text
+FORGE_V01_OK
+FORGE_V02_OK
+FORGE_V03_OK
+FORGE_V03_DB_MIGRATION_OK
+FORGE_V04_OK
+```
 
-## Deliberate limits of v0.3
+The v0.4 test verifies:
 
-v0.3 does **not** yet:
+- sentence-local tokenization;
+- directed transition probabilities;
+- context-template prediction;
+- contextual substitution evidence;
+- repeated phrase materialization;
+- Canonical DB idempotence;
+- successful compilation of the new relation channels.
 
-- execute a Transformer;
-- extract hidden states;
-- extract contextual next-token behaviour;
-- infer complete words/phrases from arbitrary subword streams;
-- claim embedding similarity is equivalent to semantic knowledge;
-- compile a final Android `BASE.eqx` language pack;
-- use ANN search for million-node embedding spaces.
+## Deliberate limits of v0.4
 
-These limits are intentional. v0.3 proves the first teacher-data path without mixing model-specific runtime behaviour into the Canonical Equinox representation.
+v0.4 still does **not**:
+
+- execute a Transformer forward pass;
+- use teacher next-token probabilities;
+- induce semantic facts such as `Hund IS_A Tier` from arbitrary prose;
+- perform syntactic parsing;
+- solve coreference or long-range discourse identity;
+- recursively promote phrase macros into deeper language hierarchy automatically;
+- build a final Android language `BASE.eqx`;
+- claim contextual substitution equals synonymy.
+
+Those are intentionally separate problems.
 
 ## Next Forge step
 
-**v0.4 — Controlled Language Evidence**
+**v0.5 — Teacher Behaviour Probes**
 
-The next useful step is to add a small probe-corpus pipeline that turns teacher/corpus context into structures above token surfaces:
+The next step should run a small supported causal language model on controlled prompts and record actual teacher behaviour:
 
-`characters -> surfaces -> words/phrases -> contextual relations`
+`controlled context -> teacher next-token distribution -> canonical surface evidence`
 
-The key goal is to stop relying on static embedding geometry alone and start producing evidence for:
+That would add a new source of `prediction` evidence distinct from corpus frequency and embedding geometry. The same canonical nodes could then be supported by three independent channels:
 
-- directed transition / prediction;
-- contextual co-activation;
-- substitution classes;
-- word-form composition;
-- phrase macros.
+`embedding geometry + observed corpus behaviour + teacher predictive behaviour`
 
-That is the first step toward a language BASE that Equinox can actually query rather than merely a static similarity graph.
+This is the first serious step toward testing how much of a teacher's behaviour can be compiled into Equinox without carrying the teacher runtime onto the target device.

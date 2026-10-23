@@ -9,6 +9,7 @@ from .export import export_runtime_snapshot
 from .hf_adapter import load_adapter, validate_adapter, inspect_hf_model, build_extraction_plan, save_plan, auto_adapter_template, save_adapter
 from .adapter_registry import choose_adapter
 from .text_teacher import TextExtractionConfig, extract_text_teacher
+from .language_evidence import LanguageEvidenceConfig, build_controlled_language_evidence, load_text_inputs
 
 
 def ingest(db_path: str, doc_path: str):
@@ -81,6 +82,42 @@ def _extract_text(args) -> int:
     return 0
 
 
+
+def _extract_corpus(args) -> int:
+    cfg = LanguageEvidenceConfig(
+        lowercase=args.lowercase,
+        include_punctuation=args.include_punctuation,
+        max_context=args.max_context,
+        min_transition_count=args.min_transition_count,
+        min_prediction_count=args.min_prediction_count,
+        min_phrase_count=args.min_phrase_count,
+        max_phrase_words=args.max_phrase_words,
+        max_substitutions_per_word=args.max_substitutions_per_word,
+        min_substitution_score=args.min_substitution_score,
+        evidence_confidence=args.evidence_confidence,
+    )
+    texts = load_text_inputs(args.inputs)
+    doc, report = build_controlled_language_evidence(texts, args.source_id, args.source_version, cfg)
+    issues = validate_document(doc)
+    errors = [x for x in issues if x.severity == "error"]
+    if errors:
+        for x in issues: print(f"{x.severity.upper()}: {x.message}")
+        return 2
+    save_document(doc, args.output)
+    report_path = Path(args.report) if args.report else Path(args.output).with_suffix(".report.json")
+    report_path.write_text(json.dumps(report.to_dict(), ensure_ascii=False, indent=2, sort_keys=True)+"\n", encoding="utf-8")
+    db_stats = None
+    if args.db:
+        with CanonicalDB(args.db) as db:
+            for n in doc.nodes: db.upsert_node(n)
+            for e in doc.evidence: db.add_evidence(e)
+            db.commit()
+            db_stats = db.stats()
+    result = {"output":str(Path(args.output)), "report":str(report_path), "extraction":report.to_dict()}
+    if db_stats is not None: result["db_stats"] = db_stats
+    print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
 def main():
     p=argparse.ArgumentParser(prog="eqforge")
     sub=p.add_subparsers(dest="cmd",required=True)
@@ -113,6 +150,25 @@ def main():
     tx.add_argument("--include-punctuation-only",action="store_true")
     tx.add_argument("--exclude-numeric-only",action="store_true")
     tx.add_argument("--evidence-confidence",type=float,default=0.55, help="trust in static embedding-neighbour evidence; separate from cosine score")
+
+
+    lc=sub.add_parser("extract-corpus", help="extract directed controlled-language evidence from UTF-8 text files")
+    lc.add_argument("inputs", nargs="+", help="one or more UTF-8 text files")
+    lc.add_argument("output", help="output Canonical IR JSON")
+    lc.add_argument("--source-id", required=True)
+    lc.add_argument("--source-version", default="local")
+    lc.add_argument("--report")
+    lc.add_argument("--db", help="optional canonical SQLite DB")
+    lc.add_argument("--lowercase", action="store_true")
+    lc.add_argument("--include-punctuation", action="store_true")
+    lc.add_argument("--max-context", type=int, default=3)
+    lc.add_argument("--min-transition-count", type=int, default=1)
+    lc.add_argument("--min-prediction-count", type=int, default=1)
+    lc.add_argument("--min-phrase-count", type=int, default=2)
+    lc.add_argument("--max-phrase-words", type=int, default=4)
+    lc.add_argument("--max-substitutions-per-word", type=int, default=8)
+    lc.add_argument("--min-substitution-score", type=float, default=0.10)
+    lc.add_argument("--evidence-confidence", type=float, default=0.80)
 
     a=p.parse_args()
     if a.cmd=="validate":
@@ -149,5 +205,7 @@ def main():
         path,spec=result; print(json.dumps({"adapter":str(path),"adapter_id":spec.adapter_id},indent=2))
     elif a.cmd=="extract-text":
         raise SystemExit(_extract_text(a))
+    elif a.cmd=="extract-corpus":
+        raise SystemExit(_extract_corpus(a))
 
 if __name__=="__main__": main()
