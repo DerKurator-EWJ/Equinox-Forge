@@ -1,4 +1,30 @@
-# Equinox Forge v0.52 — Recursive Relation-ID Collapse
+# Equinox Forge v0.53 — Relation-Macro Runtime Routing
+
+v0.53 makes the recursive relation-macro IDs introduced in v0.52 executable as numeric runtime query handles. A relation macro does not create new semantic authority: it only selects the descendant concrete relation-facet IDs, and each value is still resolved by the frozen concept-side numeric runtime.
+
+```text
+relation Macro-ID
+      ↓ routing
+child relation Macro / facet IDs
+      ↓
+concrete facet predicates
+      ↓
+existing concept-side resolver
+```
+
+In the frozen 8-facet fixture, a PROPERTY relation macro routes to 4 relevant facets instead of scanning all 8 (50% candidate-space reduction) and returns exactly the same values as the existing PROPERTY family index. It does **not** beat that specialized family hash index; candidate counts are equal. The gain is architectural: arbitrary recursive relation-macro IDs are now executable without adding a new hard-coded runtime rule for every relation family.
+
+Run:
+
+```bash
+eqforge-relation-macro-runtime --out out/v0_53_relation_macro_runtime
+```
+
+See `RELEASE_V0_53.md` and `benchmarks/v0_53/`.
+
+---
+
+## Previous milestone — v0.52 Recursive Relation-ID Collapse
 
 v0.52 applies Equinox's recursive collapse principle to the predicate position itself. Canonical relation-facet IDs are treated as ordinary numeric relation objects, grouped by shared structural meta-relations, collapsed into deterministic relation-macro IDs, and then collapsed again at a higher relation level. Relation-macro IDs live in the canonical `relation` namespace, so they are legal first-class predicate handles for later triples.
 
