@@ -12,7 +12,7 @@ from .runtime_pack import LoadedRuntimePack, RuntimeNode, load_base_pack
 from .runtime_query import RuntimeIndex
 
 RUNTIME_COGNITION_FORMAT = "equinox-runtime-cognition-v1"
-RUNTIME_COGNITION_VERSION = "0.28"
+RUNTIME_COGNITION_VERSION = "0.29"
 
 
 @dataclass
@@ -59,6 +59,11 @@ class RuntimeCognitionPolicy:
     # v0.28: allow compile-time automatically induced exception frames. Kept as a
     # separate switch so the exact same BASE can be ablated without recompilation.
     enable_exception_override_frames: bool = True
+    # v0.29: lifecycle-aware exception gating. Exception frames without lifecycle
+    # metadata remain allowed for backward compatibility with v0.28 packs. Once a
+    # lifecycle status is present, only explicitly allowed statuses may execute.
+    enable_exception_lifecycle_gating: bool = True
+    allowed_exception_lifecycle_statuses: tuple[str, ...] = ("stable",)
     max_hierarchical_slot_hops: int = 8
     frame_match_weight: float = 0.82
     max_frame_matches: int = 8
@@ -283,6 +288,7 @@ class RuntimeCognition:
                 "ancestor_hops": ancestor_hops,
                 "hierarchical_transfer": hierarchical,
                 "exception_override": exception_override,
+                "exception_lifecycle_status": str(meta.get("exception_lifecycle_status") or ""),
             })
         for width in self._frames_by_width:
             self._frames_by_width[width].sort(key=lambda x: (-int(x["scope_rank"]), -int(x["support"]), str(x["node_id"])))
@@ -432,6 +438,20 @@ class RuntimeCognition:
         })
         return result
 
+    def _exception_metadata_allowed(self, meta: dict[str, Any] | None) -> bool:
+        meta = meta or {}
+        if not bool(meta.get("exception_override")):
+            return True
+        if not self.policy.enable_exception_override_frames:
+            return False
+        if not self.policy.enable_exception_lifecycle_gating:
+            return True
+        status = str(meta.get("exception_lifecycle_status") or "")
+        # v0.28 compatibility: packs compiled before lifecycle tracking have no status.
+        if not status:
+            return True
+        return status in set(self.policy.allowed_exception_lifecycle_statuses)
+
     def _match_frame_schemas(self, tokens: list[str]) -> tuple[list[str], int, list[dict[str, Any]]]:
         if not self.policy.enable_frame_schema_matching or not tokens:
             return [], 0, []
@@ -446,8 +466,27 @@ class RuntimeCognition:
             matches: list[dict[str, Any]] = []
             width_had_structural_match = False
             for spec in self._frames_by_width[width]:
-                if bool(spec.get("exception_override")) and not self.policy.enable_exception_override_frames:
-                    continue
+                if bool(spec.get("exception_override")):
+                    node_obj = self.index.node_by_id.get(str(spec.get("node_id")))
+                    node_meta = dict((node_obj.metadata or {}) if node_obj else {})
+                    if not self._exception_metadata_allowed(node_meta):
+                        # Preserve an audit trace when a lifecycle-gated exception
+                        # structurally matches the live context, while allowing a
+                        # broader stable frame of the same width to take over.
+                        pattern0=list(spec.get("pattern") or [])
+                        structural = len(pattern0)==len(live) and all(p=="*" or p==t for p,t in zip(pattern0,live))
+                        if structural:
+                            diagnostics.append({
+                                "frame_node_id":str(spec.get("node_id")),"pattern":pattern0,"live":list(live),
+                                "slot_checks":[],"structural_match":True,"admitted":False,
+                                "reason":"exception_lifecycle_blocked",
+                                "exception_lifecycle_status":str(node_meta.get("exception_lifecycle_status") or ""),
+                                "specificity_scope_class":spec.get("scope_class"),
+                                "specificity_scope_rank":int(spec.get("scope_rank",0)),
+                                "specificity_ancestor_hops":int(spec.get("ancestor_hops",0)),
+                                "suppressed_by_specificity":False,
+                            })
+                        continue
                 node_id = str(spec["node_id"]); pattern = list(spec["pattern"]); support = int(spec["support"])
                 open_slot = bool(spec["open_slot"]); allowed_fillers = set(spec["allowed_fillers"]); slot_ids = list(spec["slot_ids"])
                 checks += 1
@@ -513,7 +552,8 @@ class RuntimeCognition:
         exact_nodes = sorted((self.index.node_by_id[x] for x in exact), key=_node_preference)
         exact_context = [n.node_id for n in exact_nodes if n.kind in {
             NodeKind.TEMPLATE.value, NodeKind.COMPOSITE.value, NodeKind.CONCEPT.value
-        } and any(r.relation_type == RelationType.PREDICTION.value for r in self.index.relations_from.get(n.node_id, []))]
+        } and self._exception_metadata_allowed(n.metadata or {})
+        and any(r.relation_type == RelationType.PREDICTION.value for r in self.index.relations_from.get(n.node_id, []))]
 
         tokens = _surface_tokens(context)
         lexical: list[str] = []
@@ -601,8 +641,7 @@ class RuntimeCognition:
                 pnode = self.index.node_by_id[pid]
                 if pnode.kind == NodeKind.QUANT.value:
                     continue
-                if (not self.policy.enable_exception_override_frames
-                        and bool((pnode.metadata or {}).get("exception_override"))):
+                if not self._exception_metadata_allowed(pnode.metadata or {}):
                     continue
                 nxt = act * self.policy.parent_weight * self.policy.depth_decay
                 if nxt < self.policy.min_activation:
@@ -629,8 +668,7 @@ class RuntimeCognition:
                 target = self.index.node_by_id.get(rel.to_id)
                 if target is None or target.kind == NodeKind.QUANT.value:
                     continue
-                if (not self.policy.enable_exception_override_frames
-                        and bool((target.metadata or {}).get("exception_override"))):
+                if not self._exception_metadata_allowed(target.metadata or {}):
                     continue
                 nxt = act * q * self.policy.depth_decay
                 if nxt < self.policy.min_activation:
@@ -715,9 +753,7 @@ class RuntimeCognition:
                 if trace.node_id in context_ids:
                     continue
                 trace_node = self.index.node_by_id.get(trace.node_id)
-                if (not self.policy.enable_exception_override_frames
-                        and trace_node is not None
-                        and bool((trace_node.metadata or {}).get("exception_override"))):
+                if trace_node is not None and not self._exception_metadata_allowed(trace_node.metadata or {}):
                     continue
                 for rel in self.index.relations_from.get(trace.node_id, []):
                     if rel.relation_type == RelationType.PREDICTION.value:

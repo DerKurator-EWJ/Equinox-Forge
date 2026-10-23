@@ -37,6 +37,7 @@ from .frame_schema_benchmark import compile_and_benchmark_frame_schemas, load_fr
 from .specificity_resolution import load_specificity_cases, benchmark_specificity_resolution
 from .exception_induction import ExceptionInductionPolicy, induce_exception_overrides
 from .exception_benchmark import load_exception_cases, benchmark_exception_overrides
+from .exception_consensus import ExceptionConsensusPolicy, track_exception_run, list_exception_states
 
 
 def ingest(db_path: str, doc_path: str):
@@ -789,6 +790,50 @@ def _benchmark_exceptions(args) -> int:
     print(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True))
     return 0
 
+
+
+def _track_exception_consensus(args) -> int:
+    policy = ExceptionConsensusPolicy(
+        source_min_context_fraction=args.source_min_context_fraction,
+        source_vote_threshold=args.source_vote_threshold,
+        source_vote_margin=args.source_vote_margin,
+        stable_min_sources=args.stable_min_sources,
+        stable_min_runs=args.stable_min_runs,
+        stable_consensus=args.stable_consensus,
+        stable_min_support_weight=args.stable_min_support_weight,
+        quarantine_conflicts=args.quarantine_conflicts,
+        quarantine_conflict_weight=args.quarantine_conflict_weight,
+        quarantine_after_misses=args.quarantine_after_misses,
+    )
+    try:
+        doc=load_document(args.overrides)
+        with CanonicalDB(args.db) as c:
+            report=track_exception_run(c.db,doc,policy)
+            if args.output:
+                save_document(doc,args.output)
+            payload={
+                "exception_consensus":report.to_dict(),
+                "output":str(Path(args.output)) if args.output else None,
+                "db_stats":c.stats(),
+            }
+    except Exception as exc:
+        print(f"ERROR: exception consensus failed: {exc}")
+        return 3
+    if args.report:
+        Path(args.report).write_text(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+    print(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True))
+    return 0
+
+
+def _list_exception_states(args) -> int:
+    try:
+        with CanonicalDB(args.db) as c:
+            payload={"states":list_exception_states(c.db),"db_stats":c.stats()}
+    except Exception as exc:
+        print(f"ERROR: exception state listing failed: {exc}")
+        return 3
+    print(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True))
+    return 0
 
 def _benchmark_retention(args) -> int:
     probe_cfg = BehaviourProbeConfig(
@@ -1724,6 +1769,25 @@ def main():
     ex.add_argument("--persist", action="store_true", help="persist induced override frames/evidence into the canonical DB")
 
 
+
+    ec=sub.add_parser("track-exception-consensus", help="track v0.29 cross-source lifecycle for automatic exception overrides")
+    ec.add_argument("db"); ec.add_argument("overrides", help="v0.28/v0.29 exception override IR document")
+    ec.add_argument("--output", help="optional lifecycle-annotated override IR output")
+    ec.add_argument("--report")
+    ec.add_argument("--source-min-context-fraction",type=float,default=1.0)
+    ec.add_argument("--source-vote-threshold",type=float,default=0.55)
+    ec.add_argument("--source-vote-margin",type=float,default=0.15)
+    ec.add_argument("--stable-min-sources",type=int,default=2)
+    ec.add_argument("--stable-min-runs",type=int,default=2)
+    ec.add_argument("--stable-consensus",type=float,default=0.75)
+    ec.add_argument("--stable-min-support-weight",type=float,default=1.5)
+    ec.add_argument("--quarantine-conflicts",type=int,default=2)
+    ec.add_argument("--quarantine-conflict-weight",type=float,default=1.5)
+    ec.add_argument("--quarantine-after-misses",type=int,default=2)
+
+    es=sub.add_parser("exception-states", help="list persisted v0.29 exception lifecycle states")
+    es.add_argument("db")
+
     fb=sub.add_parser("benchmark-frames", help="compile induced relation frames and benchmark isolated held-out schema transfer")
     fb.add_argument("model_dir"); fb.add_argument("output_dir")
     fb.add_argument("--train",action="append",required=True,help="UTF-8 train prompt file; repeatable")
@@ -1877,6 +1941,10 @@ def main():
         raise SystemExit(_benchmark_specificity(a))
     elif a.cmd=="benchmark-exceptions":
         raise SystemExit(_benchmark_exceptions(a))
+    elif a.cmd=="track-exception-consensus":
+        raise SystemExit(_track_exception_consensus(a))
+    elif a.cmd=="exception-states":
+        raise SystemExit(_list_exception_states(a))
     elif a.cmd=="benchmark-retention":
         raise SystemExit(_benchmark_retention(a))
     elif a.cmd=="benchmark-pareto":

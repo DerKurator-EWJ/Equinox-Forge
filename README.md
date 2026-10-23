@@ -2695,3 +2695,14 @@ eqforge benchmark-mechanisms /path/to/local/model out/attribution \
 
 Outputs include the normal v0.20 ladder artifacts under `out/attribution/ladder/` plus
 `mechanism-attribution-report.json` with per-case and per-level ablation traces.
+
+# Step 0.29 — Exception Consensus, Stability & Reversal
+
+v0.29 adds a persistent cross-source lifecycle for v0.28 automatic exception hypotheses. Exception
+induction and runtime authorization are now separate: a newly discovered override starts as
+`candidate`, becomes `stable` only after repeated independent support, falls to `contested` or
+`quarantined` under contradictory sources, and can recover only after a fresh clean-support streak.
+
+Runtime lifecycle gating keeps non-stable overrides in the `.eqbase` for auditability while preventing
+them from changing predictions. Source trust weights are honored without allowing one source to count
+as several independent sources. See `RELEASE_V0_29.md` for the lifecycle contract and fixture.
