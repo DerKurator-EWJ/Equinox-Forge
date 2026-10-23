@@ -1,0 +1,776 @@
+{
+  "evidence": [
+    {
+      "confidence": 0.95,
+      "from_id": "m_6ec5fd976a0ae1786416515b",
+      "metadata": {
+        "backend_id": "typed-slot-demo-teacher",
+        "canonical_surface": "Tier",
+        "decoded_surface": " Tier",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Wolf ist ein",
+        "rank": 1,
+        "raw_token": " Tier",
+        "teacher_logit": 4.0,
+        "teacher_probability": 0.84,
+        "teacher_token_id": 1,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.84,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "typed-slot-demo:frame-eval-reference",
+        "source_version": "1"
+      },
+      "to_id": "m_57daeeb6b1f4d6a5ae840cbc"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_6ec5fd976a0ae1786416515b",
+      "metadata": {
+        "backend_id": "typed-slot-demo-teacher",
+        "canonical_surface": "Wesen",
+        "decoded_surface": " Wesen",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Wolf ist ein",
+        "rank": 2,
+        "raw_token": " Wesen",
+        "teacher_logit": 3.0,
+        "teacher_probability": 0.1,
+        "teacher_token_id": 2,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.1,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "typed-slot-demo:frame-eval-reference",
+        "source_version": "1"
+      },
+      "to_id": "m_798f1ff6fd6f95e959fbc60e"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_6ec5fd976a0ae1786416515b",
+      "metadata": {
+        "backend_id": "typed-slot-demo-teacher",
+        "canonical_surface": "Raubtier",
+        "decoded_surface": " Raubtier",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Wolf ist ein",
+        "rank": 3,
+        "raw_token": " Raubtier",
+        "teacher_logit": 2.0,
+        "teacher_probability": 0.06,
+        "teacher_token_id": 3,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.06,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "typed-slot-demo:frame-eval-reference",
+        "source_version": "1"
+      },
+      "to_id": "m_3cb0581303ebde96527d0f44"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_28bfa894ebb70d03d559e423",
+      "metadata": {
+        "backend_id": "typed-slot-demo-teacher",
+        "canonical_surface": "Tier",
+        "decoded_surface": " Tier",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Fuchs ist ein",
+        "rank": 1,
+        "raw_token": " Tier",
+        "teacher_logit": 4.0,
+        "teacher_probability": 0.84,
+        "teacher_token_id": 1,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.84,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "typed-slot-demo:frame-eval-reference",
+        "source_version": "1"
+      },
+      "to_id": "m_57daeeb6b1f4d6a5ae840cbc"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_28bfa894ebb70d03d559e423",
+      "metadata": {
+        "backend_id": "typed-slot-demo-teacher",
+        "canonical_surface": "Wesen",
+        "decoded_surface": " Wesen",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Fuchs ist ein",
+        "rank": 2,
+        "raw_token": " Wesen",
+        "teacher_logit": 3.0,
+        "teacher_probability": 0.1,
+        "teacher_token_id": 2,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.1,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "typed-slot-demo:frame-eval-reference",
+        "source_version": "1"
+      },
+      "to_id": "m_798f1ff6fd6f95e959fbc60e"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_28bfa894ebb70d03d559e423",
+      "metadata": {
+        "backend_id": "typed-slot-demo-teacher",
+        "canonical_surface": "Raubtier",
+        "decoded_surface": " Raubtier",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Fuchs ist ein",
+        "rank": 3,
+        "raw_token": " Raubtier",
+        "teacher_logit": 2.0,
+        "teacher_probability": 0.06,
+        "teacher_token_id": 3,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.06,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "typed-slot-demo:frame-eval-reference",
+        "source_version": "1"
+      },
+      "to_id": "m_3cb0581303ebde96527d0f44"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_530db8f48047ea9f85b80308",
+      "metadata": {
+        "backend_id": "typed-slot-demo-teacher",
+        "canonical_surface": "Tier",
+        "decoded_surface": " Tier",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Mein Wolf ist ein",
+        "rank": 1,
+        "raw_token": " Tier",
+        "teacher_logit": 4.0,
+        "teacher_probability": 0.84,
+        "teacher_token_id": 1,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.84,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "typed-slot-demo:frame-eval-reference",
+        "source_version": "1"
+      },
+      "to_id": "m_57daeeb6b1f4d6a5ae840cbc"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_530db8f48047ea9f85b80308",
+      "metadata": {
+        "backend_id": "typed-slot-demo-teacher",
+        "canonical_surface": "Wesen",
+        "decoded_surface": " Wesen",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Mein Wolf ist ein",
+        "rank": 2,
+        "raw_token": " Wesen",
+        "teacher_logit": 3.0,
+        "teacher_probability": 0.1,
+        "teacher_token_id": 2,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.1,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "typed-slot-demo:frame-eval-reference",
+        "source_version": "1"
+      },
+      "to_id": "m_798f1ff6fd6f95e959fbc60e"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_530db8f48047ea9f85b80308",
+      "metadata": {
+        "backend_id": "typed-slot-demo-teacher",
+        "canonical_surface": "Raubtier",
+        "decoded_surface": " Raubtier",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Mein Wolf ist ein",
+        "rank": 3,
+        "raw_token": " Raubtier",
+        "teacher_logit": 2.0,
+        "teacher_probability": 0.06,
+        "teacher_token_id": 3,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.06,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "typed-slot-demo:frame-eval-reference",
+        "source_version": "1"
+      },
+      "to_id": "m_3cb0581303ebde96527d0f44"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_4a6af01fa338a439f36cd628",
+      "metadata": {
+        "backend_id": "typed-slot-demo-teacher",
+        "canonical_surface": "Objekt",
+        "decoded_surface": " Objekt",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Stein ist ein",
+        "rank": 1,
+        "raw_token": " Objekt",
+        "teacher_logit": 4.0,
+        "teacher_probability": 0.8,
+        "teacher_token_id": 1,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.8,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "typed-slot-demo:frame-eval-reference",
+        "source_version": "1"
+      },
+      "to_id": "m_5206c69efb3350f62a99bd0e"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_4a6af01fa338a439f36cd628",
+      "metadata": {
+        "backend_id": "typed-slot-demo-teacher",
+        "canonical_surface": "Material",
+        "decoded_surface": " Material",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Stein ist ein",
+        "rank": 2,
+        "raw_token": " Material",
+        "teacher_logit": 3.0,
+        "teacher_probability": 0.12,
+        "teacher_token_id": 2,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.12,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "typed-slot-demo:frame-eval-reference",
+        "source_version": "1"
+      },
+      "to_id": "m_71b4818d149ba63b33942695"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_4a6af01fa338a439f36cd628",
+      "metadata": {
+        "backend_id": "typed-slot-demo-teacher",
+        "canonical_surface": "Ding",
+        "decoded_surface": " Ding",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Stein ist ein",
+        "rank": 3,
+        "raw_token": " Ding",
+        "teacher_logit": 2.0,
+        "teacher_probability": 0.08,
+        "teacher_token_id": 3,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.08,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "typed-slot-demo:frame-eval-reference",
+        "source_version": "1"
+      },
+      "to_id": "m_fab0eb0ae0af0c41adc9bfc8"
+    }
+  ],
+  "format": "equinox-forge-ir-v1",
+  "nodes": [
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_067d7443db67e2be71e514a6",
+      "surface": "o"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_0e89cc9028126dcb350ad7f0",
+      "surface": "a"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_0fc6b4b51d317d48bdb77696",
+      "surface": "k"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_1519008e6800cb8f93869359",
+      "surface": "l"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_1a371ca4988365289108f6c2",
+      "surface": "i"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_20d3634675cd44ddc8db9a45",
+      "surface": "M"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_2881d0f5ff66d5a5a903634a",
+      "surface": "O"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_292e599d0ba9bcdd44beb5e5",
+      "surface": "c"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_3510ecc33d8e1a348c0c6786",
+      "surface": "h"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_378672f12cb4344e8e3fe7dd",
+      "surface": "f"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_38bc09e968b2bef6ab7543b9",
+      "surface": "s"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_49770d6a9583104eae68dd29",
+      "surface": "g"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_4e304d1d5053c0418f3cf06b",
+      "surface": "u"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_5381fe8c0d1859c546f3858c",
+      "surface": "R"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_755669593e03ab127f4d84c6",
+      "surface": "W"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_8bd232f90e9ab3dc726cc415",
+      "surface": "D"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_99799369ad132cd7e47da92b",
+      "surface": "e"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_a0d1c1dfb5825444d67dd681",
+      "surface": "j"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_ae9d2c37a77e479fc0c3a832",
+      "surface": "b"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_b531642b306274deb5568859",
+      "surface": "r"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_b5a875b6d20faf89cf7b8931",
+      "surface": "F"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f33bd22ce5519138db3a4bce",
+      "surface": "T"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f3c6dde36b2355eb8abef831",
+      "surface": "S"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f534dbef81ff2a5b9c86842b",
+      "surface": "t"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f9c1ab02b020bf72a42dbb99",
+      "surface": "n"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_20d3634675cd44ddc8db9a45",
+        "q_99799369ad132cd7e47da92b",
+        "q_1a371ca4988365289108f6c2",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_05d3fec2914d222ab5e16d82",
+      "surface": "Mein"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_b5a875b6d20faf89cf7b8931",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_292e599d0ba9bcdd44beb5e5",
+        "q_3510ecc33d8e1a348c0c6786",
+        "q_38bc09e968b2bef6ab7543b9"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_254389e8439caa2712d3e482",
+      "surface": "Fuchs"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_5381fe8c0d1859c546f3858c",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_ae9d2c37a77e479fc0c3a832",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_1a371ca4988365289108f6c2",
+        "q_99799369ad132cd7e47da92b",
+        "q_b531642b306274deb5568859"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_3cb0581303ebde96527d0f44",
+      "surface": "Raubtier"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_2881d0f5ff66d5a5a903634a",
+        "q_ae9d2c37a77e479fc0c3a832",
+        "q_a0d1c1dfb5825444d67dd681",
+        "q_99799369ad132cd7e47da92b",
+        "q_0fc6b4b51d317d48bdb77696",
+        "q_f534dbef81ff2a5b9c86842b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_5206c69efb3350f62a99bd0e",
+      "surface": "Objekt"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_f33bd22ce5519138db3a4bce",
+        "q_1a371ca4988365289108f6c2",
+        "q_99799369ad132cd7e47da92b",
+        "q_b531642b306274deb5568859"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_57daeeb6b1f4d6a5ae840cbc",
+      "surface": "Tier"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_99799369ad132cd7e47da92b",
+        "q_1a371ca4988365289108f6c2",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_588b6b130b77b7313d77b23e",
+      "surface": "ein"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_20d3634675cd44ddc8db9a45",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_99799369ad132cd7e47da92b",
+        "q_b531642b306274deb5568859",
+        "q_1a371ca4988365289108f6c2",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_1519008e6800cb8f93869359"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_71b4818d149ba63b33942695",
+      "surface": "Material"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_f3c6dde36b2355eb8abef831",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_99799369ad132cd7e47da92b",
+        "q_1a371ca4988365289108f6c2",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_78e929af459465fda1905964",
+      "surface": "Stein"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_755669593e03ab127f4d84c6",
+        "q_99799369ad132cd7e47da92b",
+        "q_38bc09e968b2bef6ab7543b9",
+        "q_99799369ad132cd7e47da92b",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_798f1ff6fd6f95e959fbc60e",
+      "surface": "Wesen"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_755669593e03ab127f4d84c6",
+        "q_067d7443db67e2be71e514a6",
+        "q_1519008e6800cb8f93869359",
+        "q_378672f12cb4344e8e3fe7dd"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_833b79d0a68f7a8404ef150c",
+      "surface": "Wolf"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_1a371ca4988365289108f6c2",
+        "q_38bc09e968b2bef6ab7543b9",
+        "q_f534dbef81ff2a5b9c86842b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_adfbc192594d8f141843eac4",
+      "surface": "ist"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_8bd232f90e9ab3dc726cc415",
+        "q_1a371ca4988365289108f6c2",
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_49770d6a9583104eae68dd29"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_fab0eb0ae0af0c41adc9bfc8",
+      "surface": "Ding"
+    },
+    {
+      "kind": "template",
+      "level": 2,
+      "members": [
+        "m_254389e8439caa2712d3e482",
+        "m_adfbc192594d8f141843eac4",
+        "m_588b6b130b77b7313d77b23e"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_28bfa894ebb70d03d559e423",
+      "surface": "Fuchs ist ein"
+    },
+    {
+      "kind": "template",
+      "level": 2,
+      "members": [
+        "m_78e929af459465fda1905964",
+        "m_adfbc192594d8f141843eac4",
+        "m_588b6b130b77b7313d77b23e"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_4a6af01fa338a439f36cd628",
+      "surface": "Stein ist ein"
+    },
+    {
+      "kind": "template",
+      "level": 2,
+      "members": [
+        "m_05d3fec2914d222ab5e16d82",
+        "m_833b79d0a68f7a8404ef150c",
+        "m_adfbc192594d8f141843eac4",
+        "m_588b6b130b77b7313d77b23e"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_530db8f48047ea9f85b80308",
+      "surface": "Mein Wolf ist ein"
+    },
+    {
+      "kind": "template",
+      "level": 2,
+      "members": [
+        "m_833b79d0a68f7a8404ef150c",
+        "m_adfbc192594d8f141843eac4",
+        "m_588b6b130b77b7313d77b23e"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_6ec5fd976a0ae1786416515b",
+      "surface": "Wolf ist ein"
+    }
+  ]
+}

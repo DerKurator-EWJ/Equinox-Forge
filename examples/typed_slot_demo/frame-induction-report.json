@@ -1,0 +1,63 @@
+{
+  "accepted_frames": 1,
+  "candidate_groups": 5,
+  "contexts_considered": 2,
+  "format": "equinox-forge-frame-induction-v1",
+  "frames": [
+    {
+      "context_count": 2,
+      "fillers": [
+        "Hund",
+        "Katze"
+      ],
+      "frame_node_id": "m_ce95c41a74a4ceb4757a83f3",
+      "pattern": "[SLOT_0] ist ein",
+      "provisional": true,
+      "slot_position": 0,
+      "source_context_ids": [
+        "m_119d9a306a3cee44b56324ae",
+        "m_70ba1cc826fe8615c1c5d711"
+      ],
+      "targets": [
+        {
+          "confidence": 0.855,
+          "context_fraction": 1.0,
+          "score": 0.82,
+          "support_contexts": 2,
+          "target_node_id": "m_57daeeb6b1f4d6a5ae840cbc",
+          "target_surface": "Tier"
+        },
+        {
+          "confidence": 0.855,
+          "context_fraction": 1.0,
+          "score": 0.12,
+          "support_contexts": 2,
+          "target_node_id": "m_4a654e53d48d38c35fb591e8",
+          "target_surface": "Haustier"
+        },
+        {
+          "confidence": 0.855,
+          "context_fraction": 1.0,
+          "score": 0.06,
+          "support_contexts": 2,
+          "target_node_id": "m_798f1ff6fd6f95e959fbc60e",
+          "target_surface": "Wesen"
+        }
+      ],
+      "unique_fillers": 2
+    }
+  ],
+  "generated_nodes": 23,
+  "generated_prediction_evidence": 3,
+  "notes": [
+    "v0.23 retains v0.22 one-slot frame induction and can additionally compile semantic admission constraints from independent canonical relations.",
+    "Slot labels are provisional structural variables, not semantic type claims such as ENTITY unless separate evidence supports such a type.",
+    "Frame predictions are derived evidence with explicit source-context provenance; original teacher/corpus evidence remains unchanged.",
+    "Open-slot runtime matching is intentionally auditable and can be disabled independently from lexical/parent routing.",
+    "A semantic_typed slot stores only its admission profile and supporting fillers; it does not import held-out frame answers or evaluation labels."
+  ],
+  "rejected_insufficient_contexts": 4,
+  "rejected_insufficient_fillers": 0,
+  "rejected_no_shared_targets": 0,
+  "version": "0.23"
+}

@@ -19,9 +19,10 @@ from .runtime_cognition import RuntimeCognition, RuntimeCognitionPolicy
 from .runtime_pack import compile_base_pack, load_base_pack
 from .teacher_behavior import BehaviourProbeConfig, CausalTeacherBackend, extract_teacher_behaviour
 from .validate import validate_document
+from .ir import ForgeDocument
 
 FRAME_BENCHMARK_FORMAT = "equinox-forge-frame-schema-benchmark-v1"
-FRAME_BENCHMARK_VERSION = "0.22"
+FRAME_BENCHMARK_VERSION = "0.23"
 
 
 @dataclass(frozen=True)
@@ -37,7 +38,9 @@ class FrameEvalDetail:
     teacher_top1: str | None
     frame_only_top1: str | None
     no_frame_top1: str | None
+    open_frame_top1: str | None
     frame_matched: bool
+    frame_admission: list[dict[str, Any]]
     frame_surfaces: list[str]
     frame_only_top1_match: bool
     expected_frame_applicable: bool | None
@@ -63,10 +66,13 @@ class FrameSchemaBenchmarkReport:
     pack_relations: int
     frame_only: dict[str, Any]
     no_frame: dict[str, Any]
+    open_frame_baseline: dict[str, Any]
     full_runtime: dict[str, Any]
     frame_match_rate: float
     frame_applicability_precision: float | None
     frame_applicability_recall: float | None
+    semantic_admission_enabled: bool
+    support_documents: int
     details: list[FrameEvalDetail]
     frame_induction: dict[str, Any]
     backend_manifest: dict[str, Any]
@@ -115,8 +121,9 @@ def compile_and_benchmark_frame_schemas(
     frame_policy: FrameInductionPolicy | None = None,
     cognition_policy: RuntimeCognitionPolicy | None = None,
     runtime_top_k: int | None = None,
+    support_documents: Iterable[ForgeDocument] | None = None,
     pack_id: str = "equinox-frame-schema-benchmark",
-    pack_version: int = 22,
+    pack_version: int = 23,
 ) -> FrameSchemaBenchmarkReport:
     cfg = probe_cfg or BehaviourProbeConfig()
     cfg.validate()
@@ -125,6 +132,11 @@ def compile_and_benchmark_frame_schemas(
     policy = cognition_policy or RuntimeCognitionPolicy(max_predictions=max(int(runtime_top_k or cfg.top_k), 8))
     policy.validate()
     runtime_top_k = int(runtime_top_k or cfg.top_k)
+    support_docs = list(support_documents or [])
+    for i, doc in enumerate(support_docs):
+        errors = [x for x in validate_document(doc) if x.severity == "error"]
+        if errors:
+            raise ValueError(f"support document {i} failed validation: " + "; ".join(x.message for x in errors))
 
     train = []
     seen = set()
@@ -165,11 +177,19 @@ def compile_and_benchmark_frame_schemas(
         if errors: raise ValueError(f"{label} teacher IR failed validation: " + "; ".join(x.message for x in errors))
     save_document(train_doc, out / "train-teacher-behaviour.eqir.json")
     save_document(eval_doc, eval_dir / "frame-eval-teacher-reference.eqir.json")
+    support_dir = out / "support_knowledge"
+    if support_docs:
+        support_dir.mkdir(parents=True, exist_ok=True)
+        for i, doc in enumerate(support_docs):
+            save_document(doc, support_dir / f"support-{i:02d}.eqir.json")
 
     relation_policy = CompilePolicy(min_score=0.0, min_confidence=0.0, min_sources=1)
     with CanonicalDB(db_path) as db:
         for n in train_doc.nodes: db.upsert_node(n)
         for e in train_doc.evidence: db.add_evidence(e)
+        for doc in support_docs:
+            for n in doc.nodes: db.upsert_node(n)
+            for e in doc.evidence: db.add_evidence(e)
         db.commit()
         frame_doc, frame_report = induce_relation_frames(db.db, fp)
         frame_errors = [x for x in validate_document(frame_doc) if x.severity == "error"]
@@ -198,6 +218,11 @@ def compile_and_benchmark_frame_schemas(
         pack_path, eval_probes, cfg, cognition_policy=_frame_only_policy(policy, False),
         teacher_top_k=cfg.top_k, runtime_top_k=runtime_top_k,
     )
+    open_frame_policy = replace(policy, enable_semantic_slot_admission=False)
+    open_frame_cases, _ = benchmark_teacher_probes_against_pack(
+        pack_path, eval_probes, cfg, cognition_policy=_frame_only_policy(open_frame_policy, True),
+        teacher_top_k=cfg.top_k, runtime_top_k=runtime_top_k,
+    )
     full_cases, _ = benchmark_teacher_probes_against_pack(
         pack_path, eval_probes, cfg, cognition_policy=policy,
         teacher_top_k=cfg.top_k, runtime_top_k=runtime_top_k,
@@ -208,6 +233,7 @@ def compile_and_benchmark_frame_schemas(
     idx = pack.node_by_id()
     frame_by_prompt = {x.prompt: x for x in frame_cases}
     no_frame_by_prompt = {x.prompt: x for x in no_frame_cases}
+    open_frame_by_prompt = {x.prompt: x for x in open_frame_cases}
     eval_probe_by_prompt = {x.prompt: x for x in eval_probes}
     frame_cog = RuntimeCognition(pack, _frame_only_policy(policy, True))
     detail: list[FrameEvalDetail] = []
@@ -223,16 +249,20 @@ def compile_and_benchmark_frame_schemas(
             fp_count += 1
         fr = frame_by_prompt[case.prompt]
         nr = no_frame_by_prompt[case.prompt]
+        orow = open_frame_by_prompt[case.prompt]
         teacher_top1 = fr.teacher_top1
         frame_top1 = fr.runtime_top1
         no_frame_top1 = nr.runtime_top1
+        open_frame_top1 = orow.runtime_top1
         applicability_correct = None if case.expected_frame_applicable is None else (matched == case.expected_frame_applicable)
         detail.append(FrameEvalDetail(
             prompt=case.prompt,
             teacher_top1=teacher_top1,
             frame_only_top1=frame_top1,
             no_frame_top1=no_frame_top1,
+            open_frame_top1=open_frame_top1,
             frame_matched=matched,
+            frame_admission=list(pred.frame_admission),
             frame_surfaces=[n.surface or n.node_id for n in frame_nodes],
             frame_only_top1_match=(frame_top1 == teacher_top1 and teacher_top1 is not None),
             expected_frame_applicable=case.expected_frame_applicable,
@@ -253,10 +283,13 @@ def compile_and_benchmark_frame_schemas(
         pack_bytes=manifest.file_bytes, pack_nodes=manifest.node_count, pack_relations=manifest.relation_count,
         frame_only=_summarize_cases(frame_cases),
         no_frame=_summarize_cases(no_frame_cases),
+        open_frame_baseline=_summarize_cases(open_frame_cases),
         full_runtime=_summarize_cases(full_cases),
         frame_match_rate=(sum(1 for x in detail if x.frame_matched) / len(detail) if detail else 0.0),
         frame_applicability_precision=precision,
         frame_applicability_recall=recall,
+        semantic_admission_enabled=bool(policy.enable_semantic_slot_admission),
+        support_documents=len(support_docs),
         details=detail,
         frame_induction=frame_report.to_dict(),
         backend_manifest={**dict(backend.manifest() or {}), "teacher_probe_elapsed_ms": teacher_ms, "runtime_eval_elapsed_ms": runtime_ms,
@@ -267,7 +300,8 @@ def compile_and_benchmark_frame_schemas(
             "frame_only disables exact/suffix lookup, lexical seeds, parent routing, relation recall, transitions and recalled-context prediction; any surviving prediction therefore comes from an induced frame schema.",
             "Open text slots are structural wildcards, not semantic type guarantees. A frame may overgeneralize to a novel filler outside the intended latent class.",
             "Applicability labels, when supplied, are evaluation-only annotations and are never compiled into the BASE.",
-            "v0.22 measures schema induction and its precision failure modes; it does not claim robust semantic slot typing.",
+            "v0.23 can enforce compiled semantic slot admission. The open_frame_baseline disables only that admission gate on the same BASE.",
+            "Support documents may contain independent lexical/semantic knowledge, but evaluation prompts and teacher answers remain reference-only.",
         ],
     )
     (out / "frame-schema-benchmark-report.json").write_text(

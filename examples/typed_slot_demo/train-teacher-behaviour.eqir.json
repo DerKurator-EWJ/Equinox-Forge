@@ -1,0 +1,417 @@
+{
+  "evidence": [
+    {
+      "confidence": 0.95,
+      "from_id": "m_119d9a306a3cee44b56324ae",
+      "metadata": {
+        "backend_id": "typed-slot-demo-teacher",
+        "canonical_surface": "Tier",
+        "decoded_surface": " Tier",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Hund ist ein",
+        "rank": 1,
+        "raw_token": " Tier",
+        "teacher_logit": 4.0,
+        "teacher_probability": 0.82,
+        "teacher_token_id": 1,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.82,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "typed-slot-demo",
+        "source_version": "1"
+      },
+      "to_id": "m_57daeeb6b1f4d6a5ae840cbc"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_119d9a306a3cee44b56324ae",
+      "metadata": {
+        "backend_id": "typed-slot-demo-teacher",
+        "canonical_surface": "Haustier",
+        "decoded_surface": " Haustier",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Hund ist ein",
+        "rank": 2,
+        "raw_token": " Haustier",
+        "teacher_logit": 3.0,
+        "teacher_probability": 0.12,
+        "teacher_token_id": 2,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.12,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "typed-slot-demo",
+        "source_version": "1"
+      },
+      "to_id": "m_4a654e53d48d38c35fb591e8"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_119d9a306a3cee44b56324ae",
+      "metadata": {
+        "backend_id": "typed-slot-demo-teacher",
+        "canonical_surface": "Wesen",
+        "decoded_surface": " Wesen",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Hund ist ein",
+        "rank": 3,
+        "raw_token": " Wesen",
+        "teacher_logit": 2.0,
+        "teacher_probability": 0.06,
+        "teacher_token_id": 3,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.06,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "typed-slot-demo",
+        "source_version": "1"
+      },
+      "to_id": "m_798f1ff6fd6f95e959fbc60e"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_70ba1cc826fe8615c1c5d711",
+      "metadata": {
+        "backend_id": "typed-slot-demo-teacher",
+        "canonical_surface": "Tier",
+        "decoded_surface": " Tier",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Katze ist ein",
+        "rank": 1,
+        "raw_token": " Tier",
+        "teacher_logit": 4.0,
+        "teacher_probability": 0.82,
+        "teacher_token_id": 1,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.82,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "typed-slot-demo",
+        "source_version": "1"
+      },
+      "to_id": "m_57daeeb6b1f4d6a5ae840cbc"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_70ba1cc826fe8615c1c5d711",
+      "metadata": {
+        "backend_id": "typed-slot-demo-teacher",
+        "canonical_surface": "Haustier",
+        "decoded_surface": " Haustier",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Katze ist ein",
+        "rank": 2,
+        "raw_token": " Haustier",
+        "teacher_logit": 3.0,
+        "teacher_probability": 0.12,
+        "teacher_token_id": 2,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.12,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "typed-slot-demo",
+        "source_version": "1"
+      },
+      "to_id": "m_4a654e53d48d38c35fb591e8"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_70ba1cc826fe8615c1c5d711",
+      "metadata": {
+        "backend_id": "typed-slot-demo-teacher",
+        "canonical_surface": "Wesen",
+        "decoded_surface": " Wesen",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Katze ist ein",
+        "rank": 3,
+        "raw_token": " Wesen",
+        "teacher_logit": 2.0,
+        "teacher_probability": 0.06,
+        "teacher_token_id": 3,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.06,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "typed-slot-demo",
+        "source_version": "1"
+      },
+      "to_id": "m_798f1ff6fd6f95e959fbc60e"
+    }
+  ],
+  "format": "equinox-forge-ir-v1",
+  "nodes": [
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_0e89cc9028126dcb350ad7f0",
+      "surface": "a"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_15a18ac39698288fb1a91018",
+      "surface": "K"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_1a371ca4988365289108f6c2",
+      "surface": "i"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_38bc09e968b2bef6ab7543b9",
+      "surface": "s"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_4e304d1d5053c0418f3cf06b",
+      "surface": "u"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_63226e2b8308e87a2c8b9efc",
+      "surface": "H"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_755669593e03ab127f4d84c6",
+      "surface": "W"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_99799369ad132cd7e47da92b",
+      "surface": "e"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_ad652928813fe3dcb86d10f9",
+      "surface": "z"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_b531642b306274deb5568859",
+      "surface": "r"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_c6f6e6994e2cd21c9c0b4935",
+      "surface": "d"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f33bd22ce5519138db3a4bce",
+      "surface": "T"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f534dbef81ff2a5b9c86842b",
+      "surface": "t"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f9c1ab02b020bf72a42dbb99",
+      "surface": "n"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_63226e2b8308e87a2c8b9efc",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_c6f6e6994e2cd21c9c0b4935"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_42178d06f9c5e1b98384186a",
+      "surface": "Hund"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_63226e2b8308e87a2c8b9efc",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_38bc09e968b2bef6ab7543b9",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_1a371ca4988365289108f6c2",
+        "q_99799369ad132cd7e47da92b",
+        "q_b531642b306274deb5568859"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_4a654e53d48d38c35fb591e8",
+      "surface": "Haustier"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_f33bd22ce5519138db3a4bce",
+        "q_1a371ca4988365289108f6c2",
+        "q_99799369ad132cd7e47da92b",
+        "q_b531642b306274deb5568859"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_57daeeb6b1f4d6a5ae840cbc",
+      "surface": "Tier"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_99799369ad132cd7e47da92b",
+        "q_1a371ca4988365289108f6c2",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_588b6b130b77b7313d77b23e",
+      "surface": "ein"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_755669593e03ab127f4d84c6",
+        "q_99799369ad132cd7e47da92b",
+        "q_38bc09e968b2bef6ab7543b9",
+        "q_99799369ad132cd7e47da92b",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_798f1ff6fd6f95e959fbc60e",
+      "surface": "Wesen"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_15a18ac39698288fb1a91018",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_ad652928813fe3dcb86d10f9",
+        "q_99799369ad132cd7e47da92b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_8f8d6efd0bd55cf0022982ac",
+      "surface": "Katze"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_1a371ca4988365289108f6c2",
+        "q_38bc09e968b2bef6ab7543b9",
+        "q_f534dbef81ff2a5b9c86842b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_adfbc192594d8f141843eac4",
+      "surface": "ist"
+    },
+    {
+      "kind": "template",
+      "level": 2,
+      "members": [
+        "m_42178d06f9c5e1b98384186a",
+        "m_adfbc192594d8f141843eac4",
+        "m_588b6b130b77b7313d77b23e"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_119d9a306a3cee44b56324ae",
+      "surface": "Hund ist ein"
+    },
+    {
+      "kind": "template",
+      "level": 2,
+      "members": [
+        "m_8f8d6efd0bd55cf0022982ac",
+        "m_adfbc192594d8f141843eac4",
+        "m_588b6b130b77b7313d77b23e"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_70ba1cc826fe8615c1c5d711",
+      "surface": "Katze ist ein"
+    }
+  ]
+}

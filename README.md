@@ -1,3 +1,180 @@
+# Equinox Forge v0.23 — Typed Slot Constraints / Semantic Admission
+
+**Current milestone:** v0.23 keeps the explicit frame schemas from v0.22, but a slot can now carry a compiled, auditable **semantic admission profile**. Structural fit alone is no longer sufficient for a typed slot to fire.
+
+The new path is:
+
+```text
+Hund ist ein  ─┐
+                ├─ repeated frame ─→ [SLOT_0] ist ein → Tier
+Katze ist ein ─┘                         │
+                                        ├─ observed fillers: Hund, Katze
+                                        ├─ semantic filler coherence
+                                        ├─ min candidate score
+                                        └─ min independent filler support
+
+independent semantic BASE:
+Wolf  ↔ Hund / Katze   strong
+Fuchs ↔ Hund / Katze   strong
+Stein ↔ Hund / Katze   weak
+
+runtime:
+Wolf ist ein  → admitted → Tier
+Fuchs ist ein → admitted → Tier
+Stein ist ein → rejected → abstain
+```
+
+The semantic evidence is deliberately **independent from the frame teacher**. The held-out answers (`Tier`, `Objekt`, etc.) are never used to decide slot admission.
+
+## What v0.23 adds
+
+- optional semantic typing during frame induction;
+- compiled slot metadata containing:
+  - profile filler node IDs and surfaces,
+  - allowed semantic relation channels,
+  - filler-coherence statistics,
+  - minimum candidate compatibility,
+  - minimum number of supporting fillers;
+- current supported admission channels: `semantic_similarity`, `substitution`, `contextual_similarity` (configurable);
+- runtime semantic admission before a structurally matching frame can become a predictive context;
+- bidirectional relation checking, so a semantic edge may be stored from candidate→filler or filler→candidate;
+- hard rejection when a typed slot filler is unknown or insufficiently supported;
+- explicit runtime switch `enable_semantic_slot_admission`;
+- per-query admission diagnostics, including support scores and rejection reason;
+- `open_frame_baseline` on the same immutable BASE, allowing direct comparison with v0.22 behavior;
+- optional independent `--support-ir` documents in the frame benchmark;
+- CLI controls for coherence/admission thresholds and required support count.
+
+## Important boundary
+
+v0.23 does **not** claim that Equinox can type a concept that is completely absent from its knowledge base.
+
+If `Wolf` is neither a known surface nor linked by any independent semantic evidence, the runtime cannot infer its class from nothing. The correct v0.23 experiment is therefore:
+
+```text
+known concept: Wolf
+unseen relation-context: "Wolf ist ein"
+```
+
+rather than pretending that a totally unknown word is semantically understood.
+
+This distinction is central to the benchmark.
+
+## Deterministic typed-slot fixture
+
+Frame teacher compile data:
+
+```text
+Hund ist ein  → Tier / Haustier / Wesen
+Katze ist ein → Tier / Haustier / Wesen
+```
+
+Independent semantic support:
+
+```text
+Hund ↔ Katze       strong
+Wolf → Hund/Katze  strong
+Fuchs→ Hund/Katze  strong
+Stein→ Hund/Katze  weak
+```
+
+Held-out predictive contexts:
+
+```text
+Wolf ist ein
+Fuchs ist ein
+Mein Wolf ist ein
+Stein ist ein
+```
+
+The complete contexts above are **not** compiled as predictive contexts.
+
+Measured fixture result:
+
+```text
+induced typed frames                 1
+BASE nodes                          35
+BASE relations                      16
+BASE bytes                       3,509
+
+typed slot applicability recall    100 %
+typed slot applicability precision 100 %
+
+Wolf ist ein       → Tier   ✓
+Fuchs ist ein      → Tier   ✓
+Mein Wolf ist ein  → Tier   ✓
+Stein ist ein      → no frame prediction
+```
+
+For comparison, disabling only semantic admission on the **same BASE** restores the old open-slot behavior:
+
+```text
+Stein ist ein → Tier   ✗
+```
+
+The top-1 retention number remains 75% in both modes because v0.23 deliberately abstains on the negative case rather than inventing the teacher's unseen answer `Objekt`. The meaningful improvement here is therefore **false-positive suppression / applicability precision**, not fabricated answer coverage.
+
+## Admission semantics
+
+For a candidate filler, runtime compatibility is computed only from compiled semantic relations to the slot's observed fillers. In v0.23 the effective pair quality is:
+
+```text
+relation score × relation confidence
+```
+
+A candidate must reach `min_candidate_score` for at least `min_support_fillers` profile fillers.
+
+Observed training fillers are admitted directly. A typed candidate that lacks enough semantic support is rejected even if the surface pattern itself matches perfectly.
+
+The admission profile remains marked provisional; it is not an ontological truth label.
+
+## CLI
+
+Induce typed frames from an existing DB that already contains semantic evidence:
+
+```bash
+eqforge induce-frames master.sqlite frames.eqir.json \
+  --semantic-slot-typing \
+  --require-typed-slot \
+  --min-filler-coherence-score 0.70 \
+  --slot-admission-min-score 0.70 \
+  --slot-admission-min-support-fillers 2 \
+  --persist
+```
+
+Benchmark with a local teacher plus one or more independent support IR files:
+
+```bash
+eqforge benchmark-frames /path/to/model out/typed-frame-test \
+  --train train-prompts.txt \
+  --eval-jsonl frame-eval.jsonl \
+  --support-ir semantic-support.eqir.json \
+  --source-id teacher-A \
+  --semantic-slot-typing \
+  --require-typed-slot \
+  --min-filler-coherence-score 0.70 \
+  --slot-admission-min-score 0.70 \
+  --slot-admission-min-support-fillers 2
+```
+
+For an explicit v0.22-style baseline on the same typed pack:
+
+```bash
+# benchmark report already includes open_frame_baseline
+# or disable enforcement explicitly:
+--disable-semantic-slot-admission
+```
+
+## What this proves — and what it does not
+
+The deterministic fixture supports the narrow engineering claim that a compiled frame can use **independent semantic relations** to suppress structurally valid but semantically unsupported fillers.
+
+It does not prove robust natural-language type induction, ontology learning, or broad semantic understanding. The next open problem is how to replace pairwise filler similarity with more stable learned **slot concepts / class prototypes**, especially when fillers are numerous, polysemous, cross-lingual, or only indirectly related.
+
+---
+
+Historical documentation from v0.22 and earlier remains below.
+
 # Equinox Forge v0.22 — Relation / Frame Schema Induction
 
 **Current milestone:** v0.22 turns repeated concrete predictive contexts into explicit provisional relational frames and makes those frames executable in the compiled `.eqbase` runtime.

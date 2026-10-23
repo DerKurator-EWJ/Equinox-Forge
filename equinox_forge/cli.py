@@ -884,6 +884,15 @@ def _induce_frames(args) -> int:
         min_target_score=args.min_target_score,
         evidence_confidence=args.evidence_confidence,
         allow_open_text_slot=not args.closed_slot,
+        enable_semantic_slot_typing=args.semantic_slot_typing,
+        semantic_relation_types=tuple(args.semantic_relation_type or [
+            "semantic_similarity", "substitution", "contextual_similarity"
+        ]),
+        min_filler_coherence_score=args.min_filler_coherence_score,
+        min_filler_pair_fraction=args.min_filler_pair_fraction,
+        slot_admission_min_score=args.slot_admission_min_score,
+        slot_admission_min_support_fillers=args.slot_admission_min_support_fillers,
+        require_typed_slot=args.require_typed_slot,
     )
     try:
         with CanonicalDB(args.db) as c:
@@ -917,11 +926,21 @@ def _benchmark_frames(args) -> int:
         max_predictions=max(args.runtime_top_k,args.max_predictions),min_activation=args.min_activation,
         min_prediction_score=args.min_prediction_score,frame_match_weight=args.frame_match_weight,
         max_frame_matches=args.max_frame_matches,
+        enable_semantic_slot_admission=not args.disable_semantic_slot_admission,
     )
     frame_policy=FrameInductionPolicy(
         min_contexts=args.min_contexts,min_unique_fillers=args.min_unique_fillers,
         min_target_context_fraction=args.min_target_context_fraction,min_target_score=args.min_target_score,
         evidence_confidence=args.frame_evidence_confidence,allow_open_text_slot=not args.closed_slot,
+        enable_semantic_slot_typing=args.semantic_slot_typing,
+        semantic_relation_types=tuple(args.semantic_relation_type or [
+            "semantic_similarity", "substitution", "contextual_similarity"
+        ]),
+        min_filler_coherence_score=args.min_filler_coherence_score,
+        min_filler_pair_fraction=args.min_filler_pair_fraction,
+        slot_admission_min_score=args.slot_admission_min_score,
+        slot_admission_min_support_fillers=args.slot_admission_min_support_fillers,
+        require_typed_slot=args.require_typed_slot,
     )
     try:
         train=load_prompts(args.train)
@@ -930,6 +949,7 @@ def _benchmark_frames(args) -> int:
         report=compile_and_benchmark_frame_schemas(
             backend,train,evaluation,args.output_dir,args.source_id,args.source_version,probe_cfg=probe_cfg,
             frame_policy=frame_policy,cognition_policy=runtime,runtime_top_k=args.runtime_top_k,
+            support_documents=[load_document(x) for x in (args.support_ir or [])],
             pack_id=args.pack_id,pack_version=args.pack_version,
         )
     except Exception as exc:
@@ -1371,13 +1391,20 @@ def main():
     fi.add_argument("db"); fi.add_argument("output")
     fi.add_argument("--report")
     fi.add_argument("--source-id",default="derived:frame-induction")
-    fi.add_argument("--source-version",default="0.22")
+    fi.add_argument("--source-version",default="0.23")
     fi.add_argument("--min-contexts",type=int,default=2)
     fi.add_argument("--min-unique-fillers",type=int,default=2)
     fi.add_argument("--min-target-context-fraction",type=float,default=1.0)
     fi.add_argument("--min-target-score",type=float,default=0.01)
     fi.add_argument("--evidence-confidence",type=float,default=0.90)
-    fi.add_argument("--closed-slot",action="store_true",help="mark induced slot non-open; v0.22 runtime open-slot transfer then will not be used")
+    fi.add_argument("--closed-slot",action="store_true",help="mark induced slot non-open; v0.23 runtime open-slot transfer then will not be used")
+    fi.add_argument("--semantic-slot-typing",action="store_true",help="compile semantic admission profiles for coherent slot fillers")
+    fi.add_argument("--semantic-relation-type",action="append",default=[],help="relation type usable for slot typing; repeatable")
+    fi.add_argument("--min-filler-coherence-score",type=float,default=0.55)
+    fi.add_argument("--min-filler-pair-fraction",type=float,default=1.0)
+    fi.add_argument("--slot-admission-min-score",type=float,default=0.55)
+    fi.add_argument("--slot-admission-min-support-fillers",type=int,default=2)
+    fi.add_argument("--require-typed-slot",action="store_true",help="reject induced frames whose filler set cannot form a semantic slot profile")
     fi.add_argument("--persist",action="store_true",help="persist induced frame nodes/evidence into the canonical DB")
 
     fb=sub.add_parser("benchmark-frames", help="compile induced relation frames and benchmark isolated held-out schema transfer")
@@ -1398,7 +1425,16 @@ def main():
     fb.add_argument("--min-contexts",type=int,default=2); fb.add_argument("--min-unique-fillers",type=int,default=2)
     fb.add_argument("--min-target-context-fraction",type=float,default=1.0); fb.add_argument("--min-target-score",type=float,default=0.01)
     fb.add_argument("--frame-evidence-confidence",type=float,default=0.90); fb.add_argument("--closed-slot",action="store_true")
-    fb.add_argument("--pack-id",default="equinox-frame-schema-benchmark"); fb.add_argument("--pack-version",type=int,default=22)
+    fb.add_argument("--support-ir",action="append",default=[],help="independent canonical/semantic IR available at compile time; repeatable")
+    fb.add_argument("--semantic-slot-typing",action="store_true")
+    fb.add_argument("--semantic-relation-type",action="append",default=[])
+    fb.add_argument("--min-filler-coherence-score",type=float,default=0.55)
+    fb.add_argument("--min-filler-pair-fraction",type=float,default=1.0)
+    fb.add_argument("--slot-admission-min-score",type=float,default=0.55)
+    fb.add_argument("--slot-admission-min-support-fillers",type=int,default=2)
+    fb.add_argument("--require-typed-slot",action="store_true")
+    fb.add_argument("--disable-semantic-slot-admission",action="store_true",help="compile typed profiles but ignore the semantic gate at runtime")
+    fb.add_argument("--pack-id",default="equinox-frame-schema-benchmark"); fb.add_argument("--pack-version",type=int,default=23)
 
     ar=sub.add_parser("artifacts", help="list current derived compiler artifacts")
     ar.add_argument("db"); ar.add_argument("--target-id"); ar.add_argument("--status", action="append", default=[])

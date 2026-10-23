@@ -1,0 +1,420 @@
+{
+  "evidence": [
+    {
+      "confidence": 0.855,
+      "from_id": "m_ce95c41a74a4ceb4757a83f3",
+      "metadata": {
+        "derived_from_context_ids": [
+          "m_119d9a306a3cee44b56324ae",
+          "m_70ba1cc826fe8615c1c5d711"
+        ],
+        "evidence_kind": "induced_frame_prediction",
+        "pattern": "[SLOT_0] ist ein",
+        "provisional": true,
+        "slot_position": 0,
+        "support_contexts": 2,
+        "target_context_fraction": 1.0,
+        "target_support_contexts": 2
+      },
+      "relation_type": "prediction",
+      "score": 0.12,
+      "source": {
+        "extraction": "frame_schema_induction_v1",
+        "source_id": "derived:frame-induction",
+        "source_version": "0.23"
+      },
+      "to_id": "m_4a654e53d48d38c35fb591e8"
+    },
+    {
+      "confidence": 0.855,
+      "from_id": "m_ce95c41a74a4ceb4757a83f3",
+      "metadata": {
+        "derived_from_context_ids": [
+          "m_119d9a306a3cee44b56324ae",
+          "m_70ba1cc826fe8615c1c5d711"
+        ],
+        "evidence_kind": "induced_frame_prediction",
+        "pattern": "[SLOT_0] ist ein",
+        "provisional": true,
+        "slot_position": 0,
+        "support_contexts": 2,
+        "target_context_fraction": 1.0,
+        "target_support_contexts": 2
+      },
+      "relation_type": "prediction",
+      "score": 0.82,
+      "source": {
+        "extraction": "frame_schema_induction_v1",
+        "source_id": "derived:frame-induction",
+        "source_version": "0.23"
+      },
+      "to_id": "m_57daeeb6b1f4d6a5ae840cbc"
+    },
+    {
+      "confidence": 0.855,
+      "from_id": "m_ce95c41a74a4ceb4757a83f3",
+      "metadata": {
+        "derived_from_context_ids": [
+          "m_119d9a306a3cee44b56324ae",
+          "m_70ba1cc826fe8615c1c5d711"
+        ],
+        "evidence_kind": "induced_frame_prediction",
+        "pattern": "[SLOT_0] ist ein",
+        "provisional": true,
+        "slot_position": 0,
+        "support_contexts": 2,
+        "target_context_fraction": 1.0,
+        "target_support_contexts": 2
+      },
+      "relation_type": "prediction",
+      "score": 0.06,
+      "source": {
+        "extraction": "frame_schema_induction_v1",
+        "source_id": "derived:frame-induction",
+        "source_version": "0.23"
+      },
+      "to_id": "m_798f1ff6fd6f95e959fbc60e"
+    }
+  ],
+  "format": "equinox-forge-ir-v1",
+  "nodes": [
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_0e89cc9028126dcb350ad7f0",
+      "surface": "a"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_15a18ac39698288fb1a91018",
+      "surface": "K"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_1a371ca4988365289108f6c2",
+      "surface": "i"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_38bc09e968b2bef6ab7543b9",
+      "surface": "s"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_4e304d1d5053c0418f3cf06b",
+      "surface": "u"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_63226e2b8308e87a2c8b9efc",
+      "surface": "H"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_755669593e03ab127f4d84c6",
+      "surface": "W"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_99799369ad132cd7e47da92b",
+      "surface": "e"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_ad652928813fe3dcb86d10f9",
+      "surface": "z"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_b531642b306274deb5568859",
+      "surface": "r"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_c6f6e6994e2cd21c9c0b4935",
+      "surface": "d"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f33bd22ce5519138db3a4bce",
+      "surface": "T"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f534dbef81ff2a5b9c86842b",
+      "surface": "t"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f9c1ab02b020bf72a42dbb99",
+      "surface": "n"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_63226e2b8308e87a2c8b9efc",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_c6f6e6994e2cd21c9c0b4935"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_42178d06f9c5e1b98384186a",
+      "surface": "Hund"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_63226e2b8308e87a2c8b9efc",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_38bc09e968b2bef6ab7543b9",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_1a371ca4988365289108f6c2",
+        "q_99799369ad132cd7e47da92b",
+        "q_b531642b306274deb5568859"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_4a654e53d48d38c35fb591e8",
+      "surface": "Haustier"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_f33bd22ce5519138db3a4bce",
+        "q_1a371ca4988365289108f6c2",
+        "q_99799369ad132cd7e47da92b",
+        "q_b531642b306274deb5568859"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_57daeeb6b1f4d6a5ae840cbc",
+      "surface": "Tier"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_99799369ad132cd7e47da92b",
+        "q_1a371ca4988365289108f6c2",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_588b6b130b77b7313d77b23e",
+      "surface": "ein"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_755669593e03ab127f4d84c6",
+        "q_99799369ad132cd7e47da92b",
+        "q_38bc09e968b2bef6ab7543b9",
+        "q_99799369ad132cd7e47da92b",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_798f1ff6fd6f95e959fbc60e",
+      "surface": "Wesen"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_15a18ac39698288fb1a91018",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_ad652928813fe3dcb86d10f9",
+        "q_99799369ad132cd7e47da92b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_8f8d6efd0bd55cf0022982ac",
+      "surface": "Katze"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_1a371ca4988365289108f6c2",
+        "q_38bc09e968b2bef6ab7543b9",
+        "q_f534dbef81ff2a5b9c86842b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_adfbc192594d8f141843eac4",
+      "surface": "ist"
+    },
+    {
+      "kind": "concept",
+      "level": 2,
+      "members": [
+        "m_42178d06f9c5e1b98384186a",
+        "m_8f8d6efd0bd55cf0022982ac"
+      ],
+      "metadata": {
+        "filler_surfaces": [
+          "Hund",
+          "Katze"
+        ],
+        "forge_version": "0.23",
+        "open_text_slot": true,
+        "provisional": true,
+        "role": "induced_frame_slot",
+        "semantic_admission": {
+          "enabled": true,
+          "filler_coherence_threshold": 0.7,
+          "filler_pair_fraction": 1.0,
+          "filler_pair_mean_score": 0.9016000000000001,
+          "filler_pair_min_score": 0.9016000000000001,
+          "min_candidate_score": 0.7,
+          "min_support_fillers": 2,
+          "mode": "semantic_relational_admission_v1",
+          "profile_filler_node_ids": [
+            "m_42178d06f9c5e1b98384186a",
+            "m_8f8d6efd0bd55cf0022982ac"
+          ],
+          "profile_filler_surfaces": [
+            "Hund",
+            "Katze"
+          ],
+          "provisional": true,
+          "relation_types": [
+            "semantic_similarity",
+            "substitution",
+            "contextual_similarity"
+          ]
+        },
+        "semantic_typed": true,
+        "slot_position": 0,
+        "support_count": 2
+      },
+      "modality": "text",
+      "node_id": "m_ac7e503a8eca1ae566f611e1",
+      "surface": "[SLOT_0]"
+    },
+    {
+      "kind": "template",
+      "level": 3,
+      "members": [
+        "m_ac7e503a8eca1ae566f611e1",
+        "m_adfbc192594d8f141843eac4",
+        "m_588b6b130b77b7313d77b23e"
+      ],
+      "metadata": {
+        "forge_version": "0.23",
+        "open_text_slots": true,
+        "pattern_tokens": [
+          "*",
+          "ist",
+          "ein"
+        ],
+        "provisional": true,
+        "role": "induced_frame_schema",
+        "semantic_typed_slots": true,
+        "slot_admission_profiles": [
+          {
+            "enabled": true,
+            "filler_coherence_threshold": 0.7,
+            "filler_pair_fraction": 1.0,
+            "filler_pair_mean_score": 0.9016000000000001,
+            "filler_pair_min_score": 0.9016000000000001,
+            "min_candidate_score": 0.7,
+            "min_support_fillers": 2,
+            "mode": "semantic_relational_admission_v1",
+            "profile_filler_node_ids": [
+              "m_42178d06f9c5e1b98384186a",
+              "m_8f8d6efd0bd55cf0022982ac"
+            ],
+            "profile_filler_surfaces": [
+              "Hund",
+              "Katze"
+            ],
+            "provisional": true,
+            "relation_types": [
+              "semantic_similarity",
+              "substitution",
+              "contextual_similarity"
+            ]
+          }
+        ],
+        "slot_node_ids": [
+          "m_ac7e503a8eca1ae566f611e1"
+        ],
+        "slot_positions": [
+          0
+        ],
+        "support_context_ids": [
+          "m_119d9a306a3cee44b56324ae",
+          "m_70ba1cc826fe8615c1c5d711"
+        ],
+        "support_count": 2,
+        "unique_fillers": 2
+      },
+      "modality": "text",
+      "node_id": "m_ce95c41a74a4ceb4757a83f3",
+      "surface": "[SLOT_0] ist ein"
+    }
+  ]
+}

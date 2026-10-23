@@ -11,7 +11,7 @@ from .compiler import CompilePolicy, aggregate_relations
 from .ir import ForgeDocument, IRNode, RelationEvidence, RelationType, SourceRef, NodeKind, Modality
 
 FRAME_INDUCTION_FORMAT = "equinox-forge-frame-induction-v1"
-FRAME_INDUCTION_VERSION = "0.22"
+FRAME_INDUCTION_VERSION = "0.23"
 
 
 @dataclass(frozen=True)
@@ -24,6 +24,19 @@ class FrameInductionPolicy:
     evidence_confidence: float = 0.90
     allow_open_text_slot: bool = True
     require_same_width: bool = True
+    # v0.23: compile an auditable semantic admission profile into each slot when
+    # the observed fillers are independently coherent in the canonical graph.
+    enable_semantic_slot_typing: bool = False
+    semantic_relation_types: tuple[str, ...] = (
+        RelationType.SEMANTIC_SIMILARITY.value,
+        RelationType.SUBSTITUTION.value,
+        RelationType.CONTEXTUAL_SIMILARITY.value,
+    )
+    min_filler_coherence_score: float = 0.55
+    min_filler_pair_fraction: float = 1.0
+    slot_admission_min_score: float = 0.55
+    slot_admission_min_support_fillers: int = 2
+    require_typed_slot: bool = False
 
     def validate(self) -> None:
         if self.min_contexts < 2:
@@ -38,6 +51,16 @@ class FrameInductionPolicy:
             raise ValueError("min_target_score must be in [0,1]")
         if not 0.0 <= self.evidence_confidence <= 1.0:
             raise ValueError("evidence_confidence must be in [0,1]")
+        if not 0.0 <= self.min_filler_coherence_score <= 1.0:
+            raise ValueError("min_filler_coherence_score must be in [0,1]")
+        if not 0.0 <= self.min_filler_pair_fraction <= 1.0:
+            raise ValueError("min_filler_pair_fraction must be in [0,1]")
+        if not 0.0 <= self.slot_admission_min_score <= 1.0:
+            raise ValueError("slot_admission_min_score must be in [0,1]")
+        if self.slot_admission_min_support_fillers < 1:
+            raise ValueError("slot_admission_min_support_fillers must be >= 1")
+        if not self.semantic_relation_types:
+            raise ValueError("semantic_relation_types must not be empty")
 
 
 @dataclass
@@ -142,7 +165,57 @@ def _template_contexts(db: sqlite3.Connection) -> list[dict[str, Any]]:
     return out
 
 
-def _slot_node(pattern_tokens: list[str], slot_position: int, filler_nodes: list[IRNode], policy: FrameInductionPolicy) -> IRNode:
+def _semantic_relation_quality_map(db: sqlite3.Connection, relation_types: tuple[str, ...]) -> dict[tuple[str, str], float]:
+    allowed = set(relation_types)
+    out: dict[tuple[str, str], float] = {}
+    for rel in aggregate_relations(db, CompilePolicy(min_score=0.0, min_confidence=0.0, min_sources=1)):
+        if rel.relation_type not in allowed:
+            continue
+        q = max(0.0, min(1.0, float(rel.score) * float(rel.confidence)))
+        key = (rel.from_id, rel.to_id)
+        if q > out.get(key, 0.0):
+            out[key] = q
+    return out
+
+
+def _semantic_slot_profile(
+    filler_nodes: list[IRNode],
+    relation_quality: dict[tuple[str, str], float],
+    policy: FrameInductionPolicy,
+) -> dict[str, Any] | None:
+    if not policy.enable_semantic_slot_typing:
+        return None
+    ids = sorted({n.node_id for n in filler_nodes})
+    if len(ids) < 2:
+        return None
+    pair_scores: list[float] = []
+    supporting_pairs = 0
+    for i, a in enumerate(ids):
+        for b in ids[i + 1:]:
+            score = max(relation_quality.get((a, b), 0.0), relation_quality.get((b, a), 0.0))
+            pair_scores.append(score)
+            if score + 1e-12 >= policy.min_filler_coherence_score:
+                supporting_pairs += 1
+    pair_fraction = supporting_pairs / len(pair_scores) if pair_scores else 0.0
+    if pair_fraction + 1e-12 < policy.min_filler_pair_fraction:
+        return None
+    return {
+        "mode": "semantic_relational_admission_v1",
+        "enabled": True,
+        "relation_types": list(policy.semantic_relation_types),
+        "profile_filler_node_ids": ids,
+        "profile_filler_surfaces": sorted({str(n.surface) for n in filler_nodes if n.surface is not None}),
+        "min_candidate_score": float(policy.slot_admission_min_score),
+        "min_support_fillers": min(int(policy.slot_admission_min_support_fillers), len(ids)),
+        "filler_coherence_threshold": float(policy.min_filler_coherence_score),
+        "filler_pair_fraction": pair_fraction,
+        "filler_pair_mean_score": (sum(pair_scores) / len(pair_scores) if pair_scores else 0.0),
+        "filler_pair_min_score": (min(pair_scores) if pair_scores else 0.0),
+        "provisional": True,
+    }
+
+
+def _slot_node(pattern_tokens: list[str], slot_position: int, filler_nodes: list[IRNode], policy: FrameInductionPolicy, semantic_profile: dict[str, Any] | None = None) -> IRNode:
     filler_ids = sorted({n.node_id for n in filler_nodes})
     slot_label = f"[SLOT_{slot_position}]"
     slot_signature = {
@@ -167,6 +240,8 @@ def _slot_node(pattern_tokens: list[str], slot_position: int, filler_nodes: list
             "open_text_slot": bool(policy.allow_open_text_slot),
             "filler_surfaces": sorted({str(n.surface) for n in filler_nodes if n.surface is not None}),
             "support_count": len(filler_ids),
+            "semantic_admission": semantic_profile,
+            "semantic_typed": bool(semantic_profile),
             "forge_version": FRAME_INDUCTION_VERSION,
         },
     )
@@ -182,6 +257,7 @@ def induce_relation_frames(
     policy = policy or FrameInductionPolicy()
     policy.validate()
     contexts = _template_contexts(db)
+    semantic_quality = _semantic_relation_quality_map(db, policy.semantic_relation_types) if policy.enable_semantic_slot_typing else {}
 
     groups: dict[tuple[int, int, tuple[str, ...]], list[dict[str, Any]]] = {}
     for ctx in contexts:
@@ -241,7 +317,11 @@ def induce_relation_frames(
         filler_nodes: list[IRNode] = []
         for _, nid in sorted(filler_pairs):
             filler_nodes.append(_load_node_recursive(db, nid, all_nodes))
-        slot = _slot_node(pattern_tokens, slot_pos, filler_nodes, policy)
+        semantic_profile = _semantic_slot_profile(filler_nodes, semantic_quality, policy)
+        if policy.require_typed_slot and semantic_profile is None:
+            rej_fillers += 1
+            continue
+        slot = _slot_node(pattern_tokens, slot_pos, filler_nodes, policy, semantic_profile)
         all_nodes[slot.node_id] = slot
 
         frame_members: list[IRNode] = []
@@ -268,6 +348,8 @@ def induce_relation_frames(
                 "slot_positions": [slot_pos],
                 "slot_node_ids": [slot.node_id],
                 "open_text_slots": bool(policy.allow_open_text_slot),
+                "semantic_typed_slots": bool(semantic_profile),
+                "slot_admission_profiles": [semantic_profile] if semantic_profile else [],
                 "support_context_ids": sorted(r["node_id"] for r in rows),
                 "support_count": len(rows),
                 "unique_fillers": len({x[0] for x in filler_pairs}),
@@ -335,10 +417,11 @@ def induce_relation_frames(
         generated_prediction_evidence=len(doc.evidence),
         frames=frames,
         notes=[
-            "v0.22 induces one-slot text frames from repeated predictive contexts that differ in exactly one member position.",
+            "v0.23 retains v0.22 one-slot frame induction and can additionally compile semantic admission constraints from independent canonical relations.",
             "Slot labels are provisional structural variables, not semantic type claims such as ENTITY unless separate evidence supports such a type.",
             "Frame predictions are derived evidence with explicit source-context provenance; original teacher/corpus evidence remains unchanged.",
             "Open-slot runtime matching is intentionally auditable and can be disabled independently from lexical/parent routing.",
+            "A semantic_typed slot stores only its admission profile and supporting fillers; it does not import held-out frame answers or evaluation labels.",
         ],
     )
     return doc, report

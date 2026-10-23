@@ -1,0 +1,356 @@
+{
+  "evidence": [
+    {
+      "confidence": 0.98,
+      "from_id": "m_42178d06f9c5e1b98384186a",
+      "metadata": {
+        "independent_of_frame_teacher": true
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.92,
+      "source": {
+        "extraction": "semantic_similarity_fixture",
+        "source_id": "independent-semantic-graph",
+        "source_version": "1"
+      },
+      "to_id": "m_8f8d6efd0bd55cf0022982ac"
+    },
+    {
+      "confidence": 0.98,
+      "from_id": "m_833b79d0a68f7a8404ef150c",
+      "metadata": {
+        "independent_of_frame_teacher": true
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.94,
+      "source": {
+        "extraction": "semantic_similarity_fixture",
+        "source_id": "independent-semantic-graph",
+        "source_version": "1"
+      },
+      "to_id": "m_42178d06f9c5e1b98384186a"
+    },
+    {
+      "confidence": 0.98,
+      "from_id": "m_833b79d0a68f7a8404ef150c",
+      "metadata": {
+        "independent_of_frame_teacher": true
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.9,
+      "source": {
+        "extraction": "semantic_similarity_fixture",
+        "source_id": "independent-semantic-graph",
+        "source_version": "1"
+      },
+      "to_id": "m_8f8d6efd0bd55cf0022982ac"
+    },
+    {
+      "confidence": 0.98,
+      "from_id": "m_254389e8439caa2712d3e482",
+      "metadata": {
+        "independent_of_frame_teacher": true
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.91,
+      "source": {
+        "extraction": "semantic_similarity_fixture",
+        "source_id": "independent-semantic-graph",
+        "source_version": "1"
+      },
+      "to_id": "m_42178d06f9c5e1b98384186a"
+    },
+    {
+      "confidence": 0.98,
+      "from_id": "m_254389e8439caa2712d3e482",
+      "metadata": {
+        "independent_of_frame_teacher": true
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.89,
+      "source": {
+        "extraction": "semantic_similarity_fixture",
+        "source_id": "independent-semantic-graph",
+        "source_version": "1"
+      },
+      "to_id": "m_8f8d6efd0bd55cf0022982ac"
+    },
+    {
+      "confidence": 0.98,
+      "from_id": "m_78e929af459465fda1905964",
+      "metadata": {
+        "independent_of_frame_teacher": true
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.08,
+      "source": {
+        "extraction": "semantic_similarity_fixture",
+        "source_id": "independent-semantic-graph",
+        "source_version": "1"
+      },
+      "to_id": "m_42178d06f9c5e1b98384186a"
+    },
+    {
+      "confidence": 0.98,
+      "from_id": "m_78e929af459465fda1905964",
+      "metadata": {
+        "independent_of_frame_teacher": true
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.06,
+      "source": {
+        "extraction": "semantic_similarity_fixture",
+        "source_id": "independent-semantic-graph",
+        "source_version": "1"
+      },
+      "to_id": "m_8f8d6efd0bd55cf0022982ac"
+    }
+  ],
+  "format": "equinox-forge-ir-v1",
+  "nodes": [
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_067d7443db67e2be71e514a6",
+      "surface": "o"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_0e89cc9028126dcb350ad7f0",
+      "surface": "a"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_1519008e6800cb8f93869359",
+      "surface": "l"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_15a18ac39698288fb1a91018",
+      "surface": "K"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_1a371ca4988365289108f6c2",
+      "surface": "i"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_292e599d0ba9bcdd44beb5e5",
+      "surface": "c"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_3510ecc33d8e1a348c0c6786",
+      "surface": "h"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_378672f12cb4344e8e3fe7dd",
+      "surface": "f"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_38bc09e968b2bef6ab7543b9",
+      "surface": "s"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_4e304d1d5053c0418f3cf06b",
+      "surface": "u"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_63226e2b8308e87a2c8b9efc",
+      "surface": "H"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_755669593e03ab127f4d84c6",
+      "surface": "W"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_99799369ad132cd7e47da92b",
+      "surface": "e"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_ad652928813fe3dcb86d10f9",
+      "surface": "z"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_b5a875b6d20faf89cf7b8931",
+      "surface": "F"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_c6f6e6994e2cd21c9c0b4935",
+      "surface": "d"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f3c6dde36b2355eb8abef831",
+      "surface": "S"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f534dbef81ff2a5b9c86842b",
+      "surface": "t"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f9c1ab02b020bf72a42dbb99",
+      "surface": "n"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_b5a875b6d20faf89cf7b8931",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_292e599d0ba9bcdd44beb5e5",
+        "q_3510ecc33d8e1a348c0c6786",
+        "q_38bc09e968b2bef6ab7543b9"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_254389e8439caa2712d3e482",
+      "surface": "Fuchs"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_63226e2b8308e87a2c8b9efc",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_c6f6e6994e2cd21c9c0b4935"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_42178d06f9c5e1b98384186a",
+      "surface": "Hund"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_f3c6dde36b2355eb8abef831",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_99799369ad132cd7e47da92b",
+        "q_1a371ca4988365289108f6c2",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_78e929af459465fda1905964",
+      "surface": "Stein"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_755669593e03ab127f4d84c6",
+        "q_067d7443db67e2be71e514a6",
+        "q_1519008e6800cb8f93869359",
+        "q_378672f12cb4344e8e3fe7dd"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_833b79d0a68f7a8404ef150c",
+      "surface": "Wolf"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_15a18ac39698288fb1a91018",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_ad652928813fe3dcb86d10f9",
+        "q_99799369ad132cd7e47da92b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_8f8d6efd0bd55cf0022982ac",
+      "surface": "Katze"
+    }
+  ]
+}

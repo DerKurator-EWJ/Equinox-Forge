@@ -1,0 +1,433 @@
+{
+  "backend_manifest": {
+    "backend_id": "typed-slot-demo-teacher",
+    "eval_probe_report": {
+      "backend_id": "typed-slot-demo-teacher",
+      "candidate_records": 12,
+      "context_nodes": 4,
+      "format": "equinox-forge-teacher-behaviour-v1",
+      "min_probability": 0.0,
+      "prediction_evidence": 12,
+      "prompts": 4,
+      "q_nodes": 25,
+      "skipped_invalid_surface": 0,
+      "skipped_low_probability": 0,
+      "skipped_special": 0,
+      "source_id": "typed-slot-demo:frame-eval-reference",
+      "source_version": "1",
+      "surface_nodes": 12,
+      "temperature": 1.0,
+      "top_k": 3,
+      "unique_contexts": 4
+    },
+    "fixture": true,
+    "runtime_eval_elapsed_ms": 2.537426000344567,
+    "teacher_probe_elapsed_ms": 1.3584659991465742,
+    "train_probe_report": {
+      "backend_id": "typed-slot-demo-teacher",
+      "candidate_records": 6,
+      "context_nodes": 2,
+      "format": "equinox-forge-teacher-behaviour-v1",
+      "min_probability": 0.0,
+      "prediction_evidence": 6,
+      "prompts": 2,
+      "q_nodes": 14,
+      "skipped_invalid_surface": 0,
+      "skipped_low_probability": 0,
+      "skipped_special": 0,
+      "source_id": "typed-slot-demo",
+      "source_version": "1",
+      "surface_nodes": 7,
+      "temperature": 1.0,
+      "top_k": 3,
+      "unique_contexts": 2
+    }
+  },
+  "details": [
+    {
+      "applicability_correct": true,
+      "expected_frame_applicable": true,
+      "frame_admission": [
+        {
+          "admitted": true,
+          "frame_node_id": "m_ce95c41a74a4ceb4757a83f3",
+          "live": [
+            "Wolf",
+            "ist",
+            "ein"
+          ],
+          "pattern": [
+            "*",
+            "ist",
+            "ein"
+          ],
+          "slot_checks": [
+            {
+              "admitted": true,
+              "best_scores": {
+                "m_42178d06f9c5e1b98384186a": 0.921200015592575,
+                "m_8f8d6efd0bd55cf0022982ac": 0.8819999938011165
+              },
+              "candidate_node_ids": [
+                "m_833b79d0a68f7a8404ef150c"
+              ],
+              "min_score": 0.7,
+              "reason": "semantic_support",
+              "required_support": 2,
+              "slot_node_id": "m_ac7e503a8eca1ae566f611e1",
+              "supporting_fillers": [
+                "m_42178d06f9c5e1b98384186a",
+                "m_8f8d6efd0bd55cf0022982ac"
+              ],
+              "token": "Wolf",
+              "typed": true
+            }
+          ],
+          "structural_match": true
+        }
+      ],
+      "frame_matched": true,
+      "frame_only_top1": "Tier",
+      "frame_only_top1_match": true,
+      "frame_surfaces": [
+        "[SLOT_0] ist ein"
+      ],
+      "no_frame_top1": null,
+      "note": "",
+      "open_frame_top1": "Tier",
+      "prompt": "Wolf ist ein",
+      "teacher_top1": "Tier"
+    },
+    {
+      "applicability_correct": true,
+      "expected_frame_applicable": true,
+      "frame_admission": [
+        {
+          "admitted": true,
+          "frame_node_id": "m_ce95c41a74a4ceb4757a83f3",
+          "live": [
+            "Fuchs",
+            "ist",
+            "ein"
+          ],
+          "pattern": [
+            "*",
+            "ist",
+            "ein"
+          ],
+          "slot_checks": [
+            {
+              "admitted": true,
+              "best_scores": {
+                "m_42178d06f9c5e1b98384186a": 0.8918000430583959,
+                "m_8f8d6efd0bd55cf0022982ac": 0.8722000029563901
+              },
+              "candidate_node_ids": [
+                "m_254389e8439caa2712d3e482"
+              ],
+              "min_score": 0.7,
+              "reason": "semantic_support",
+              "required_support": 2,
+              "slot_node_id": "m_ac7e503a8eca1ae566f611e1",
+              "supporting_fillers": [
+                "m_42178d06f9c5e1b98384186a",
+                "m_8f8d6efd0bd55cf0022982ac"
+              ],
+              "token": "Fuchs",
+              "typed": true
+            }
+          ],
+          "structural_match": true
+        }
+      ],
+      "frame_matched": true,
+      "frame_only_top1": "Tier",
+      "frame_only_top1_match": true,
+      "frame_surfaces": [
+        "[SLOT_0] ist ein"
+      ],
+      "no_frame_top1": null,
+      "note": "",
+      "open_frame_top1": "Tier",
+      "prompt": "Fuchs ist ein",
+      "teacher_top1": "Tier"
+    },
+    {
+      "applicability_correct": true,
+      "expected_frame_applicable": true,
+      "frame_admission": [
+        {
+          "admitted": true,
+          "frame_node_id": "m_ce95c41a74a4ceb4757a83f3",
+          "live": [
+            "Wolf",
+            "ist",
+            "ein"
+          ],
+          "pattern": [
+            "*",
+            "ist",
+            "ein"
+          ],
+          "slot_checks": [
+            {
+              "admitted": true,
+              "best_scores": {
+                "m_42178d06f9c5e1b98384186a": 0.921200015592575,
+                "m_8f8d6efd0bd55cf0022982ac": 0.8819999938011165
+              },
+              "candidate_node_ids": [
+                "m_833b79d0a68f7a8404ef150c"
+              ],
+              "min_score": 0.7,
+              "reason": "semantic_support",
+              "required_support": 2,
+              "slot_node_id": "m_ac7e503a8eca1ae566f611e1",
+              "supporting_fillers": [
+                "m_42178d06f9c5e1b98384186a",
+                "m_8f8d6efd0bd55cf0022982ac"
+              ],
+              "token": "Wolf",
+              "typed": true
+            }
+          ],
+          "structural_match": true
+        }
+      ],
+      "frame_matched": true,
+      "frame_only_top1": "Tier",
+      "frame_only_top1_match": true,
+      "frame_surfaces": [
+        "[SLOT_0] ist ein"
+      ],
+      "no_frame_top1": null,
+      "note": "",
+      "open_frame_top1": "Tier",
+      "prompt": "Mein Wolf ist ein",
+      "teacher_top1": "Tier"
+    },
+    {
+      "applicability_correct": true,
+      "expected_frame_applicable": false,
+      "frame_admission": [
+        {
+          "admitted": false,
+          "frame_node_id": "m_ce95c41a74a4ceb4757a83f3",
+          "live": [
+            "Stein",
+            "ist",
+            "ein"
+          ],
+          "pattern": [
+            "*",
+            "ist",
+            "ein"
+          ],
+          "slot_checks": [
+            {
+              "admitted": false,
+              "best_scores": {
+                "m_42178d06f9c5e1b98384186a": 0.07839999977350232,
+                "m_8f8d6efd0bd55cf0022982ac": 0.05879999983012674
+              },
+              "candidate_node_ids": [
+                "m_78e929af459465fda1905964"
+              ],
+              "min_score": 0.7,
+              "reason": "insufficient_semantic_support",
+              "required_support": 2,
+              "slot_node_id": "m_ac7e503a8eca1ae566f611e1",
+              "supporting_fillers": [],
+              "token": "Stein",
+              "typed": true
+            }
+          ],
+          "structural_match": true
+        }
+      ],
+      "frame_matched": false,
+      "frame_only_top1": null,
+      "frame_only_top1_match": false,
+      "frame_surfaces": [],
+      "no_frame_top1": null,
+      "note": "",
+      "open_frame_top1": "Tier",
+      "prompt": "Stein ist ein",
+      "teacher_top1": "Objekt"
+    }
+  ],
+  "eval_prompts": 4,
+  "eval_sha256": "bfaed22b343d385eaa9b0d422693ab0d0796eefaa0dbf72313cfe51851fb5ef6",
+  "exact_prompt_overlap": 0,
+  "format": "equinox-forge-frame-schema-benchmark-v1",
+  "frame_applicability_precision": 1.0,
+  "frame_applicability_recall": 1.0,
+  "frame_induction": {
+    "accepted_frames": 1,
+    "candidate_groups": 5,
+    "contexts_considered": 2,
+    "format": "equinox-forge-frame-induction-v1",
+    "frames": [
+      {
+        "context_count": 2,
+        "fillers": [
+          "Hund",
+          "Katze"
+        ],
+        "frame_node_id": "m_ce95c41a74a4ceb4757a83f3",
+        "pattern": "[SLOT_0] ist ein",
+        "provisional": true,
+        "slot_position": 0,
+        "source_context_ids": [
+          "m_119d9a306a3cee44b56324ae",
+          "m_70ba1cc826fe8615c1c5d711"
+        ],
+        "targets": [
+          {
+            "confidence": 0.855,
+            "context_fraction": 1.0,
+            "score": 0.82,
+            "support_contexts": 2,
+            "target_node_id": "m_57daeeb6b1f4d6a5ae840cbc",
+            "target_surface": "Tier"
+          },
+          {
+            "confidence": 0.855,
+            "context_fraction": 1.0,
+            "score": 0.12,
+            "support_contexts": 2,
+            "target_node_id": "m_4a654e53d48d38c35fb591e8",
+            "target_surface": "Haustier"
+          },
+          {
+            "confidence": 0.855,
+            "context_fraction": 1.0,
+            "score": 0.06,
+            "support_contexts": 2,
+            "target_node_id": "m_798f1ff6fd6f95e959fbc60e",
+            "target_surface": "Wesen"
+          }
+        ],
+        "unique_fillers": 2
+      }
+    ],
+    "generated_nodes": 23,
+    "generated_prediction_evidence": 3,
+    "notes": [
+      "v0.23 retains v0.22 one-slot frame induction and can additionally compile semantic admission constraints from independent canonical relations.",
+      "Slot labels are provisional structural variables, not semantic type claims such as ENTITY unless separate evidence supports such a type.",
+      "Frame predictions are derived evidence with explicit source-context provenance; original teacher/corpus evidence remains unchanged.",
+      "Open-slot runtime matching is intentionally auditable and can be disabled independently from lexical/parent routing.",
+      "A semantic_typed slot stores only its admission profile and supporting fillers; it does not import held-out frame answers or evaluation labels."
+    ],
+    "rejected_insufficient_contexts": 4,
+    "rejected_insufficient_fillers": 0,
+    "rejected_no_shared_targets": 0,
+    "version": "0.23"
+  },
+  "frame_match_rate": 0.75,
+  "frame_only": {
+    "average_recall_nodes": 0.75,
+    "average_relation_checks": 3.0,
+    "cases": 4,
+    "mean_conditional_js_divergence": 0.32029914299466955,
+    "mean_conditional_total_variation": 0.21499999899417155,
+    "mean_ndcg_at_k": 0.7153627962363678,
+    "mean_runtime_precision_against_teacher_topk": 0.5,
+    "mean_teacher_probability_mass_captured_by_probe": 1.0,
+    "mean_teacher_probability_mass_retained_in_runtime_topk": 0.705,
+    "mean_teacher_topk_recall": 0.5,
+    "no_runtime_predictions": 1,
+    "top1_retention": 0.75,
+    "unresolved_contexts": 1
+  },
+  "full_runtime": {
+    "average_recall_nodes": 8.25,
+    "average_relation_checks": 29.0,
+    "cases": 4,
+    "mean_conditional_js_divergence": 0.33181108250248215,
+    "mean_conditional_total_variation": 0.365491396327397,
+    "mean_ndcg_at_k": 0.7153627962363678,
+    "mean_runtime_precision_against_teacher_topk": 0.5,
+    "mean_teacher_probability_mass_captured_by_probe": 1.0,
+    "mean_teacher_probability_mass_retained_in_runtime_topk": 0.705,
+    "mean_teacher_topk_recall": 0.5,
+    "no_runtime_predictions": 0,
+    "top1_retention": 0.75,
+    "unresolved_contexts": 1
+  },
+  "induced_frames": 1,
+  "induced_prediction_evidence": 3,
+  "no_frame": {
+    "average_recall_nodes": 0.0,
+    "average_relation_checks": 0.0,
+    "cases": 4,
+    "mean_conditional_js_divergence": 1.0,
+    "mean_conditional_total_variation": 0.5,
+    "mean_ndcg_at_k": 0.0,
+    "mean_runtime_precision_against_teacher_topk": 0.0,
+    "mean_teacher_probability_mass_captured_by_probe": 1.0,
+    "mean_teacher_probability_mass_retained_in_runtime_topk": 0.0,
+    "mean_teacher_topk_recall": 0.0,
+    "no_runtime_predictions": 4,
+    "top1_retention": 0.0,
+    "unresolved_contexts": 4
+  },
+  "notes": [
+    "Evaluation teacher probes are reference-only and are never inserted into train.sqlite or train-with-frames.eqbase.",
+    "frame_only disables exact/suffix lookup, lexical seeds, parent routing, relation recall, transitions and recalled-context prediction; any surviving prediction therefore comes from an induced frame schema.",
+    "Open text slots are structural wildcards, not semantic type guarantees. A frame may overgeneralize to a novel filler outside the intended latent class.",
+    "Applicability labels, when supplied, are evaluation-only annotations and are never compiled into the BASE.",
+    "v0.23 can enforce compiled semantic slot admission. The open_frame_baseline disables only that admission gate on the same BASE.",
+    "Support documents may contain independent lexical/semantic knowledge, but evaluation prompts and teacher answers remain reference-only."
+  ],
+  "open_frame_baseline": {
+    "average_recall_nodes": 1.0,
+    "average_relation_checks": 4.0,
+    "cases": 4,
+    "mean_conditional_js_divergence": 0.32029914299466955,
+    "mean_conditional_total_variation": 0.33999999899417155,
+    "mean_ndcg_at_k": 0.7153627962363678,
+    "mean_runtime_precision_against_teacher_topk": 0.5,
+    "mean_teacher_probability_mass_captured_by_probe": 1.0,
+    "mean_teacher_probability_mass_retained_in_runtime_topk": 0.705,
+    "mean_teacher_topk_recall": 0.5,
+    "no_runtime_predictions": 0,
+    "top1_retention": 0.75,
+    "unresolved_contexts": 0
+  },
+  "pack_bytes": 3509,
+  "pack_manifest": {
+    "binary_major": 1,
+    "binary_minor": 0,
+    "bytes_per_node": 100.25714285714285,
+    "bytes_per_relation": 13.0,
+    "compile_ms": 0.9025790004670853,
+    "compression_run_id": 1,
+    "file_bytes": 3509,
+    "forge_version": "0.22",
+    "format": "equinox-runtime-base-v1",
+    "full_file_sha256": "fa486b3ae6bd4d5574525d85cfd8877c34e5c90e0a91d314ea563bfbb9dbac4d",
+    "header_bytes": 112,
+    "index_bytes": 140,
+    "metadata_included": true,
+    "node_count": 35,
+    "node_section_bytes": 302,
+    "pack_id": "equinox-frame-schema-benchmark",
+    "pack_version": 23,
+    "payload_sha256": "e059cbf46648744f3110ba1ea056fb3811589dc6a2c100481242fe334f25d190",
+    "relation_count": 16,
+    "relation_section_bytes": 208,
+    "roundtrip_valid": true,
+    "string_count": 80,
+    "string_table_bytes": 2747,
+    "verify_ms": 0.24990999918372836
+  },
+  "pack_nodes": 35,
+  "pack_relations": 16,
+  "semantic_admission_enabled": true,
+  "support_documents": 1,
+  "train_prompts": 2,
+  "train_sha256": "3023229f5bf0aa8b9deeebbca79c5089175590a3af9d54c496155b29a6817b70",
+  "version": "0.23"
+}

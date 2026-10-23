@@ -12,7 +12,7 @@ from .runtime_pack import LoadedRuntimePack, RuntimeNode, load_base_pack
 from .runtime_query import RuntimeIndex
 
 RUNTIME_COGNITION_FORMAT = "equinox-runtime-cognition-v1"
-RUNTIME_COGNITION_VERSION = "0.22"
+RUNTIME_COGNITION_VERSION = "0.23"
 
 
 @dataclass
@@ -42,6 +42,9 @@ class RuntimeCognitionPolicy:
     enable_recalled_context_prediction: bool = True
     # v0.22: explicit induced frame schemas such as [SLOT_0] ist ein.
     enable_frame_schema_matching: bool = True
+    # v0.23: if an induced slot carries a compiled semantic admission profile,
+    # enforce it before the frame can become a predictive context.
+    enable_semantic_slot_admission: bool = True
     frame_match_weight: float = 0.82
     max_frame_matches: int = 8
     # Relation weights are recall routing priors, not learned semantics.
@@ -128,6 +131,7 @@ class RuntimePredictionReport:
     predictions: list[PredictionCandidate]
     work: dict[str, int]
     policy: dict[str, Any]
+    frame_admission: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -140,6 +144,7 @@ class RuntimePredictionReport:
             "predictions": [x.to_dict() for x in self.predictions],
             "work": dict(self.work),
             "policy": self.policy,
+            "frame_admission": list(self.frame_admission),
         }
 
 
@@ -210,7 +215,7 @@ class RuntimeCognition:
         self.policy.validate()
         # Frame schemas are an explicit compiled abstraction, not inferred ad hoc at
         # query time. Build a tiny width index once when the pack is opened.
-        self._frames_by_width: dict[int, list[tuple[str, list[str], int, bool, set[str]]]] = {}
+        self._frames_by_width: dict[int, list[tuple[str, list[str], int, bool, set[str], list[str]]]] = {}
         for node in pack.nodes:
             meta = node.metadata or {}
             if meta.get("role") != "induced_frame_schema":
@@ -225,7 +230,8 @@ class RuntimeCognition:
                 slot_node = self.index.node_by_id.get(slot_id)
                 if slot_node is not None:
                     allowed_fillers.update(str(x) for x in ((slot_node.metadata or {}).get("filler_surfaces", []) or []))
-            self._frames_by_width.setdefault(len(pattern), []).append((node.node_id, list(pattern), support, open_slot, allowed_fillers))
+            slot_ids = [str(x) for x in (meta.get("slot_node_ids", []) or [])]
+            self._frames_by_width.setdefault(len(pattern), []).append((node.node_id, list(pattern), support, open_slot, allowed_fillers, slot_ids))
         for width in self._frames_by_width:
             self._frames_by_width[width].sort(key=lambda x: (-x[2], x[0]))
 
@@ -233,33 +239,102 @@ class RuntimeCognition:
     def from_path(cls, path: str | Path, policy: RuntimeCognitionPolicy | None = None) -> "RuntimeCognition":
         return cls(load_base_pack(path), policy)
 
-    def _match_frame_schemas(self, tokens: list[str]) -> tuple[list[str], int]:
+    def _semantic_slot_admission(self, token: str, slot_node_id: str) -> dict[str, Any]:
+        slot = self.index.node_by_id.get(slot_node_id)
+        profile = dict((slot.metadata or {}).get("semantic_admission") or {}) if slot else {}
+        result: dict[str, Any] = {
+            "token": token, "slot_node_id": slot_node_id, "typed": bool(profile.get("enabled")),
+            "admitted": True, "reason": "untyped_open_slot", "candidate_node_ids": [],
+            "supporting_fillers": [], "best_scores": {},
+        }
+        if not profile.get("enabled") or not self.policy.enable_semantic_slot_admission:
+            if profile.get("enabled") and not self.policy.enable_semantic_slot_admission:
+                result["reason"] = "semantic_admission_disabled"
+            return result
+        filler_ids = {str(x) for x in profile.get("profile_filler_node_ids", []) or []}
+        allowed_types = {str(x) for x in profile.get("relation_types", []) or []}
+        min_score = float(profile.get("min_candidate_score", 0.0) or 0.0)
+        min_support = int(profile.get("min_support_fillers", 1) or 1)
+        candidate_ids = [nid for nid in self.index.surface_to_nodes.get(token, [])
+                         if self.index.node_by_id[nid].kind == NodeKind.SURFACE.value]
+        result["candidate_node_ids"] = sorted(candidate_ids)
+        if not candidate_ids:
+            result.update({"admitted": False, "reason": "candidate_surface_unknown", "required_support": min_support, "min_score": min_score})
+            return result
+        if filler_ids.intersection(candidate_ids):
+            result.update({"admitted": True, "reason": "observed_filler", "supporting_fillers": sorted(filler_ids.intersection(candidate_ids)),
+                           "required_support": min_support, "min_score": min_score})
+            return result
+        best_by_filler: dict[str, float] = {}
+        for cid in candidate_ids:
+            for rel in self.index.relations_from.get(cid, []):
+                if rel.relation_type in allowed_types and rel.to_id in filler_ids:
+                    q = max(0.0, min(1.0, float(rel.score) * float(rel.confidence)))
+                    best_by_filler[rel.to_id] = max(best_by_filler.get(rel.to_id, 0.0), q)
+            for rel in self.index.relations_to.get(cid, []):
+                if rel.relation_type in allowed_types and rel.from_id in filler_ids:
+                    q = max(0.0, min(1.0, float(rel.score) * float(rel.confidence)))
+                    best_by_filler[rel.from_id] = max(best_by_filler.get(rel.from_id, 0.0), q)
+        supporters = sorted(fid for fid, score in best_by_filler.items() if score + 1e-12 >= min_score)
+        result.update({
+            "best_scores": {k: best_by_filler[k] for k in sorted(best_by_filler)},
+            "supporting_fillers": supporters, "required_support": min_support, "min_score": min_score,
+            "admitted": len(supporters) >= min_support,
+            "reason": "semantic_support" if len(supporters) >= min_support else "insufficient_semantic_support",
+        })
+        return result
+
+    def _match_frame_schemas(self, tokens: list[str]) -> tuple[list[str], int, list[dict[str, Any]]]:
         if not self.policy.enable_frame_schema_matching or not tokens:
-            return [], 0
+            return [], 0, []
         checks = 0
+        diagnostics: list[dict[str, Any]] = []
         # Prefer the longest matching frame so a specific learned schema wins over
         # a shorter wildcard. Match against the live suffix, mirroring n-gram context
-        # resolution while allowing a compiled slot to consume an unseen surface.
+        # resolution while allowing a compiled slot to consume a novel surface.
         for width in sorted((w for w in self._frames_by_width if w <= len(tokens)), reverse=True):
             live = tokens[-width:]
             matches: list[tuple[int, str]] = []
-            for node_id, pattern, support, open_slot, allowed_fillers in self._frames_by_width[width]:
+            width_had_structural_match = False
+            for node_id, pattern, support, open_slot, allowed_fillers, slot_ids in self._frames_by_width[width]:
                 checks += 1
                 ok = True
+                slot_cursor = 0
+                frame_diag = {"frame_node_id": node_id, "pattern": pattern, "live": list(live), "slot_checks": [], "structural_match": True, "admitted": False}
                 for p, t in zip(pattern, live):
                     if p == "*":
+                        sid = slot_ids[slot_cursor] if slot_cursor < len(slot_ids) else ""
+                        slot_cursor += 1
                         if not open_slot and t not in allowed_fillers:
-                            ok = False; break
+                            ok = False
+                            frame_diag["slot_checks"].append({"token": t, "admitted": False, "reason": "closed_slot"})
+                            break
+                        if sid:
+                            admission = self._semantic_slot_admission(t, sid)
+                            frame_diag["slot_checks"].append(admission)
+                            if not admission.get("admitted", False):
+                                ok = False
+                                break
                     elif p != t:
-                        ok = False; break
+                        ok = False
+                        frame_diag["structural_match"] = False
+                        break
+                if frame_diag["structural_match"]:
+                    width_had_structural_match = True
+                    frame_diag["admitted"] = ok
+                    diagnostics.append(frame_diag)
                 if ok:
                     matches.append((support, node_id))
             if matches:
                 matches.sort(key=lambda x: (-x[0], x[1]))
-                return [nid for _, nid in matches[:self.policy.max_frame_matches]], checks
-        return [], checks
+                return [nid for _, nid in matches[:self.policy.max_frame_matches]], checks, diagnostics
+            # If a structurally matching longest frame was rejected by typed admission,
+            # do not silently fall through to a shorter, broader schema.
+            if width_had_structural_match:
+                return [], checks, diagnostics
+        return [], checks, diagnostics
 
-    def _resolve_context(self, context: str) -> tuple[list[str], list[str], list[str], int]:
+    def _resolve_context(self, context: str) -> tuple[list[str], list[str], list[str], int, list[dict[str, Any]]]:
         text = " ".join(_surface_tokens(context))
         exact = list(self.index.surface_to_nodes.get(text, [])) if text else []
         exact_nodes = sorted((self.index.node_by_id[x] for x in exact), key=_node_preference)
@@ -293,12 +368,13 @@ class RuntimeCognition:
 
         frames: list[str] = []
         frame_checks = 0
+        frame_admission: list[dict[str, Any]] = []
         if not exact_context and not fallback:
-            frames, frame_checks = self._match_frame_schemas(tokens)
+            frames, frame_checks, frame_admission = self._match_frame_schemas(tokens)
 
         if not self.policy.enable_lexical_seeds:
             lexical = []
-        return exact_context or fallback or frames, lexical, tokens, frame_checks
+        return exact_context or fallback or frames, lexical, tokens, frame_checks, frame_admission
 
     def _relation_quality(self, rel: CompiledRelation, weight: float) -> float:
         # source_count is only a mild confidence bonus; it never substitutes for
@@ -307,7 +383,7 @@ class RuntimeCognition:
         return max(0.0, min(1.0, rel.score * rel.confidence * weight * source_bonus))
 
     def recall(self, context: str) -> tuple[list[RecallTrace], dict[str, Any]]:
-        context_ids, lexical_ids, tokens, frame_checks = self._resolve_context(context)
+        context_ids, lexical_ids, tokens, frame_checks, frame_admission = self._resolve_context(context)
         seeds: list[tuple[str, float, str]] = []
         for nid in context_ids:
             node = self.index.node_by_id.get(nid)
@@ -397,12 +473,15 @@ class RuntimeCognition:
             "resolved_context_ids": context_ids,
             "lexical_seed_ids": lexical_ids,
             "tokens": tokens,
+            "frame_admission": frame_admission,
             "work": {
                 "recall_nodes": len(traces),
                 "queue_pops": popped,
                 "relation_checks": relation_checks,
                 "parent_checks": parent_checks,
                 "frame_match_checks": frame_checks,
+                "frame_admission_checks": sum(len(x.get("slot_checks", [])) for x in frame_admission),
+                "frame_admission_rejections": sum(1 for x in frame_admission if x.get("structural_match") and not x.get("admitted")),
             },
         }
         return traces, meta
@@ -480,7 +559,7 @@ class RuntimeCognition:
         return RuntimePredictionReport(
             RUNTIME_COGNITION_FORMAT, RUNTIME_COGNITION_VERSION, context,
             list(meta["resolved_context_ids"]), lexical_ids, recall, candidates, work,
-            asdict(self.policy),
+            asdict(self.policy), list(meta.get("frame_admission", [])),
         )
 
 
