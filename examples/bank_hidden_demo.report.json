@@ -1,0 +1,100 @@
+{
+  "backend_id": "demo-scripted-hidden",
+  "context_nodes": 6,
+  "contextual_similarity_evidence": 6,
+  "contextual_use_evidence": 6,
+  "format": "equinox-forge-contextual-hidden-v1",
+  "hidden_samples": 6,
+  "labelled_pairs_different": 9,
+  "labelled_pairs_same": 6,
+  "layers": [
+    -1
+  ],
+  "mean_cosine_different_label": 0.0997506234413965,
+  "mean_cosine_same_label": 1.0,
+  "min_cosine": 0.2,
+  "nearest_neighbour_label_accuracy": 1.0,
+  "pooling": "mean",
+  "probes_encoded": 6,
+  "probes_requested": 6,
+  "records": [
+    {
+      "canonical_target_id": "m_b3458c60118e5e0ab521cb81",
+      "context_id": "m_d44f83614396a201dcf0a508",
+      "dimension": 4,
+      "label": "finance",
+      "layer": -1,
+      "probe_id": "bank-fin-1",
+      "target": "Bank",
+      "token_count": 1,
+      "vector": null,
+      "vector_norm": 1.0012492197250393
+    },
+    {
+      "canonical_target_id": "m_b3458c60118e5e0ab521cb81",
+      "context_id": "m_c1e6a46620f9c108ac4b8695",
+      "dimension": 4,
+      "label": "finance",
+      "layer": -1,
+      "probe_id": "bank-fin-2",
+      "target": "Bank",
+      "token_count": 1,
+      "vector": null,
+      "vector_norm": 1.0012492197250393
+    },
+    {
+      "canonical_target_id": "m_b3458c60118e5e0ab521cb81",
+      "context_id": "m_5536c4ed72dded69037b7938",
+      "dimension": 4,
+      "label": "finance",
+      "layer": -1,
+      "probe_id": "bank-fin-3",
+      "target": "Bank",
+      "token_count": 1,
+      "vector": null,
+      "vector_norm": 1.0012492197250393
+    },
+    {
+      "canonical_target_id": "m_b3458c60118e5e0ab521cb81",
+      "context_id": "m_2307a7ed760b4f9b4d448708",
+      "dimension": 4,
+      "label": "seat",
+      "layer": -1,
+      "probe_id": "bank-seat-1",
+      "target": "Bank",
+      "token_count": 1,
+      "vector": null,
+      "vector_norm": 1.0012492197250393
+    },
+    {
+      "canonical_target_id": "m_b3458c60118e5e0ab521cb81",
+      "context_id": "m_4ef8461897143930ee6989d0",
+      "dimension": 4,
+      "label": "seat",
+      "layer": -1,
+      "probe_id": "bank-seat-2",
+      "target": "Bank",
+      "token_count": 1,
+      "vector": null,
+      "vector_norm": 1.0012492197250393
+    },
+    {
+      "canonical_target_id": "m_b3458c60118e5e0ab521cb81",
+      "context_id": "m_d8ed1ba137a877e948caa882",
+      "dimension": 4,
+      "label": "seat",
+      "layer": -1,
+      "probe_id": "bank-seat-3",
+      "target": "Bank",
+      "token_count": 1,
+      "vector": null,
+      "vector_norm": 1.0012492197250393
+    }
+  ],
+  "skipped_backend_empty": 0,
+  "skipped_missing_target": 0,
+  "source_id": "demo-scripted",
+  "source_version": "1",
+  "surfaces": 1,
+  "top_k": 3
+}

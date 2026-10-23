@@ -11,6 +11,7 @@ from .adapter_registry import choose_adapter
 from .text_teacher import TextExtractionConfig, extract_text_teacher
 from .language_evidence import LanguageEvidenceConfig, build_controlled_language_evidence, load_text_inputs
 from .teacher_behavior import BehaviourProbeConfig, TransformersCausalLMBackend, extract_teacher_behaviour, load_prompts
+from .hidden_state import HiddenStateConfig, TransformersHiddenStateBackend, extract_contextual_hidden_evidence, load_probe_dataset
 
 
 def ingest(db_path: str, doc_path: str):
@@ -182,6 +183,69 @@ def _probe_teacher(args) -> int:
     print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
     return 0
 
+
+def _probe_hidden(args) -> int:
+    cfg = HiddenStateConfig(
+        layers=tuple(args.layers),
+        pooling=args.pooling,
+        top_k=args.top_k,
+        min_cosine=args.min_cosine,
+        evidence_confidence=args.evidence_confidence,
+        max_context_words=args.max_context_words,
+        include_cross_surface=args.include_cross_surface,
+        keep_vectors_in_report=args.keep_vectors_in_report,
+    )
+    try:
+        probes = load_probe_dataset(args.datasets)
+        backend = TransformersHiddenStateBackend(
+            args.model_dir,
+            device=args.device,
+            trust_remote_code=args.trust_remote_code,
+            dtype=args.dtype,
+        )
+    except Exception as exc:
+        print(f"ERROR: unable to initialize contextual hidden-state probe: {exc}")
+        return 3
+    doc, report, records = extract_contextual_hidden_evidence(
+        backend, probes, args.source_id, args.source_version, cfg
+    )
+    issues = validate_document(doc)
+    errors = [x for x in issues if x.severity == "error"]
+    if errors:
+        for x in issues: print(f"{x.severity.upper()}: {x.message}")
+        return 2
+    save_document(doc, args.output)
+    report_path = Path(args.report) if args.report else Path(args.output).with_suffix(".report.json")
+    payload = {**report.to_dict(), "records": [r.__dict__ for r in records]}
+    report_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True)+"\n", encoding="utf-8")
+    db_stats = None
+    if args.db:
+        manifest = inspect_hf_model(args.model_dir)
+        spec = load_adapter(args.adapter) if args.adapter else None
+        with CanonicalDB(args.db) as db:
+            if spec is not None:
+                plan = build_extraction_plan(manifest, spec)
+                db.register_source_model(
+                    args.source_id, args.source_version, spec.adapter_id, plan.adapter_hash,
+                    manifest.model_type, {**manifest.to_dict(), "hidden_state_backend": backend.manifest()},
+                )
+            for n in sorted(doc.nodes, key=lambda n:(n.level,n.node_id)):
+                db.upsert_node(n)
+            for e in doc.evidence:
+                db.add_evidence(e)
+            db.commit()
+            db_stats = db.stats()
+    result = {
+        "output": str(Path(args.output)),
+        "report": str(report_path),
+        "backend": backend.manifest(),
+        "extraction": report.to_dict(),
+    }
+    if db_stats is not None: result["db_stats"] = db_stats
+    print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
+
 def main():
     p=argparse.ArgumentParser(prog="eqforge")
     sub=p.add_subparsers(dest="cmd",required=True)
@@ -256,6 +320,27 @@ def main():
     bp.add_argument("--dtype", default="auto")
     bp.add_argument("--trust-remote-code", action="store_true")
 
+    hs=sub.add_parser("probe-hidden", help="extract contextual hidden-state evidence from a local HF teacher")
+    hs.add_argument("model_dir")
+    hs.add_argument("datasets", nargs="+", help="JSONL contextual probe datasets")
+    hs.add_argument("output", help="output Canonical IR JSON")
+    hs.add_argument("--source-id", required=True)
+    hs.add_argument("--source-version", default="local")
+    hs.add_argument("--adapter", help="optional Forge adapter for registered model provenance")
+    hs.add_argument("--report")
+    hs.add_argument("--db", help="optional canonical SQLite DB")
+    hs.add_argument("--layers", type=int, nargs="+", default=[-1])
+    hs.add_argument("--pooling", choices=["mean","first","last"], default="mean")
+    hs.add_argument("--top-k", type=int, default=6)
+    hs.add_argument("--min-cosine", type=float, default=0.25)
+    hs.add_argument("--evidence-confidence", type=float, default=0.85)
+    hs.add_argument("--max-context-words", type=int, default=96)
+    hs.add_argument("--include-cross-surface", action="store_true")
+    hs.add_argument("--keep-vectors-in-report", action="store_true")
+    hs.add_argument("--device", default="cpu")
+    hs.add_argument("--dtype", default="auto")
+    hs.add_argument("--trust-remote-code", action="store_true")
+
     a=p.parse_args()
     if a.cmd=="validate":
         doc=load_document(a.document); issues=validate_document(doc)
@@ -295,5 +380,7 @@ def main():
         raise SystemExit(_extract_corpus(a))
     elif a.cmd=="probe-teacher":
         raise SystemExit(_probe_teacher(a))
+    elif a.cmd=="probe-hidden":
+        raise SystemExit(_probe_hidden(a))
 
 if __name__=="__main__": main()

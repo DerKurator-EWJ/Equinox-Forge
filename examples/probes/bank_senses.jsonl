@@ -1,0 +1,7 @@
+{"format":"equinox-forge-probe-dataset-v1"}
+{"id":"bank-fin-1","text":"Sie überweist das Geld bei der Bank.","target":"Bank","label":"finance"}
+{"id":"bank-fin-2","text":"Die Bank genehmigte gestern den Kredit.","target":"Bank","label":"finance"}
+{"id":"bank-fin-3","text":"Er eröffnete ein Konto bei der Bank.","target":"Bank","label":"finance"}
+{"id":"bank-seat-1","text":"Wir sitzen im Park auf der Bank.","target":"Bank","label":"seat"}
+{"id":"bank-seat-2","text":"Die alte Bank unter dem Baum ist nass.","target":"Bank","label":"seat"}
+{"id":"bank-seat-3","text":"Sie setzte sich auf die Bank am See.","target":"Bank","label":"seat"}

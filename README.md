@@ -1,213 +1,214 @@
-# Equinox Forge v0.5 — Teacher Behaviour Probes
+# Equinox Forge v0.6 — Contextual Hidden-State Evidence
 
-Forge v0.5 adds the first **executed teacher behaviour** channel.
+Forge v0.6 adds a fourth independent language-evidence channel: **context-dependent internal teacher representations**.
 
-The knowledge pipeline is now:
+The current pipeline can now combine:
 
-`teacher embeddings + controlled corpus + teacher forward behaviour -> canonical text nodes -> typed evidence -> Canonical DB -> compiler`
+```text
+static embedding geometry
++ controlled corpus observations
++ executed next-token behaviour
++ contextual hidden-state geometry
+        ↓
+canonical Equinox text nodes
+        ↓
+typed raw evidence with provenance
+        ↓
+Canonical DB
+        ↓
+future compiler / Runtime BASE
+```
 
-The central rule remains unchanged:
+The central rule remains:
 
-**The source of knowledge is not the Equinox runtime representation.**
+> **The source representation is not the Equinox runtime representation.**
 
-A Transformer may produce the evidence, but its tokenizer IDs, tensors and runtime do not become Equinox's canonical identity system.
+Transformer token IDs, hidden dimensions and raw activation vectors do not become Equinox identities.
 
-## What v0.5 adds
+## Why v0.6 exists
 
-A new causal-teacher probe layer can execute controlled prompts and record the model's actual next-token distribution:
+A static token embedding cannot distinguish meanings that depend on context. For example, the same surface form:
 
-`controlled context -> causal teacher -> top-k next-token probabilities -> canonical Equinox context/target nodes -> prediction evidence`
+```text
+Bank
+```
 
-Each prediction record preserves:
+can occur in:
 
-- teacher token ID;
-- raw tokenizer token;
-- decoded token surface;
-- canonical surface;
-- top-k rank;
-- raw logit when available;
-- teacher probability;
-- temperature;
-- source/model version;
-- extraction method;
-- backend identity.
+```text
+Die Bank genehmigte den Kredit.
+Wir sitzen im Park auf der Bank.
+```
 
-The **score stored in raw evidence is the teacher probability**. It is not silently reinterpreted as an Equinox relation weight. The compiler remains responsible for later source weighting and aggregation.
+Both uses resolve to the **same canonical Equinox surface node** `Bank`. Forge then asks the teacher for the target token's contextual hidden representation and records sparse evidence between the two **context nodes**.
 
-## Three independent language evidence channels now exist
+No second character-Q alphabet and no teacher-specific word ID is created.
 
-### 1. Static embedding geometry — v0.3
+## Canonical representation
 
-`surface A <-> surface B`
+For each probe Forge creates or reuses:
 
-Evidence type:
+```text
+character Qs
+   ↓
+canonical surface: Bank
+   ↓ contextual_use
+canonical marked context
+```
 
-`semantic_similarity`
+A marked context is deterministic, e.g.:
 
-This says that two teacher embedding vectors are nearby. It does not say that one predicts the other or that they are synonyms.
+```text
+Die ⟦Bank⟧ genehmigte den Kredit.
+```
 
-### 2. Observed corpus behaviour — v0.4
+The target marker is part of the context identity so multiple occurrences in one sentence can remain distinguishable.
 
-`context -> observed next surface`
+## Hidden vectors are transient extraction data
 
-Evidence type:
+Raw hidden vectors are deliberately **not written into Canonical IR or the Canonical DB**.
 
-`prediction`
+Forge normalizes them during extraction and derives bounded sparse evidence:
 
-Score is an empirical corpus estimate such as `P(target | context)`.
+```text
+context A ← contextual_similarity → context B
+```
 
-### 3. Teacher predictive behaviour — v0.5
+The raw cosine is preserved in evidence metadata. The canonical relation score stays inside `[0,1]`.
 
-`context -> teacher next-token surface`
+This means a future compiler can combine hidden evidence from models with completely different hidden sizes without making Equinox depend on any one teacher architecture.
 
-Evidence type:
+## Probe dataset format
 
-`prediction`
+Input is JSONL. A header is optional:
 
-Score is the probability produced by an executed causal teacher forward pass.
+```json
+{"format":"equinox-forge-probe-dataset-v1"}
+{"id":"bank-fin-1","text":"Die Bank genehmigte den Kredit.","target":"Bank","label":"finance"}
+{"id":"bank-seat-1","text":"Wir sitzen im Park auf der Bank.","target":"Bank","label":"seat"}
+```
 
-Corpus and teacher prediction share the same relation semantics, but remain separate evidence records with different extraction provenance.
+Fields:
 
-## Canonical context identity
+- `id`: stable evaluation probe ID;
+- `text`: teacher input;
+- `target`: exact surface whose contextual state is extracted;
+- `occurrence`: optional 1-based occurrence when the target appears multiple times;
+- `label`: optional benchmark label;
+- `metadata`: optional evaluation metadata.
 
-Teacher-specific tokenization does not define the context node.
+### Labels cannot leak into knowledge
 
-For example:
+`label` is used **only in the separate evaluation report** to compute metrics such as same-sense vs different-sense cosine and nearest-neighbour label accuracy.
 
-`Der Hund ist ein`
+Labels are not stored in:
 
-is represented as canonical text surfaces over character-Q nodes and an ordered context/template node:
+- canonical node IDs;
+- node metadata;
+- relation metadata;
+- Canonical DB evidence.
 
-`[Der, Hund, ist, ein]`
+The regression suite verifies that removing all labels leaves the canonical IR/evidence graph unchanged.
 
-If the controlled corpus extractor observes the same context, both extraction paths resolve to the **same deterministic Equinox context ID**.
+## Evidence channels added in v0.6
 
-Therefore these two observations:
+### `contextual_use`
 
-`corpus: P(Tier | Der Hund ist ein) = 1.0`
+```text
+canonical surface -> canonical context
+```
 
-and
+Records that a particular target surface was probed in a particular context/layer.
 
-`teacher: P(Tier | Der Hund ist ein) = 0.72`
+### `contextual_similarity`
 
-support the same canonical edge while preserving two independent evidence records.
+```text
+context A -> context B
+```
 
-## Optional Hugging Face runtime backend
+A sparse top-k graph derived from teacher hidden-state cosine similarity. By default comparisons are restricted to uses of the **same canonical surface**. Cross-surface hidden similarity is opt-in so it cannot silently replace the separate `semantic_similarity` channel from v0.3.
 
-The Forge compiler itself still has only lightweight dependencies.
+## Evaluation metrics
 
-Actual Hugging Face model execution is isolated behind the `CausalTeacherBackend` contract. The included backend is:
+When labels are provided, the report can calculate:
 
-`TransformersCausalLMBackend`
+- mean cosine for same-label pairs;
+- mean cosine for different-label pairs;
+- nearest-neighbour label accuracy.
 
-It uses:
+These are diagnostics only. They do not become Equinox relation weights.
 
-- `AutoTokenizer`;
-- `AutoModelForCausalLM`;
-- local model files only (`local_files_only=True`);
-- deterministic top-k probability extraction;
-- optional CPU/CUDA execution.
+## Optional Hugging Face backend
 
-Install the optional runtime on the machine that performs teacher extraction:
+`TransformersHiddenStateBackend` uses:
+
+- `AutoTokenizer` with a fast tokenizer and offset mappings;
+- `AutoModel` with `output_hidden_states=True`;
+- exact character-span → teacher-subword alignment;
+- selectable hidden layers;
+- `mean`, `first` or `last` pooling over target subwords.
+
+It never uses teacher tokenization as canonical Equinox tokenization.
+
+Install the optional extraction runtime on the machine doing teacher work:
 
 ```bash
 pip install -e '.[hf-runtime]'
 ```
 
-The Forge target/device runtime does **not** need Transformers.
+The backend uses **local model files only** and does not implicitly download a checkpoint.
 
-## CLI: probe a local causal teacher
+## CLI
 
-Put one controlled prompt per line into a UTF-8 file, for example:
-
-```text
-Der Hund ist ein
-Die Katze ist ein
-Ein Hund kann
-Ein Tier kann
-```
-
-Then run:
+Example:
 
 ```bash
-python -m equinox_forge.cli probe-teacher \
+python -m equinox_forge.cli probe-hidden \
   /path/to/local/hf/model \
-  examples/probes/german_prompts.txt \
-  out/teacher_behaviour.eqir.json \
+  examples/probes/bank_senses.jsonl \
+  out/bank_hidden.eqir.json \
   --source-id teacher/my-model \
   --source-version v1 \
   --adapter adapters/qwen2.json \
   --db out/master.sqlite \
-  --top-k 8 \
-  --temperature 1.0 \
-  --min-probability 0.001
+  --layers -1 \
+  --pooling mean \
+  --top-k 6 \
+  --min-cosine 0.25
 ```
-
-The command never downloads a model implicitly. The model must already exist locally.
 
 Useful controls:
 
+- `--layers -1 -5 ...`
+- `--pooling mean|first|last`
 - `--top-k`
-- `--temperature`
-- `--min-probability`
-- `--max-prompt-words`
+- `--min-cosine`
 - `--evidence-confidence`
+- `--max-context-words`
+- `--include-cross-surface`
+- `--keep-vectors-in-report` — diagnostic report only, never Canonical IR;
 - `--device cpu|cuda`
 - `--dtype auto|float32|float16|bfloat16`
-- `--trust-remote-code` (off by default)
+- `--trust-remote-code` — off by default.
 
-## Backend contract
+## Included benchmark fixture
 
-A future runtime does not have to be Hugging Face Transformers. Any backend can feed Forge if it implements:
+`examples/probes/bank_senses.jsonl` contains six German uses of `Bank`:
 
-```python
-backend_id: str
-next_token(prompt, top_k, temperature) -> list[TeacherCandidate]
-manifest() -> dict
-```
+- three financial contexts;
+- three seating/bench contexts.
 
-That allows later adapters for:
+The labels are present only to validate whether a teacher's contextual space separates these uses.
 
-- llama.cpp / GGUF;
-- vLLM;
-- ONNX Runtime;
-- remote teacher APIs where permitted;
-- custom research models;
-- multimodal autoregressive teachers.
+## Real neural integration test
 
-The canonical compiler remains unchanged.
+`test_tiny_contextual_runtime.py` trains a small bidirectional PyTorch GRU and extracts the actual neural hidden state at the `bank` token through the same generic Forge backend boundary.
 
-## Real causal integration test
+This is a plumbing/integration test, **not evidence that a toy GRU solves semantic disambiguation generally**.
 
-The v0.5 test suite contains two behaviour tests.
+The test verifies that Forge consumes a computed neural state rather than only scripted vectors.
 
-### Deterministic probe test
-
-A scripted teacher verifies:
-
-- top-k filtering;
-- probability thresholds;
-- context canonicalization;
-- exact evidence provenance;
-- idempotent database ingestion;
-- canonical sharing between corpus prediction and teacher prediction.
-
-### Tiny learned causal model test
-
-`test_tiny_causal_runtime.py` trains a small local PyTorch GRU language model on a miniature German corpus and then performs real forward inference through the same Forge behaviour boundary.
-
-The learned teacher currently resolves:
-
-```text
-Der Hund ist ein -> Tier
-Die Katze kann   -> miauen
-```
-
-at rank 1 in the deterministic integration fixture.
-
-This test exists so the v0.5 pipeline is not validated only with hand-authored probability fixtures.
-
-## Tests
+## Regression suite
 
 Run:
 
@@ -215,69 +216,51 @@ Run:
 python tests/run_all.py
 ```
 
-Expected markers:
+Expected final marker:
 
 ```text
-FORGE_V01_OK
-FORGE_V02_OK
-FORGE_V03_OK
-FORGE_V03_DB_MIGRATION_OK
-FORGE_V04_OK
-FORGE_V05_BEHAVIOUR_OK
-FORGE_V05_TINY_CAUSAL_OK
-FORGE_V05_ALL_TESTS_OK
+FORGE_V06_ALL_TESTS_OK
 ```
 
-If PyTorch is unavailable, only the tiny learned causal-model integration test is skipped. Core Forge remains independent of PyTorch.
+Current suite covers:
 
-## Deliberate limits of v0.5
+```text
+v0.1 canonical IR / DB / aggregation
+v0.2 Hugging-Face adapter contract
+v0.3 static embedding extraction
+v0.4 controlled corpus language evidence
+v0.5 executed causal teacher behaviour
+v0.6 contextual hidden-state evidence
+v0.6 real tiny neural hidden-state runtime
+```
 
-v0.5 does **not** claim that top-k next-token distributions reproduce an LLM's full capability.
+## What v0.6 does NOT claim
 
-It does not yet extract:
+This release does not yet create permanent Equinox "sense" nodes such as `Bank(finance)` or `Bank(seat)`.
 
-- hidden-state geometry conditioned on context;
-- attention patterns;
-- multi-step generation trajectories;
-- instruction-following behaviour;
-- chain-of-thought or private reasoning;
-- tool use;
-- long-horizon planning;
-- factual truth merely because a teacher predicts a token;
-- a final Android language BASE.
+That is intentional. v0.6 collects the evidence needed to justify such structures first.
 
-The system stores **observable teacher behaviour**, not an assertion that every teacher output is correct.
+A later compiler can create a sense/concept macro only when multiple independent observations and/or teacher sources support a stable contextual cluster.
 
-## Why v0.5 matters
+This avoids turning one model's hidden geometry directly into Equinox ontology.
 
-Forge can now place three independent measurements onto the same canonical knowledge structure:
+## Recommended next step — v0.7
 
-`embedding geometry + corpus statistics + executed teacher predictions`
+**Evidence Fusion + Provisional Sense Compiler**:
 
-This is the first point where Equinox can experimentally ask:
+```text
+embedding evidence
++ corpus substitution/prediction
++ teacher behaviour
++ contextual hidden evidence
+        ↓
+source-aware evidence fusion
+        ↓
+stable contextual clusters
+        ↓
+provisional sense/concept nodes
+        ↓
+confidence / conflict / provenance
+```
 
-> How much useful behaviour of a teacher can be compiled into a sparse canonical relation system while leaving the teacher itself off the target device?
-
-## Next Forge step
-
-**v0.6 — Contextual Hidden-State Evidence + Probe Dataset Runner**
-
-The next useful step is to move beyond only the output head:
-
-1. run a reproducible probe dataset through a supported teacher;
-2. capture selected hidden-state representations for controlled contexts;
-3. compare context-conditioned semantic neighbourhoods with static embeddings;
-4. store these as a separate evidence channel;
-5. add checkpoint/resume and batch execution so a large extraction job can be run safely over many prompts.
-
-That would distinguish:
-
-`static meaning geometry`
-
-from
-
-`contextual representation geometry`
-
-and
-
-`observable output behaviour`.
+The important constraint for v0.7 should be that a sense node is a compiled hypothesis supported by evidence, not a direct copy of a teacher activation.

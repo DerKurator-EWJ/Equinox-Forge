@@ -1,0 +1,1166 @@
+{
+  "evidence": [
+    {
+      "confidence": 0.85,
+      "from_id": "m_b3458c60118e5e0ab521cb81",
+      "metadata": {
+        "backend_id": "demo-scripted-hidden",
+        "backend_metadata": {
+          "demo": true
+        },
+        "dimension": 4,
+        "evidence_kind": "contextual_hidden_use",
+        "layer": -1,
+        "pooling": "mean",
+        "probe_id": "bank-fin-1",
+        "target": "Bank",
+        "target_end": 35,
+        "target_start": 31,
+        "token_count": 1
+      },
+      "relation_type": "contextual_use",
+      "score": 1.0,
+      "source": {
+        "extraction": "contextual_hidden_use",
+        "source_id": "demo-scripted",
+        "source_version": "1"
+      },
+      "to_id": "m_d44f83614396a201dcf0a508"
+    },
+    {
+      "confidence": 0.85,
+      "from_id": "m_b3458c60118e5e0ab521cb81",
+      "metadata": {
+        "backend_id": "demo-scripted-hidden",
+        "backend_metadata": {
+          "demo": true
+        },
+        "dimension": 4,
+        "evidence_kind": "contextual_hidden_use",
+        "layer": -1,
+        "pooling": "mean",
+        "probe_id": "bank-fin-2",
+        "target": "Bank",
+        "target_end": 8,
+        "target_start": 4,
+        "token_count": 1
+      },
+      "relation_type": "contextual_use",
+      "score": 1.0,
+      "source": {
+        "extraction": "contextual_hidden_use",
+        "source_id": "demo-scripted",
+        "source_version": "1"
+      },
+      "to_id": "m_c1e6a46620f9c108ac4b8695"
+    },
+    {
+      "confidence": 0.85,
+      "from_id": "m_b3458c60118e5e0ab521cb81",
+      "metadata": {
+        "backend_id": "demo-scripted-hidden",
+        "backend_metadata": {
+          "demo": true
+        },
+        "dimension": 4,
+        "evidence_kind": "contextual_hidden_use",
+        "layer": -1,
+        "pooling": "mean",
+        "probe_id": "bank-fin-3",
+        "target": "Bank",
+        "target_end": 35,
+        "target_start": 31,
+        "token_count": 1
+      },
+      "relation_type": "contextual_use",
+      "score": 1.0,
+      "source": {
+        "extraction": "contextual_hidden_use",
+        "source_id": "demo-scripted",
+        "source_version": "1"
+      },
+      "to_id": "m_5536c4ed72dded69037b7938"
+    },
+    {
+      "confidence": 0.85,
+      "from_id": "m_b3458c60118e5e0ab521cb81",
+      "metadata": {
+        "backend_id": "demo-scripted-hidden",
+        "backend_metadata": {
+          "demo": true
+        },
+        "dimension": 4,
+        "evidence_kind": "contextual_hidden_use",
+        "layer": -1,
+        "pooling": "mean",
+        "probe_id": "bank-seat-1",
+        "target": "Bank",
+        "target_end": 31,
+        "target_start": 27,
+        "token_count": 1
+      },
+      "relation_type": "contextual_use",
+      "score": 1.0,
+      "source": {
+        "extraction": "contextual_hidden_use",
+        "source_id": "demo-scripted",
+        "source_version": "1"
+      },
+      "to_id": "m_2307a7ed760b4f9b4d448708"
+    },
+    {
+      "confidence": 0.85,
+      "from_id": "m_b3458c60118e5e0ab521cb81",
+      "metadata": {
+        "backend_id": "demo-scripted-hidden",
+        "backend_metadata": {
+          "demo": true
+        },
+        "dimension": 4,
+        "evidence_kind": "contextual_hidden_use",
+        "layer": -1,
+        "pooling": "mean",
+        "probe_id": "bank-seat-2",
+        "target": "Bank",
+        "target_end": 13,
+        "target_start": 9,
+        "token_count": 1
+      },
+      "relation_type": "contextual_use",
+      "score": 1.0,
+      "source": {
+        "extraction": "contextual_hidden_use",
+        "source_id": "demo-scripted",
+        "source_version": "1"
+      },
+      "to_id": "m_4ef8461897143930ee6989d0"
+    },
+    {
+      "confidence": 0.85,
+      "from_id": "m_b3458c60118e5e0ab521cb81",
+      "metadata": {
+        "backend_id": "demo-scripted-hidden",
+        "backend_metadata": {
+          "demo": true
+        },
+        "dimension": 4,
+        "evidence_kind": "contextual_hidden_use",
+        "layer": -1,
+        "pooling": "mean",
+        "probe_id": "bank-seat-3",
+        "target": "Bank",
+        "target_end": 28,
+        "target_start": 24,
+        "token_count": 1
+      },
+      "relation_type": "contextual_use",
+      "score": 1.0,
+      "source": {
+        "extraction": "contextual_hidden_use",
+        "source_id": "demo-scripted",
+        "source_version": "1"
+      },
+      "to_id": "m_d8ed1ba137a877e948caa882"
+    },
+    {
+      "confidence": 0.85,
+      "from_id": "m_5536c4ed72dded69037b7938",
+      "metadata": {
+        "backend_id": "demo-scripted-hidden",
+        "dimension": 4,
+        "evidence_kind": "contextual_hidden_similarity",
+        "layer": -1,
+        "pooling": "mean",
+        "probe_ids": [
+          "bank-fin-1",
+          "bank-fin-3"
+        ],
+        "raw_cosine": 0.9999999999999999,
+        "targets": [
+          "Bank",
+          "Bank"
+        ]
+      },
+      "relation_type": "contextual_similarity",
+      "score": 0.9999999999999999,
+      "source": {
+        "extraction": "contextual_hidden_similarity",
+        "source_id": "demo-scripted",
+        "source_version": "1"
+      },
+      "to_id": "m_d44f83614396a201dcf0a508"
+    },
+    {
+      "confidence": 0.85,
+      "from_id": "m_c1e6a46620f9c108ac4b8695",
+      "metadata": {
+        "backend_id": "demo-scripted-hidden",
+        "dimension": 4,
+        "evidence_kind": "contextual_hidden_similarity",
+        "layer": -1,
+        "pooling": "mean",
+        "probe_ids": [
+          "bank-fin-1",
+          "bank-fin-2"
+        ],
+        "raw_cosine": 0.9999999999999999,
+        "targets": [
+          "Bank",
+          "Bank"
+        ]
+      },
+      "relation_type": "contextual_similarity",
+      "score": 0.9999999999999999,
+      "source": {
+        "extraction": "contextual_hidden_similarity",
+        "source_id": "demo-scripted",
+        "source_version": "1"
+      },
+      "to_id": "m_d44f83614396a201dcf0a508"
+    },
+    {
+      "confidence": 0.85,
+      "from_id": "m_5536c4ed72dded69037b7938",
+      "metadata": {
+        "backend_id": "demo-scripted-hidden",
+        "dimension": 4,
+        "evidence_kind": "contextual_hidden_similarity",
+        "layer": -1,
+        "pooling": "mean",
+        "probe_ids": [
+          "bank-fin-2",
+          "bank-fin-3"
+        ],
+        "raw_cosine": 0.9999999999999999,
+        "targets": [
+          "Bank",
+          "Bank"
+        ]
+      },
+      "relation_type": "contextual_similarity",
+      "score": 0.9999999999999999,
+      "source": {
+        "extraction": "contextual_hidden_similarity",
+        "source_id": "demo-scripted",
+        "source_version": "1"
+      },
+      "to_id": "m_c1e6a46620f9c108ac4b8695"
+    },
+    {
+      "confidence": 0.85,
+      "from_id": "m_2307a7ed760b4f9b4d448708",
+      "metadata": {
+        "backend_id": "demo-scripted-hidden",
+        "dimension": 4,
+        "evidence_kind": "contextual_hidden_similarity",
+        "layer": -1,
+        "pooling": "mean",
+        "probe_ids": [
+          "bank-seat-1",
+          "bank-seat-2"
+        ],
+        "raw_cosine": 1.0,
+        "targets": [
+          "Bank",
+          "Bank"
+        ]
+      },
+      "relation_type": "contextual_similarity",
+      "score": 1.0,
+      "source": {
+        "extraction": "contextual_hidden_similarity",
+        "source_id": "demo-scripted",
+        "source_version": "1"
+      },
+      "to_id": "m_4ef8461897143930ee6989d0"
+    },
+    {
+      "confidence": 0.85,
+      "from_id": "m_2307a7ed760b4f9b4d448708",
+      "metadata": {
+        "backend_id": "demo-scripted-hidden",
+        "dimension": 4,
+        "evidence_kind": "contextual_hidden_similarity",
+        "layer": -1,
+        "pooling": "mean",
+        "probe_ids": [
+          "bank-seat-1",
+          "bank-seat-3"
+        ],
+        "raw_cosine": 1.0,
+        "targets": [
+          "Bank",
+          "Bank"
+        ]
+      },
+      "relation_type": "contextual_similarity",
+      "score": 1.0,
+      "source": {
+        "extraction": "contextual_hidden_similarity",
+        "source_id": "demo-scripted",
+        "source_version": "1"
+      },
+      "to_id": "m_d8ed1ba137a877e948caa882"
+    },
+    {
+      "confidence": 0.85,
+      "from_id": "m_4ef8461897143930ee6989d0",
+      "metadata": {
+        "backend_id": "demo-scripted-hidden",
+        "dimension": 4,
+        "evidence_kind": "contextual_hidden_similarity",
+        "layer": -1,
+        "pooling": "mean",
+        "probe_ids": [
+          "bank-seat-2",
+          "bank-seat-3"
+        ],
+        "raw_cosine": 1.0,
+        "targets": [
+          "Bank",
+          "Bank"
+        ]
+      },
+      "relation_type": "contextual_similarity",
+      "score": 1.0,
+      "source": {
+        "extraction": "contextual_hidden_similarity",
+        "source_id": "demo-scripted",
+        "source_version": "1"
+      },
+      "to_id": "m_d8ed1ba137a877e948caa882"
+    }
+  ],
+  "format": "equinox-forge-ir-v1",
+  "nodes": [
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_067d7443db67e2be71e514a6",
+      "surface": "o"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_0e89cc9028126dcb350ad7f0",
+      "surface": "a"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_0fc6b4b51d317d48bdb77696",
+      "surface": "k"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_102ee2041fb76e4fc1d80a2b",
+      "surface": "E"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_1519008e6800cb8f93869359",
+      "surface": "l"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_15a18ac39698288fb1a91018",
+      "surface": "K"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_1a371ca4988365289108f6c2",
+      "surface": "i"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_292e599d0ba9bcdd44beb5e5",
+      "surface": "c"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_2dd174996be5605e60dbbc68",
+      "surface": "ö"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_3510ecc33d8e1a348c0c6786",
+      "surface": "h"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_378672f12cb4344e8e3fe7dd",
+      "surface": "f"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_38bc09e968b2bef6ab7543b9",
+      "surface": "s"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_3d0173e1a30426d33c51b45e",
+      "surface": "ü"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_49770d6a9583104eae68dd29",
+      "surface": "g"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_4e304d1d5053c0418f3cf06b",
+      "surface": "u"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_755669593e03ab127f4d84c6",
+      "surface": "W"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_8896424a7a5ad703e00a1ec3",
+      "surface": "w"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_8bd232f90e9ab3dc726cc415",
+      "surface": "D"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_91ad68ed9d0649716410d850",
+      "surface": "B"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_99799369ad132cd7e47da92b",
+      "surface": "e"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_9eb1cf62c9af901d123c2a8c",
+      "surface": "m"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_ad652928813fe3dcb86d10f9",
+      "surface": "z"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_ae9d2c37a77e479fc0c3a832",
+      "surface": "b"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_b531642b306274deb5568859",
+      "surface": "r"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_c6f6e6994e2cd21c9c0b4935",
+      "surface": "d"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_ec8350e3485eb1e770b5b713",
+      "surface": "G"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_eed43465d7d3d62229b9d745",
+      "surface": "P"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f3c6dde36b2355eb8abef831",
+      "surface": "S"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f534dbef81ff2a5b9c86842b",
+      "surface": "t"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f9c1ab02b020bf72a42dbb99",
+      "surface": "n"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_15a18ac39698288fb1a91018",
+        "q_067d7443db67e2be71e514a6",
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_067d7443db67e2be71e514a6"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_08cf8e592538e44158f1b429",
+      "surface": "Konto"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_99799369ad132cd7e47da92b",
+        "q_b531642b306274deb5568859"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_129b35408ce35adb5191fb26",
+      "surface": "unter"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_38bc09e968b2bef6ab7543b9",
+        "q_1a371ca4988365289108f6c2",
+        "q_292e599d0ba9bcdd44beb5e5",
+        "q_3510ecc33d8e1a348c0c6786"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_1f2dffb0c41c8fded835a3f2",
+      "surface": "sich"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_38bc09e968b2bef6ab7543b9",
+        "q_1a371ca4988365289108f6c2",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_ad652928813fe3dcb86d10f9",
+        "q_99799369ad132cd7e47da92b",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_46c32a70bc2968c4a5686e34",
+      "surface": "sitzen"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_eed43465d7d3d62229b9d745",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_b531642b306274deb5568859",
+        "q_0fc6b4b51d317d48bdb77696"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_5027b7273c0ab846fcd0e29e",
+      "surface": "Park"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_15a18ac39698288fb1a91018",
+        "q_b531642b306274deb5568859",
+        "q_99799369ad132cd7e47da92b",
+        "q_c6f6e6994e2cd21c9c0b4935",
+        "q_1a371ca4988365289108f6c2",
+        "q_f534dbef81ff2a5b9c86842b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_5284b2bbe7721ae45a7606a7",
+      "surface": "Kredit"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_99799369ad132cd7e47da92b",
+        "q_b531642b306274deb5568859",
+        "q_2dd174996be5605e60dbbc68",
+        "q_378672f12cb4344e8e3fe7dd",
+        "q_378672f12cb4344e8e3fe7dd",
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_99799369ad132cd7e47da92b",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_99799369ad132cd7e47da92b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_549f04051e3a65cfa4764472",
+      "surface": "eröffnete"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_99799369ad132cd7e47da92b",
+        "q_1a371ca4988365289108f6c2",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_588b6b130b77b7313d77b23e",
+      "surface": "ein"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_1519008e6800cb8f93869359",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_99799369ad132cd7e47da92b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_6114b1b01a88890689a0a18e",
+      "surface": "alte"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_8bd232f90e9ab3dc726cc415",
+        "q_1a371ca4988365289108f6c2",
+        "q_99799369ad132cd7e47da92b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_81eebfe6abe6942f9f9b8989",
+      "surface": "Die"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_49770d6a9583104eae68dd29",
+        "q_99799369ad132cd7e47da92b",
+        "q_38bc09e968b2bef6ab7543b9",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_99799369ad132cd7e47da92b",
+        "q_b531642b306274deb5568859",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_828c1e3d0776cf76ebd170ca",
+      "surface": "gestern"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_c6f6e6994e2cd21c9c0b4935",
+        "q_99799369ad132cd7e47da92b",
+        "q_b531642b306274deb5568859"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_864c8fed501d143e832b504e",
+      "surface": "der"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_c6f6e6994e2cd21c9c0b4935",
+        "q_99799369ad132cd7e47da92b",
+        "q_9eb1cf62c9af901d123c2a8c"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_86523c7289b7f45a42f88e57",
+      "surface": "dem"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_ae9d2c37a77e479fc0c3a832",
+        "q_99799369ad132cd7e47da92b",
+        "q_1a371ca4988365289108f6c2"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_91ed466266eeac90cdfe7e9d",
+      "surface": "bei"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_c6f6e6994e2cd21c9c0b4935",
+        "q_99799369ad132cd7e47da92b",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_93889c597fd7b52cf5c44cfe",
+      "surface": "den"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_1a371ca4988365289108f6c2",
+        "q_9eb1cf62c9af901d123c2a8c"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_9d67c6ab320fc3cbf3533234",
+      "surface": "im"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_378672f12cb4344e8e3fe7dd"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_a88e18b6ef500b8e43165da6",
+      "surface": "auf"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_102ee2041fb76e4fc1d80a2b",
+        "q_b531642b306274deb5568859"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_ad3d8982c34844544a09eab7",
+      "surface": "Er"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_1a371ca4988365289108f6c2",
+        "q_38bc09e968b2bef6ab7543b9",
+        "q_f534dbef81ff2a5b9c86842b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_adfbc192594d8f141843eac4",
+      "surface": "ist"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_3d0173e1a30426d33c51b45e",
+        "q_ae9d2c37a77e479fc0c3a832",
+        "q_99799369ad132cd7e47da92b",
+        "q_b531642b306274deb5568859",
+        "q_8896424a7a5ad703e00a1ec3",
+        "q_99799369ad132cd7e47da92b",
+        "q_1a371ca4988365289108f6c2",
+        "q_38bc09e968b2bef6ab7543b9",
+        "q_f534dbef81ff2a5b9c86842b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_b2e89cfdeb2030ff59c67410",
+      "surface": "überweist"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_91ad68ed9d0649716410d850",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_0fc6b4b51d317d48bdb77696"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_b3458c60118e5e0ab521cb81",
+      "surface": "Bank"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_c6f6e6994e2cd21c9c0b4935",
+        "q_1a371ca4988365289108f6c2",
+        "q_99799369ad132cd7e47da92b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_b496d123c5cd64e1de92b346",
+      "surface": "die"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_9eb1cf62c9af901d123c2a8c"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_be693787a6e6c3fd311fb977",
+      "surface": "am"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_f3c6dde36b2355eb8abef831",
+        "q_99799369ad132cd7e47da92b",
+        "q_99799369ad132cd7e47da92b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_bfea406970eeea99a8a687c1",
+      "surface": "See"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_91ad68ed9d0649716410d850",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_9eb1cf62c9af901d123c2a8c"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_ce3d649f89c70d738efe8cbe",
+      "surface": "Baum"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_f3c6dde36b2355eb8abef831",
+        "q_1a371ca4988365289108f6c2",
+        "q_99799369ad132cd7e47da92b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_d6985860f3b8cf6fd52a12ec",
+      "surface": "Sie"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_49770d6a9583104eae68dd29",
+        "q_99799369ad132cd7e47da92b",
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_99799369ad132cd7e47da92b",
+        "q_3510ecc33d8e1a348c0c6786",
+        "q_9eb1cf62c9af901d123c2a8c",
+        "q_1a371ca4988365289108f6c2",
+        "q_49770d6a9583104eae68dd29",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_99799369ad132cd7e47da92b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_ded69d4deedec6926fde4f6a",
+      "surface": "genehmigte"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_c6f6e6994e2cd21c9c0b4935",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_38bc09e968b2bef6ab7543b9"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_e403b463ccaa4e9593ed2d6c",
+      "surface": "das"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_38bc09e968b2bef6ab7543b9",
+        "q_38bc09e968b2bef6ab7543b9"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_e959322cf62e3ad7872e4fe8",
+      "surface": "nass"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_38bc09e968b2bef6ab7543b9",
+        "q_99799369ad132cd7e47da92b",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_ad652928813fe3dcb86d10f9",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_99799369ad132cd7e47da92b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_ea1aee0aa5dd87f5a945f73a",
+      "surface": "setzte"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_755669593e03ab127f4d84c6",
+        "q_1a371ca4988365289108f6c2",
+        "q_b531642b306274deb5568859"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_f06569134be862bec9eb700f",
+      "surface": "Wir"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_ec8350e3485eb1e770b5b713",
+        "q_99799369ad132cd7e47da92b",
+        "q_1519008e6800cb8f93869359",
+        "q_c6f6e6994e2cd21c9c0b4935"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_feada236170fb00bc89c202a",
+      "surface": "Geld"
+    },
+    {
+      "kind": "template",
+      "level": 2,
+      "members": [
+        "m_f06569134be862bec9eb700f",
+        "m_46c32a70bc2968c4a5686e34",
+        "m_9d67c6ab320fc3cbf3533234",
+        "m_5027b7273c0ab846fcd0e29e",
+        "m_a88e18b6ef500b8e43165da6",
+        "m_864c8fed501d143e832b504e",
+        "m_b3458c60118e5e0ab521cb81"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_2307a7ed760b4f9b4d448708",
+      "surface": "Wir sitzen im Park auf der ⟦Bank⟧."
+    },
+    {
+      "kind": "template",
+      "level": 2,
+      "members": [
+        "m_81eebfe6abe6942f9f9b8989",
+        "m_6114b1b01a88890689a0a18e",
+        "m_b3458c60118e5e0ab521cb81",
+        "m_129b35408ce35adb5191fb26",
+        "m_86523c7289b7f45a42f88e57",
+        "m_ce3d649f89c70d738efe8cbe",
+        "m_adfbc192594d8f141843eac4",
+        "m_e959322cf62e3ad7872e4fe8"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_4ef8461897143930ee6989d0",
+      "surface": "Die alte ⟦Bank⟧ unter dem Baum ist nass."
+    },
+    {
+      "kind": "template",
+      "level": 2,
+      "members": [
+        "m_ad3d8982c34844544a09eab7",
+        "m_549f04051e3a65cfa4764472",
+        "m_588b6b130b77b7313d77b23e",
+        "m_08cf8e592538e44158f1b429",
+        "m_91ed466266eeac90cdfe7e9d",
+        "m_864c8fed501d143e832b504e",
+        "m_b3458c60118e5e0ab521cb81"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_5536c4ed72dded69037b7938",
+      "surface": "Er eröffnete ein Konto bei der ⟦Bank⟧."
+    },
+    {
+      "kind": "template",
+      "level": 2,
+      "members": [
+        "m_81eebfe6abe6942f9f9b8989",
+        "m_b3458c60118e5e0ab521cb81",
+        "m_ded69d4deedec6926fde4f6a",
+        "m_828c1e3d0776cf76ebd170ca",
+        "m_93889c597fd7b52cf5c44cfe",
+        "m_5284b2bbe7721ae45a7606a7"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_c1e6a46620f9c108ac4b8695",
+      "surface": "Die ⟦Bank⟧ genehmigte gestern den Kredit."
+    },
+    {
+      "kind": "template",
+      "level": 2,
+      "members": [
+        "m_d6985860f3b8cf6fd52a12ec",
+        "m_b2e89cfdeb2030ff59c67410",
+        "m_e403b463ccaa4e9593ed2d6c",
+        "m_feada236170fb00bc89c202a",
+        "m_91ed466266eeac90cdfe7e9d",
+        "m_864c8fed501d143e832b504e",
+        "m_b3458c60118e5e0ab521cb81"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_d44f83614396a201dcf0a508",
+      "surface": "Sie überweist das Geld bei der ⟦Bank⟧."
+    },
+    {
+      "kind": "template",
+      "level": 2,
+      "members": [
+        "m_d6985860f3b8cf6fd52a12ec",
+        "m_ea1aee0aa5dd87f5a945f73a",
+        "m_1f2dffb0c41c8fded835a3f2",
+        "m_a88e18b6ef500b8e43165da6",
+        "m_b496d123c5cd64e1de92b346",
+        "m_b3458c60118e5e0ab521cb81",
+        "m_be693787a6e6c3fd311fb977",
+        "m_bfea406970eeea99a8a687c1"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_d8ed1ba137a877e948caa882",
+      "surface": "Sie setzte sich auf die ⟦Bank⟧ am See."
+    }
+  ]
+}

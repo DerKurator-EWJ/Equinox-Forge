@@ -9,6 +9,8 @@ class Modality(str, Enum):
     VISION = "vision"
     VIDEO = "video"
     CROSSMODAL = "crossmodal"
+    CONTEXTUAL_USE = "contextual_use"
+    CONTEXTUAL_SIMILARITY = "contextual_similarity"
 
 class NodeKind(str, Enum):
     QUANT = "quant"
@@ -28,6 +30,8 @@ class RelationType(str, Enum):
     PROPERTY = "property"
     ACTION = "action"
     CROSSMODAL = "crossmodal"
+    CONTEXTUAL_USE = "contextual_use"
+    CONTEXTUAL_SIMILARITY = "contextual_similarity"
 
 @dataclass(frozen=True)
 class SourceRef:
