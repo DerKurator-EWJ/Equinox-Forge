@@ -121,6 +121,7 @@ class RuntimeIndex:
         self.children: dict[str, list[str]] = {}
         self.relations_from: dict[str, list[CompiledRelation]] = {}
         self.relations_to: dict[str, list[CompiledRelation]] = {}
+        self.relation_by_key: dict[tuple[str, str, str], CompiledRelation] = {}
 
         for pos, node in enumerate(self.nodes):
             self.node_by_id[node.node_id] = node
@@ -137,6 +138,7 @@ class RuntimeIndex:
         for rel in self.relations:
             self.relations_from.setdefault(rel.from_id, []).append(rel)
             self.relations_to.setdefault(rel.to_id, []).append(rel)
+            self.relation_by_key[(rel.from_id, rel.to_id, rel.relation_type)] = rel
         for table in (self.relations_from, self.relations_to):
             for key in table:
                 table[key].sort(key=lambda r: (r.relation_type, r.to_id, r.from_id))

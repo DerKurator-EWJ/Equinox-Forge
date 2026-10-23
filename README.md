@@ -1,3 +1,120 @@
+# Equinox Forge v0.24 — Slot Prototype / Latent Class Induction
+
+**Current milestone:** v0.24 turns a coherent typed slot filler cohort into a reusable provisional Equinox concept. Instead of asking at runtime whether a new filler is independently similar to every observed filler, Forge can compile a latent class once and preclassify independently known surfaces into it.
+
+## Core transition
+
+```text
+Hund ─┐
+Katze ├─→ Concept_X   (latent_slot_prototype)
+      ┘
+
+Wolf  --is_a→ Concept_X
+Fuchs --is_a→ Concept_X
+Stein          ✗
+
+[SLOT:Concept_X] ist ein → Tier
+[SLOT:Concept_X] braucht → Futter
+```
+
+The class is **provisional** and evidence-derived. `Concept_X` is not automatically renamed to a human ontology label such as `animal`; that would require additional independent evidence.
+
+## What v0.24 adds
+
+- `latent_slot_prototype` concept nodes derived from coherent slot fillers
+- deterministic prototype IDs from the filler cohort and semantic relation schema
+- prototype reuse across multiple frame schemas with the same filler cohort
+- offline candidate classification from independent semantic relations
+- compiled `candidate --is_a→ prototype` membership evidence
+- slot metadata now optionally points to a single latent prototype instead of directly carrying all filler nodes as structural members
+- runtime admission can use one indexed `(candidate, prototype, is_a)` lookup
+- optional fallback to the v0.23 pairwise candidate↔filler admission path
+- audit metadata for support fillers, thresholds, per-candidate support scores and provisional class membership
+- no held-out teacher answers or evaluation labels participate in prototype induction
+
+## Controlled fixture
+
+Compile-time predictive contexts:
+
+```text
+Hund ist ein   → Tier
+Katze ist ein  → Tier
+Hund braucht   → Futter
+Katze braucht  → Futter
+```
+
+Independent semantic knowledge links `Wolf` and `Fuchs` strongly to both observed fillers, while `Stein` is weakly related.
+
+Forge derives **one** latent prototype and reuses it in both frames. It compiles four memberships:
+
+```text
+Hund  --is_a→ Concept_X
+Katze --is_a→ Concept_X
+Wolf  --is_a→ Concept_X
+Fuchs --is_a→ Concept_X
+```
+
+No `Stein --is_a→ Concept_X` edge is emitted.
+
+At runtime, `Wolf ist ein` is admitted via the prototype membership edge. `Stein ist ein` structurally matches the wildcard frame but is rejected with `insufficient_prototype_membership`.
+
+## Why this is different from v0.23
+
+v0.23 stores an admission profile over observed fillers and may evaluate a candidate against those fillers at runtime:
+
+```text
+Wolf ↔ Hund
+Wolf ↔ Katze
+```
+
+v0.24 can move that work offline:
+
+```text
+compile time:
+  Wolf ↔ {Hund, Katze}
+        ↓
+  Wolf --is_a→ Concept_X
+
+runtime:
+  lookup(Wolf, Concept_X, is_a)
+```
+
+The runtime therefore consumes an Equinox-native higher abstraction rather than replaying the original pairwise evidence every time.
+
+## Boundary
+
+A completely unknown surface still cannot be assigned to `Concept_X` from nothing. v0.24 classifies surfaces for which independent semantic evidence is already available at compile time. Dynamic/on-device extension of a latent class remains a later step.
+
+## CLI
+
+Frame induction can enable prototypes with:
+
+```bash
+eqforge induce-frames master.sqlite frames.eqir.json \
+  --semantic-slot-typing \
+  --require-typed-slot \
+  --latent-slot-prototype \
+  --prototype-min-admission-score 0.70 \
+  --prototype-min-support-fillers 2 \
+  --persist
+```
+
+The frame benchmark exposes the same compiler controls and additionally supports `--disable-slot-prototype-admission` to compare the same BASE against the v0.23 pairwise admission path.
+
+## Verification
+
+The v0.24 regression verifies:
+
+- v0.22 open frame behavior remains compatible
+- v0.23 typed pairwise admission remains compatible
+- two frames with the same filler cohort share exactly one prototype
+- `Wolf` and `Fuchs` receive compiled `is_a` memberships
+- `Stein` receives no membership
+- runtime admission uses the prototype path with one indexed membership lookup per resolved candidate surface
+- the prototype path remains functional even when normal semantic-recall relation weights are disabled
+
+---
+
 # Equinox Forge v0.23 — Typed Slot Constraints / Semantic Admission
 
 **Current milestone:** v0.23 keeps the explicit frame schemas from v0.22, but a slot can now carry a compiled, auditable **semantic admission profile**. Structural fit alone is no longer sufficient for a typed slot to fire.

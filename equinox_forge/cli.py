@@ -893,6 +893,11 @@ def _induce_frames(args) -> int:
         slot_admission_min_score=args.slot_admission_min_score,
         slot_admission_min_support_fillers=args.slot_admission_min_support_fillers,
         require_typed_slot=args.require_typed_slot,
+        enable_latent_slot_prototype=args.latent_slot_prototype,
+        prototype_classify_candidates=not args.no_prototype_candidate_classification,
+        prototype_min_admission_score=args.prototype_min_admission_score,
+        prototype_min_support_fillers=args.prototype_min_support_fillers,
+        prototype_membership_confidence=args.prototype_membership_confidence,
     )
     try:
         with CanonicalDB(args.db) as c:
@@ -927,6 +932,7 @@ def _benchmark_frames(args) -> int:
         min_prediction_score=args.min_prediction_score,frame_match_weight=args.frame_match_weight,
         max_frame_matches=args.max_frame_matches,
         enable_semantic_slot_admission=not args.disable_semantic_slot_admission,
+        enable_slot_prototype_admission=not args.disable_slot_prototype_admission,
     )
     frame_policy=FrameInductionPolicy(
         min_contexts=args.min_contexts,min_unique_fillers=args.min_unique_fillers,
@@ -941,6 +947,11 @@ def _benchmark_frames(args) -> int:
         slot_admission_min_score=args.slot_admission_min_score,
         slot_admission_min_support_fillers=args.slot_admission_min_support_fillers,
         require_typed_slot=args.require_typed_slot,
+        enable_latent_slot_prototype=args.latent_slot_prototype,
+        prototype_classify_candidates=not args.no_prototype_candidate_classification,
+        prototype_min_admission_score=args.prototype_min_admission_score,
+        prototype_min_support_fillers=args.prototype_min_support_fillers,
+        prototype_membership_confidence=args.prototype_membership_confidence,
     )
     try:
         train=load_prompts(args.train)
@@ -1391,13 +1402,13 @@ def main():
     fi.add_argument("db"); fi.add_argument("output")
     fi.add_argument("--report")
     fi.add_argument("--source-id",default="derived:frame-induction")
-    fi.add_argument("--source-version",default="0.23")
+    fi.add_argument("--source-version",default="0.24")
     fi.add_argument("--min-contexts",type=int,default=2)
     fi.add_argument("--min-unique-fillers",type=int,default=2)
     fi.add_argument("--min-target-context-fraction",type=float,default=1.0)
     fi.add_argument("--min-target-score",type=float,default=0.01)
     fi.add_argument("--evidence-confidence",type=float,default=0.90)
-    fi.add_argument("--closed-slot",action="store_true",help="mark induced slot non-open; v0.23 runtime open-slot transfer then will not be used")
+    fi.add_argument("--closed-slot",action="store_true",help="mark induced slot non-open; open-slot transfer then will not be used")
     fi.add_argument("--semantic-slot-typing",action="store_true",help="compile semantic admission profiles for coherent slot fillers")
     fi.add_argument("--semantic-relation-type",action="append",default=[],help="relation type usable for slot typing; repeatable")
     fi.add_argument("--min-filler-coherence-score",type=float,default=0.55)
@@ -1405,6 +1416,11 @@ def main():
     fi.add_argument("--slot-admission-min-score",type=float,default=0.55)
     fi.add_argument("--slot-admission-min-support-fillers",type=int,default=2)
     fi.add_argument("--require-typed-slot",action="store_true",help="reject induced frames whose filler set cannot form a semantic slot profile")
+    fi.add_argument("--latent-slot-prototype",action="store_true",help="collapse a coherent typed filler cohort into a provisional latent class node")
+    fi.add_argument("--no-prototype-candidate-classification",action="store_true",help="build the prototype but do not preclassify other known surfaces into it")
+    fi.add_argument("--prototype-min-admission-score",type=float,default=0.55)
+    fi.add_argument("--prototype-min-support-fillers",type=int,default=2)
+    fi.add_argument("--prototype-membership-confidence",type=float,default=0.92)
     fi.add_argument("--persist",action="store_true",help="persist induced frame nodes/evidence into the canonical DB")
 
     fb=sub.add_parser("benchmark-frames", help="compile induced relation frames and benchmark isolated held-out schema transfer")
@@ -1433,8 +1449,14 @@ def main():
     fb.add_argument("--slot-admission-min-score",type=float,default=0.55)
     fb.add_argument("--slot-admission-min-support-fillers",type=int,default=2)
     fb.add_argument("--require-typed-slot",action="store_true")
+    fb.add_argument("--latent-slot-prototype",action="store_true")
+    fb.add_argument("--no-prototype-candidate-classification",action="store_true")
+    fb.add_argument("--prototype-min-admission-score",type=float,default=0.55)
+    fb.add_argument("--prototype-min-support-fillers",type=int,default=2)
+    fb.add_argument("--prototype-membership-confidence",type=float,default=0.92)
+    fb.add_argument("--disable-slot-prototype-admission",action="store_true",help="ignore compiled candidate->prototype membership and fall back to v0.23 pairwise admission")
     fb.add_argument("--disable-semantic-slot-admission",action="store_true",help="compile typed profiles but ignore the semantic gate at runtime")
-    fb.add_argument("--pack-id",default="equinox-frame-schema-benchmark"); fb.add_argument("--pack-version",type=int,default=23)
+    fb.add_argument("--pack-id",default="equinox-frame-schema-benchmark"); fb.add_argument("--pack-version",type=int,default=24)
 
     ar=sub.add_parser("artifacts", help="list current derived compiler artifacts")
     ar.add_argument("db"); ar.add_argument("--target-id"); ar.add_argument("--status", action="append", default=[])

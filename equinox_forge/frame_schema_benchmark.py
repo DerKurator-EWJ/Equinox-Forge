@@ -22,7 +22,7 @@ from .validate import validate_document
 from .ir import ForgeDocument
 
 FRAME_BENCHMARK_FORMAT = "equinox-forge-frame-schema-benchmark-v1"
-FRAME_BENCHMARK_VERSION = "0.23"
+FRAME_BENCHMARK_VERSION = "0.24"
 
 
 @dataclass(frozen=True)
@@ -123,7 +123,7 @@ def compile_and_benchmark_frame_schemas(
     runtime_top_k: int | None = None,
     support_documents: Iterable[ForgeDocument] | None = None,
     pack_id: str = "equinox-frame-schema-benchmark",
-    pack_version: int = 23,
+    pack_version: int = 24,
 ) -> FrameSchemaBenchmarkReport:
     cfg = probe_cfg or BehaviourProbeConfig()
     cfg.validate()
@@ -300,7 +300,7 @@ def compile_and_benchmark_frame_schemas(
             "frame_only disables exact/suffix lookup, lexical seeds, parent routing, relation recall, transitions and recalled-context prediction; any surviving prediction therefore comes from an induced frame schema.",
             "Open text slots are structural wildcards, not semantic type guarantees. A frame may overgeneralize to a novel filler outside the intended latent class.",
             "Applicability labels, when supplied, are evaluation-only annotations and are never compiled into the BASE.",
-            "v0.23 can enforce compiled semantic slot admission. The open_frame_baseline disables only that admission gate on the same BASE.",
+            "v0.24 can enforce compiled semantic slot admission and optionally use a latent prototype membership edge instead of pairwise filler checks. The open_frame_baseline disables the semantic gate on the same BASE.",
             "Support documents may contain independent lexical/semantic knowledge, but evaluation prompts and teacher answers remain reference-only.",
         ],
     )

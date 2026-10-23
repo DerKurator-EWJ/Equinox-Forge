@@ -12,7 +12,7 @@ from .runtime_pack import LoadedRuntimePack, RuntimeNode, load_base_pack
 from .runtime_query import RuntimeIndex
 
 RUNTIME_COGNITION_FORMAT = "equinox-runtime-cognition-v1"
-RUNTIME_COGNITION_VERSION = "0.23"
+RUNTIME_COGNITION_VERSION = "0.24"
 
 
 @dataclass
@@ -45,6 +45,9 @@ class RuntimeCognitionPolicy:
     # v0.23: if an induced slot carries a compiled semantic admission profile,
     # enforce it before the frame can become a predictive context.
     enable_semantic_slot_admission: bool = True
+    # v0.24: prefer a compiled latent class membership edge (candidate -> prototype)
+    # over re-evaluating pairwise candidate-to-filler similarity at runtime.
+    enable_slot_prototype_admission: bool = True
     frame_match_weight: float = 0.82
     max_frame_matches: int = 8
     # Relation weights are recall routing priors, not learned semantics.
@@ -265,6 +268,35 @@ class RuntimeCognition:
             result.update({"admitted": True, "reason": "observed_filler", "supporting_fillers": sorted(filler_ids.intersection(candidate_ids)),
                            "required_support": min_support, "min_score": min_score})
             return result
+
+        prototype_id = str(profile.get("prototype_node_id") or "")
+        if prototype_id and self.policy.enable_slot_prototype_admission:
+            relation_type = str(profile.get("prototype_membership_relation_type") or RelationType.IS_A.value)
+            prototype_min = float(profile.get("prototype_min_candidate_score", min_score) or min_score)
+            best = 0.0
+            matched_candidate = None
+            prototype_index_lookups = 0
+            for cid in candidate_ids:
+                prototype_index_lookups += 1
+                rel = self.index.relation_by_key.get((cid, prototype_id, relation_type))
+                if rel is None:
+                    continue
+                q = max(0.0, min(1.0, float(rel.score) * float(rel.confidence)))
+                if q > best:
+                    best = q; matched_candidate = cid
+            admitted = best + 1e-12 >= prototype_min
+            result.update({
+                "prototype_node_id": prototype_id,
+                "prototype_relation_type": relation_type,
+                "prototype_score": best,
+                "prototype_min_score": prototype_min,
+                "prototype_candidate_node_id": matched_candidate,
+                "prototype_index_lookups": prototype_index_lookups,
+                "admitted": admitted,
+                "reason": "prototype_membership" if admitted else "insufficient_prototype_membership",
+            })
+            return result
+
         best_by_filler: dict[str, float] = {}
         for cid in candidate_ids:
             for rel in self.index.relations_from.get(cid, []):

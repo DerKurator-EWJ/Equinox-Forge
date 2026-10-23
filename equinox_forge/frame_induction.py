@@ -11,7 +11,7 @@ from .compiler import CompilePolicy, aggregate_relations
 from .ir import ForgeDocument, IRNode, RelationEvidence, RelationType, SourceRef, NodeKind, Modality
 
 FRAME_INDUCTION_FORMAT = "equinox-forge-frame-induction-v1"
-FRAME_INDUCTION_VERSION = "0.23"
+FRAME_INDUCTION_VERSION = "0.24"
 
 
 @dataclass(frozen=True)
@@ -37,6 +37,13 @@ class FrameInductionPolicy:
     slot_admission_min_score: float = 0.55
     slot_admission_min_support_fillers: int = 2
     require_typed_slot: bool = False
+    # v0.24: collapse a coherent filler cohort into its own latent class node and
+    # precompile independent semantic membership evidence into that prototype.
+    enable_latent_slot_prototype: bool = False
+    prototype_classify_candidates: bool = True
+    prototype_min_admission_score: float = 0.55
+    prototype_min_support_fillers: int = 2
+    prototype_membership_confidence: float = 0.92
 
     def validate(self) -> None:
         if self.min_contexts < 2:
@@ -44,7 +51,7 @@ class FrameInductionPolicy:
         if self.min_unique_fillers < 2:
             raise ValueError("min_unique_fillers must be >= 2")
         if self.max_slots != 1:
-            raise ValueError("v0.22 supports exactly one induced slot per frame")
+            raise ValueError("v0.24 currently supports exactly one induced slot per frame")
         if not 0.0 <= self.min_target_context_fraction <= 1.0:
             raise ValueError("min_target_context_fraction must be in [0,1]")
         if not 0.0 <= self.min_target_score <= 1.0:
@@ -61,6 +68,12 @@ class FrameInductionPolicy:
             raise ValueError("slot_admission_min_support_fillers must be >= 1")
         if not self.semantic_relation_types:
             raise ValueError("semantic_relation_types must not be empty")
+        if not 0.0 <= self.prototype_min_admission_score <= 1.0:
+            raise ValueError("prototype_min_admission_score must be in [0,1]")
+        if self.prototype_min_support_fillers < 1:
+            raise ValueError("prototype_min_support_fillers must be >= 1")
+        if not 0.0 <= self.prototype_membership_confidence <= 1.0:
+            raise ValueError("prototype_membership_confidence must be in [0,1]")
 
 
 @dataclass
@@ -91,6 +104,8 @@ class FrameInductionReport:
     rejected_no_shared_targets: int
     generated_nodes: int
     generated_prediction_evidence: int
+    generated_slot_prototypes: int
+    generated_prototype_memberships: int
     frames: list[FrameCandidateReport]
     notes: list[str]
 
@@ -215,7 +230,121 @@ def _semantic_slot_profile(
     }
 
 
-def _slot_node(pattern_tokens: list[str], slot_position: int, filler_nodes: list[IRNode], policy: FrameInductionPolicy, semantic_profile: dict[str, Any] | None = None) -> IRNode:
+def _latent_prototype_node(filler_nodes: list[IRNode], policy: FrameInductionPolicy) -> IRNode:
+    filler_ids = sorted({n.node_id for n in filler_nodes})
+    signature = {
+        "role": "latent_slot_prototype",
+        "fillers": filler_ids,
+        "semantic_relation_types": list(policy.semantic_relation_types),
+    }
+    short = _stable_hash(signature)[:10]
+    node_id = composite_id(
+        Modality.TEXT.value, NodeKind.CONCEPT.value, filler_ids, label="latent-slot-prototype:" + short
+    )
+    return IRNode(
+        node_id=node_id,
+        modality=Modality.TEXT.value,
+        kind=NodeKind.CONCEPT.value,
+        level=max(n.level for n in filler_nodes) + 1,
+        surface=f"Concept_{short}",
+        members=filler_ids,
+        metadata={
+            "role": "latent_slot_prototype",
+            "provisional": True,
+            "prototype_id": short,
+            "filler_node_ids": filler_ids,
+            "filler_surfaces": sorted({str(n.surface) for n in filler_nodes if n.surface is not None}),
+            "semantic_relation_types": list(policy.semantic_relation_types),
+            "support_count": len(filler_ids),
+            "forge_version": FRAME_INDUCTION_VERSION,
+        },
+    )
+
+
+def _all_text_surface_nodes(db: sqlite3.Connection) -> list[IRNode]:
+    rows = db.execute(
+        "SELECT node_id,modality,kind,level,surface,metadata_json FROM nodes WHERE modality=? AND kind=? AND surface IS NOT NULL ORDER BY node_id",
+        (Modality.TEXT.value, NodeKind.SURFACE.value),
+    ).fetchall()
+    return [
+        IRNode(r[0], r[1], r[2], int(r[3]), r[4], [], json.loads(r[5] or "{}"))
+        for r in rows
+    ]
+
+
+def _prototype_membership_evidence(
+    db: sqlite3.Connection,
+    prototype: IRNode,
+    filler_nodes: list[IRNode],
+    relation_quality: dict[tuple[str, str], float],
+    policy: FrameInductionPolicy,
+    src: SourceRef,
+) -> tuple[list[RelationEvidence], dict[str, Any]]:
+    filler_ids = sorted({n.node_id for n in filler_nodes})
+    filler_set = set(filler_ids)
+    out: list[RelationEvidence] = []
+    admitted: list[dict[str, Any]] = []
+
+    # Observed fillers are exact members of the induced latent class.
+    for n in sorted(filler_nodes, key=lambda x: x.node_id):
+        out.append(RelationEvidence(
+            n.node_id, prototype.node_id, RelationType.IS_A.value, 1.0,
+            float(policy.prototype_membership_confidence), src,
+            {
+                "evidence_kind": "latent_slot_prototype_member",
+                "prototype_node_id": prototype.node_id,
+                "derived_from_semantic_slot": True,
+                "provisional": True,
+            },
+        ))
+        admitted.append({"node_id": n.node_id, "surface": n.surface, "score": 1.0, "support_fillers": len(filler_ids), "observed_filler": True})
+
+    if not policy.prototype_classify_candidates:
+        return out, {"admitted": admitted, "candidate_count": 0}
+
+    candidate_count = 0
+    required = min(int(policy.prototype_min_support_fillers), len(filler_ids))
+    for cand in _all_text_surface_nodes(db):
+        if cand.node_id in filler_set:
+            continue
+        scores: dict[str, float] = {}
+        for fid in filler_ids:
+            score = max(relation_quality.get((cand.node_id, fid), 0.0), relation_quality.get((fid, cand.node_id), 0.0))
+            if score > 0.0:
+                scores[fid] = score
+        if not scores:
+            continue
+        candidate_count += 1
+        supporters = sorted(fid for fid, score in scores.items() if score + 1e-12 >= policy.prototype_min_admission_score)
+        if len(supporters) < required:
+            continue
+        # Normalize across the whole prototype support set: missing filler support
+        # counts as zero rather than making a single strong edge look like a class.
+        membership_score = sum(scores.get(fid, 0.0) for fid in filler_ids) / len(filler_ids)
+        if membership_score + 1e-12 < policy.prototype_min_admission_score:
+            continue
+        out.append(RelationEvidence(
+            cand.node_id, prototype.node_id, RelationType.IS_A.value,
+            max(0.0, min(1.0, membership_score)), float(policy.prototype_membership_confidence), src,
+            {
+                "evidence_kind": "latent_slot_prototype_classification",
+                "prototype_node_id": prototype.node_id,
+                "supporting_filler_node_ids": supporters,
+                "support_scores": {k: scores[k] for k in sorted(scores)},
+                "required_support_fillers": required,
+                "min_admission_score": float(policy.prototype_min_admission_score),
+                "source_relation_types": list(policy.semantic_relation_types),
+                "provisional": True,
+            },
+        ))
+        admitted.append({
+            "node_id": cand.node_id, "surface": cand.surface, "score": membership_score,
+            "support_fillers": len(supporters), "observed_filler": False,
+        })
+    return out, {"admitted": admitted, "candidate_count": candidate_count, "required_support_fillers": required}
+
+
+def _slot_node(pattern_tokens: list[str], slot_position: int, filler_nodes: list[IRNode], policy: FrameInductionPolicy, semantic_profile: dict[str, Any] | None = None, prototype: IRNode | None = None) -> IRNode:
     filler_ids = sorted({n.node_id for n in filler_nodes})
     slot_label = f"[SLOT_{slot_position}]"
     slot_signature = {
@@ -225,14 +354,15 @@ def _slot_node(pattern_tokens: list[str], slot_position: int, filler_nodes: list
         "open_text_slot": bool(policy.allow_open_text_slot),
     }
     node_id = composite_id(Modality.TEXT.value, NodeKind.CONCEPT.value, filler_ids, label="slot:" + _stable_hash(slot_signature)[:16])
-    level = max(n.level for n in filler_nodes) + 1
+    slot_members = [prototype.node_id] if prototype is not None else filler_ids
+    level = (prototype.level + 1) if prototype is not None else (max(n.level for n in filler_nodes) + 1)
     return IRNode(
         node_id=node_id,
         modality=Modality.TEXT.value,
         kind=NodeKind.CONCEPT.value,
         level=level,
         surface=slot_label,
-        members=filler_ids,
+        members=slot_members,
         metadata={
             "role": "induced_frame_slot",
             "provisional": True,
@@ -242,6 +372,7 @@ def _slot_node(pattern_tokens: list[str], slot_position: int, filler_nodes: list
             "support_count": len(filler_ids),
             "semantic_admission": semantic_profile,
             "semantic_typed": bool(semantic_profile),
+            "latent_prototype_node_id": prototype.node_id if prototype is not None else None,
             "forge_version": FRAME_INDUCTION_VERSION,
         },
     )
@@ -273,6 +404,9 @@ def induce_relation_frames(
     frames: list[FrameCandidateReport] = []
     rej_contexts = rej_fillers = rej_targets = 0
     src = SourceRef(source_id, source_version, "frame_schema_induction_v1")
+    generated_slot_prototypes = 0
+    generated_prototype_memberships = 0
+    prototype_report_cache: dict[str, dict[str, Any]] = {}
 
     for (width, slot_pos, fixed), rows in sorted(groups.items(), key=lambda x: x[0]):
         unique_contexts = {r["node_id"]: r for r in rows}
@@ -321,7 +455,43 @@ def induce_relation_frames(
         if policy.require_typed_slot and semantic_profile is None:
             rej_fillers += 1
             continue
-        slot = _slot_node(pattern_tokens, slot_pos, filler_nodes, policy, semantic_profile)
+        prototype = None
+        if policy.enable_latent_slot_prototype:
+            if semantic_profile is None:
+                # A latent semantic class must be grounded by the same independent
+                # coherence evidence required for typed admission.
+                rej_fillers += 1
+                continue
+            prototype = _latent_prototype_node(filler_nodes, policy)
+            is_new_prototype = prototype.node_id not in prototype_report_cache
+            all_nodes[prototype.node_id] = prototype
+            if is_new_prototype:
+                membership_evidence, prototype_report = _prototype_membership_evidence(
+                    db, prototype, filler_nodes, semantic_quality, policy, src
+                )
+                evidence.extend(membership_evidence)
+                # Membership evidence may classify support-knowledge surfaces that were
+                # not part of the observed frame contexts. Include those canonical nodes
+                # (and their Q children) in the standalone derived IR so validation and
+                # later transport remain self-contained.
+                for me in membership_evidence:
+                    if me.from_id not in all_nodes:
+                        _load_node_recursive(db, me.from_id, all_nodes)
+                generated_slot_prototypes += 1
+                generated_prototype_memberships += len(membership_evidence)
+                prototype_report_cache[prototype.node_id] = prototype_report
+            else:
+                prototype_report = prototype_report_cache[prototype.node_id]
+            semantic_profile = {
+                **semantic_profile,
+                "mode": "latent_prototype_admission_v1",
+                "prototype_node_id": prototype.node_id,
+                "prototype_surface": prototype.surface,
+                "prototype_membership_relation_type": RelationType.IS_A.value,
+                "prototype_min_candidate_score": float(policy.prototype_min_admission_score),
+                "prototype_classification": prototype_report,
+            }
+        slot = _slot_node(pattern_tokens, slot_pos, filler_nodes, policy, semantic_profile, prototype)
         all_nodes[slot.node_id] = slot
 
         frame_members: list[IRNode] = []
@@ -414,14 +584,17 @@ def induce_relation_frames(
         rejected_insufficient_fillers=rej_fillers,
         rejected_no_shared_targets=rej_targets,
         generated_nodes=len(doc.nodes),
-        generated_prediction_evidence=len(doc.evidence),
+        generated_prediction_evidence=len([e for e in doc.evidence if e.relation_type == RelationType.PREDICTION.value]),
+        generated_slot_prototypes=generated_slot_prototypes,
+        generated_prototype_memberships=generated_prototype_memberships,
         frames=frames,
         notes=[
-            "v0.23 retains v0.22 one-slot frame induction and can additionally compile semantic admission constraints from independent canonical relations.",
+            "v0.24 retains typed slot admission and can additionally collapse a coherent filler cohort into a provisional latent slot prototype.",
             "Slot labels are provisional structural variables, not semantic type claims such as ENTITY unless separate evidence supports such a type.",
             "Frame predictions are derived evidence with explicit source-context provenance; original teacher/corpus evidence remains unchanged.",
             "Open-slot runtime matching is intentionally auditable and can be disabled independently from lexical/parent routing.",
-            "A semantic_typed slot stores only its admission profile and supporting fillers; it does not import held-out frame answers or evaluation labels.",
+            "A semantic_typed slot stores only compile-time semantic evidence; it does not import held-out frame answers or evaluation labels.",
+            "When latent prototypes are enabled, candidate-to-prototype IS_A evidence is compiled offline from independent semantic relations so runtime admission need not re-evaluate every filler pair.",
         ],
     )
     return doc, report
