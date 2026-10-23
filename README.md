@@ -1,6 +1,10 @@
-# Equinox Forge v0.19 — Held-out Generalization + Context Coverage
+# Equinox Forge v0.20 — Generalization Ladder
 
-**Current milestone:** v0.18 turns the fixed v0.17 retention benchmark into a controlled multi-configuration efficiency experiment. The teacher is probed **once** at the largest requested top-k. Forge then recompiles that exact captured evidence across pruning, runtime-budget, and optional macro-compression settings and measures the resulting storage/behaviour trade-off.
+**Current milestone:** v0.20 stratifies Equinox transfer from exact replay through progressively harder held-out structural conditions (L0–L5), validates each level assignment, and reports the exact point where the current runtime stops transferring successfully.
+
+Historical documentation for v0.1–v0.19 remains below.
+
+**Previous milestone context:** v0.18 turns the fixed v0.17 retention benchmark into a controlled multi-configuration efficiency experiment. The teacher is probed **once** at the largest requested top-k. Forge then recompiles that exact captured evidence across pruning, runtime-budget, and optional macro-compression settings and measures the resulting storage/behaviour trade-off.
 
 ```text
 one Teacher probe set
@@ -1699,3 +1703,68 @@ L5 held-out task or domain
 
 That will show *which kind* of generalization Equinox actually performs, rather than compressing all novelty into one score.
 
+
+---
+
+# Step 0.20 — Generalization Ladder
+
+v0.20 adds a stratified generalization benchmark instead of treating all unseen prompts as one bucket.
+It compiles only the training split into `.eqbase`; evaluation teacher probes are stored under
+`evaluation_only/` and are never inserted into the Canonical DB or runtime pack.
+
+## Ladder
+
+| Level | Name | Structural contract |
+|---|---|---|
+| L0 | exact replay control | exact normalized prompt exists in compile split |
+| L1 | known suffix in new outer context | full prompt unseen; a proper suffix is a compiled predictive train prompt |
+| L2 | novel recombination of known parts | all tokens known, no L1 suffix replay, at least one known local bigram |
+| L3 | novel relation/order over known lexicon | all tokens known, no L1 suffix, no train bigram reused |
+| L4 | novel entity in known relational frame | at least one novel token plus a previously observed local relational frame |
+| L5 | held-out relation/task family | explicitly labeled family is absent from the entire compile split |
+
+The level labels are evaluation metadata only. Forge validates the structural contract before running;
+mislabelled cases fail by default instead of silently inflating a higher-level score.
+
+## Outputs
+
+`benchmark-generalization-ladder` writes:
+
+- `train.sqlite`
+- `train.eqbase`
+- `train-teacher-behaviour.eqir.json`
+- `evaluation_only/ladder-teacher-reference.eqir.json`
+- `ladder-manifest.json` with SHA-256 hashes and the exact L0–L5 split
+- `generalization-ladder-report.json` with per-level Direct Replay, Full Runtime, token/bigram coverage,
+  context-resolution traces and structural-contract results
+
+The report exposes both `highest_level_with_full_top1_success` and a stricter
+`highest_contiguous_level_with_full_top1_success`. The contiguous frontier only advances when every
+preceding populated level is also fully retained; an isolated success at a harder level therefore
+cannot masquerade as a solved ladder.
+
+## CLI
+
+```bash
+eqforge benchmark-generalization-ladder /path/to/local/model out/ladder \
+  --train-jsonl train.jsonl \
+  --eval-jsonl eval.jsonl \
+  --source-id teacher-A \
+  --teacher-top-k 8 \
+  --runtime-top-k 8
+```
+
+Train JSONL:
+
+```json
+{"prompt":"Hund ist ein","family":"taxonomy"}
+```
+
+Evaluation JSONL:
+
+```json
+{"prompt":"Mein Hund kann","level":1,"family":"ability"}
+```
+
+The included deterministic demo currently reaches L0–L4 Top-1 in the small fixture and fails L5.
+That is a pipeline/diagnostic result, not evidence of broad natural-language generalization.

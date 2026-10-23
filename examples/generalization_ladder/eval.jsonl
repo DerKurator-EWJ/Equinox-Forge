@@ -1,0 +1,6 @@
+{"prompt":"Hund kann","level":0,"family":"ability","note":"exact replay control"}
+{"prompt":"Mein Hund kann","level":1,"family":"ability","note":"new prefix, known predictive suffix"}
+{"prompt":"Hund jagt Maus","level":2,"family":"hunting","note":"known parts recombined"}
+{"prompt":"Maus sieht Hund","level":3,"family":"perception-reversed","note":"known lexicon, novel adjacency/order"}
+{"prompt":"Wolf ist ein","level":4,"family":"taxonomy","note":"novel entity in known relational frame"}
+{"prompt":"Hund wohnt in","level":5,"family":"residence-preposition","note":"family absent from compile split"}

@@ -1,0 +1,10 @@
+{"prompt":"Hund ist ein","family":"taxonomy"}
+{"prompt":"Katze ist ein","family":"taxonomy"}
+{"prompt":"Hund kann","family":"ability"}
+{"prompt":"Katze kann","family":"ability"}
+{"prompt":"Katze jagt Maus","family":"hunting"}
+{"prompt":"Hund sieht Katze","family":"perception"}
+{"prompt":"Haus ist","family":"property"}
+{"prompt":"Vogel fliegt","family":"flight"}
+{"prompt":"Katze wohnt","family":"residence-bare"}
+{"prompt":"Vogel fliegt in","family":"motion-preposition"}
