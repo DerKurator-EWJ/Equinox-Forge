@@ -1,23 +1,28 @@
-# Equinox Forge v0.54 — Unified Numeric Relation Routing
+# Equinox Forge v0.55 — Unified Numeric Execution Kernel
 
-v0.54 makes the new numeric relation space operational through one public query path. Scalar predicates, relation facets, relation-family IDs, and recursive relation-macro IDs are all addressed as opaque numeric relation IDs.
+v0.55 consolidates the numeric runtime work from v0.48-v0.54 into one flat DB-free runtime pack and one execution engine:
 
 ```text
-subject ID + relation ID
-          ↓
-compiled numeric route
-          ↓
-scalar relation OR recursive relation macro
-          ↓
-object IDs
+facts + surfaces + concept shortcuts + relation routes
+                       ↓
+          UnifiedNumericExecutionKernel
+                       ↓
+          resolve(subject_id, relation_id)
 ```
 
-The runtime does not branch on semantic names such as `PROPERTY` or `ACTION`. The compiler discovers exact family-to-macro aliases structurally and serializes them as numeric routes.
+The deployed kernel no longer nests the historical numeric, concept-macro, facet, relation-macro, and unified-relation runtime packs. Those layers remain in Forge for compatibility, audit, and regression comparison.
 
-Run the frozen v0.54 demo:
+Frozen v0.55 reference results:
+
+- 240/240 compiled subject/relation query pairs semantically identical to v0.54,
+- 0 parity failures,
+- flat pack ≈ 67.23% of the nested v0.54 JSON size on the reference fixture,
+- runtime-only import requires none of the historical v0.48-v0.54 runtime modules.
+
+Run:
 
 ```bash
-eqforge-unified-relation-runtime --out out/v0_54_unified_relation_runtime
+eqforge-unified-numeric-kernel --out out/v0_55_unified_numeric_kernel
 ```
 
-See `RELEASE_V0_54.md` and `benchmarks/v0_54/` for the frozen contract and reference output. Historical release notes and regression tests remain included.
+See `RELEASE_V0_55.md` and `benchmarks/v0_55/` for the frozen contract. Historical release notes and regression tests remain included.
