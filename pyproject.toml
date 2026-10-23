@@ -1,0 +1,9 @@
+[project]
+name = "equinox-forge"
+version = "0.1.0"
+description = "Model-independent canonical knowledge compiler for Equinox"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+eqforge = "equinox_forge.cli:main"

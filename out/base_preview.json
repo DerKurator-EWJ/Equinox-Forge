@@ -1,0 +1,218 @@
+{
+  "format": "equinox-forge-runtime-preview-v1",
+  "nodes": [
+    {
+      "id": "q_1a371ca4988365289108f6c2",
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "surface": "i",
+      "tier": "Q"
+    },
+    {
+      "id": "q_38bc09e968b2bef6ab7543b9",
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "surface": "s",
+      "tier": "Q"
+    },
+    {
+      "id": "q_4e304d1d5053c0418f3cf06b",
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "surface": "u",
+      "tier": "Q"
+    },
+    {
+      "id": "q_63226e2b8308e87a2c8b9efc",
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "surface": "H",
+      "tier": "Q"
+    },
+    {
+      "id": "q_99799369ad132cd7e47da92b",
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "surface": "e",
+      "tier": "Q"
+    },
+    {
+      "id": "q_b531642b306274deb5568859",
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "surface": "r",
+      "tier": "Q"
+    },
+    {
+      "id": "q_c6f6e6994e2cd21c9c0b4935",
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "surface": "d",
+      "tier": "Q"
+    },
+    {
+      "id": "q_f33bd22ce5519138db3a4bce",
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "surface": "T",
+      "tier": "Q"
+    },
+    {
+      "id": "q_f534dbef81ff2a5b9c86842b",
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "surface": "t",
+      "tier": "Q"
+    },
+    {
+      "id": "q_f9c1ab02b020bf72a42dbb99",
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "surface": "n",
+      "tier": "Q"
+    },
+    {
+      "id": "m_00c9da23936184dd7cd05d8b",
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_63226e2b8308e87a2c8b9efc",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_c6f6e6994e2cd21c9c0b4935",
+        "q_99799369ad132cd7e47da92b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "surface": "Hunde",
+      "tier": "F"
+    },
+    {
+      "id": "m_42178d06f9c5e1b98384186a",
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_63226e2b8308e87a2c8b9efc",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_c6f6e6994e2cd21c9c0b4935"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "surface": "Hund",
+      "tier": "F"
+    },
+    {
+      "id": "m_57daeeb6b1f4d6a5ae840cbc",
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_f33bd22ce5519138db3a4bce",
+        "q_1a371ca4988365289108f6c2",
+        "q_99799369ad132cd7e47da92b",
+        "q_b531642b306274deb5568859"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "surface": "Tier",
+      "tier": "F"
+    },
+    {
+      "id": "m_588b6b130b77b7313d77b23e",
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_99799369ad132cd7e47da92b",
+        "q_1a371ca4988365289108f6c2",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "surface": "ein",
+      "tier": "F"
+    },
+    {
+      "id": "m_adfbc192594d8f141843eac4",
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_1a371ca4988365289108f6c2",
+        "q_38bc09e968b2bef6ab7543b9",
+        "q_f534dbef81ff2a5b9c86842b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "surface": "ist",
+      "tier": "F"
+    },
+    {
+      "id": "m_12c9aaeba258ec11ca3d7265",
+      "kind": "composite",
+      "level": 2,
+      "members": [
+        "m_42178d06f9c5e1b98384186a",
+        "m_adfbc192594d8f141843eac4",
+        "m_588b6b130b77b7313d77b23e",
+        "m_57daeeb6b1f4d6a5ae840cbc"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "surface": "Hund ist ein Tier",
+      "tier": "E"
+    }
+  ],
+  "pack": {
+    "id": "german-demo",
+    "version": 1
+  },
+  "relations": [
+    {
+      "confidence": 0.95,
+      "evidence_count": 1,
+      "from_id": "m_42178d06f9c5e1b98384186a",
+      "relation_type": "semantic_similarity",
+      "score": 0.96,
+      "source_count": 1,
+      "to_id": "m_00c9da23936184dd7cd05d8b"
+    },
+    {
+      "confidence": 0.985,
+      "evidence_count": 2,
+      "from_id": "m_42178d06f9c5e1b98384186a",
+      "relation_type": "is_a",
+      "score": 0.8905714285714286,
+      "source_count": 2,
+      "to_id": "m_57daeeb6b1f4d6a5ae840cbc"
+    }
+  ]
+}
