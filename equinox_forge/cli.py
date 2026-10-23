@@ -29,6 +29,7 @@ from .behaviour_retention import compile_and_benchmark_teacher_behaviour
 from .pareto_sweep import ParetoSweepConfig, run_behaviour_pareto_sweep
 from .generalization import compile_and_benchmark_heldout_generalization
 from .generalization_ladder import compile_and_benchmark_generalization_ladder, load_ladder_train_jsonl, load_ladder_eval_jsonl
+from .mechanism_attribution import compile_and_benchmark_mechanism_attribution
 
 
 def ingest(db_path: str, doc_path: str):
@@ -841,6 +842,38 @@ def _benchmark_generalization_ladder(args) -> int:
     return 0
 
 
+
+def _benchmark_mechanism_attribution(args) -> int:
+    probe_cfg = BehaviourProbeConfig(
+        top_k=args.teacher_top_k, temperature=args.temperature, min_probability=args.min_probability,
+        max_surface_chars=args.max_surface_chars, evidence_confidence=args.evidence_confidence,
+        strip_leading_space=not args.keep_leading_space, include_punctuation_only=args.include_punctuation_only,
+        include_numeric_only=not args.exclude_numeric_only, max_prompt_words=args.max_prompt_words,
+    )
+    policy = RuntimeCognitionPolicy(
+        max_recall_nodes=args.max_recall_nodes, max_recall_depth=args.max_recall_depth,
+        max_relation_neighbors=args.max_relation_neighbors, max_structural_parents=args.max_structural_parents,
+        max_predictions=max(args.runtime_top_k, args.max_predictions), min_activation=args.min_activation,
+        min_prediction_score=args.min_prediction_score,
+    )
+    try:
+        train_cases = load_ladder_train_jsonl(args.train_jsonl)
+        eval_cases = load_ladder_eval_jsonl(args.eval_jsonl)
+        backend = TransformersCausalLMBackend(
+            args.model_dir, device=args.device, trust_remote_code=args.trust_remote_code, dtype=args.dtype
+        )
+        report = compile_and_benchmark_mechanism_attribution(
+            backend, train_cases, eval_cases, args.output_dir, args.source_id, args.source_version,
+            probe_cfg=probe_cfg, cognition_policy=policy, runtime_top_k=args.runtime_top_k,
+            pack_id=args.pack_id, pack_version=args.pack_version, include_pack_metadata=args.include_pack_metadata,
+            strict_contracts=not args.allow_contract_violations, include_combinations=not args.single_only,
+        )
+    except Exception as exc:
+        print(f"ERROR: mechanism attribution benchmark failed: {exc}")
+        return 3
+    print(json.dumps(report.to_dict(), ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
 def _list_artifacts(args) -> int:
     with CanonicalDB(args.db) as c:
         rows = list_artifacts(c.db, build_target_id=args.target_id, statuses=args.status or None)
@@ -1236,6 +1269,39 @@ def main():
     gl.add_argument("--include-pack-metadata", action="store_true")
     gl.add_argument("--allow-contract-violations", action="store_true", help="diagnostic only; report invalid level assignments instead of failing")
 
+    ma=sub.add_parser("benchmark-mechanisms", help="leave-one-mechanism-out attribution over a fixed compiled generalization BASE")
+    ma.add_argument("model_dir")
+    ma.add_argument("output_dir")
+    ma.add_argument("--train-jsonl", required=True)
+    ma.add_argument("--eval-jsonl", required=True)
+    ma.add_argument("--source-id", required=True)
+    ma.add_argument("--source-version", default="local")
+    ma.add_argument("--teacher-top-k", type=int, default=8)
+    ma.add_argument("--runtime-top-k", type=int, default=8)
+    ma.add_argument("--temperature", type=float, default=1.0)
+    ma.add_argument("--min-probability", type=float, default=0.0)
+    ma.add_argument("--max-surface-chars", type=int, default=64)
+    ma.add_argument("--max-prompt-words", type=int, default=64)
+    ma.add_argument("--evidence-confidence", type=float, default=0.95)
+    ma.add_argument("--keep-leading-space", action="store_true")
+    ma.add_argument("--include-punctuation-only", action="store_true")
+    ma.add_argument("--exclude-numeric-only", action="store_true")
+    ma.add_argument("--device", default="cpu")
+    ma.add_argument("--dtype", default="auto")
+    ma.add_argument("--trust-remote-code", action="store_true")
+    ma.add_argument("--max-recall-nodes", type=int, default=96)
+    ma.add_argument("--max-recall-depth", type=int, default=3)
+    ma.add_argument("--max-relation-neighbors", type=int, default=24)
+    ma.add_argument("--max-structural-parents", type=int, default=24)
+    ma.add_argument("--max-predictions", type=int, default=8)
+    ma.add_argument("--min-activation", type=float, default=0.06)
+    ma.add_argument("--min-prediction-score", type=float, default=0.0)
+    ma.add_argument("--pack-id", default="equinox-mechanism-attribution")
+    ma.add_argument("--pack-version", type=int, default=21)
+    ma.add_argument("--include-pack-metadata", action="store_true")
+    ma.add_argument("--allow-contract-violations", action="store_true")
+    ma.add_argument("--single-only", action="store_true", help="skip combination ablations")
+
     ar=sub.add_parser("artifacts", help="list current derived compiler artifacts")
     ar.add_argument("db"); ar.add_argument("--target-id"); ar.add_argument("--status", action="append", default=[])
 
@@ -1358,6 +1424,8 @@ def main():
         raise SystemExit(_benchmark_generalization(a))
     elif a.cmd=="benchmark-generalization-ladder":
         raise SystemExit(_benchmark_generalization_ladder(a))
+    elif a.cmd=="benchmark-mechanisms":
+        raise SystemExit(_benchmark_mechanism_attribution(a))
     elif a.cmd=="artifacts":
         raise SystemExit(_list_artifacts(a))
     elif a.cmd=="source-policy":

@@ -31,6 +31,15 @@ class RuntimeCognitionPolicy:
     exact_context_prediction_weight: float = 1.0
     seed_recent_word_weight: float = 0.82
     seed_older_word_weight: float = 0.48
+    # Runtime mechanism switches. Defaults preserve v0.16-v0.20 behavior.
+    enable_exact_context: bool = True
+    enable_suffix_context: bool = True
+    enable_lexical_seeds: bool = True
+    enable_parent_routing: bool = True
+    enable_relation_recall: bool = True
+    enable_direct_context_prediction: bool = True
+    enable_transition_prediction: bool = True
+    enable_recalled_context_prediction: bool = True
     # Relation weights are recall routing priors, not learned semantics.
     relation_weights: dict[str, float] = field(default_factory=lambda: {
         RelationType.ASSOCIATION.value: 0.55,
@@ -214,10 +223,13 @@ class RuntimeCognition:
             if ids:
                 lexical.append(sorted(ids)[0])
 
+        if not self.policy.enable_exact_context:
+            exact_context = []
+
         # If an exact context label does not exist, use the longest known suffix
         # context. This makes n-gram BASE packs useful with longer live prompts.
         fallback: list[str] = []
-        if not exact_context:
+        if not exact_context and self.policy.enable_suffix_context:
             for width in range(min(len(tokens), 8), 1, -1):
                 label = " ".join(tokens[-width:])
                 ids = [x for x in self.index.surface_to_nodes.get(label, [])
@@ -226,6 +238,8 @@ class RuntimeCognition:
                 if ids:
                     fallback = sorted(ids, key=lambda x: _node_preference(self.index.node_by_id[x]))
                     break
+        if not self.policy.enable_lexical_seeds:
+            lexical = []
         return exact_context or fallback, lexical, tokens
 
     def _relation_quality(self, rel: CompiledRelation, weight: float) -> float:
@@ -271,7 +285,8 @@ class RuntimeCognition:
 
             # Structural upward routing is central to Equinox: known lower nodes can
             # expose a bounded set of contexts/macros without scanning all parents.
-            parents = self.index.parents.get(nid, [])[:self.policy.max_structural_parents]
+            parents = (self.index.parents.get(nid, [])[:self.policy.max_structural_parents]
+                       if self.policy.enable_parent_routing else [])
             parent_checks += 1 + len(parents)
             for pid in parents:
                 pnode = self.index.node_by_id[pid]
@@ -287,7 +302,7 @@ class RuntimeCognition:
 
             # Associative/semantic recall relations. PREDICTION and TRANSITION are
             # deliberately excluded here; they are output channels, not recall links.
-            rels = self.index.relations_from.get(nid, [])
+            rels = self.index.relations_from.get(nid, []) if self.policy.enable_relation_recall else []
             relation_checks += 1 + len(rels)
             ranked_rels: list[tuple[float, CompiledRelation]] = []
             for rel in rels:
@@ -355,13 +370,14 @@ class RuntimeCognition:
             ))
 
         # Exact/suffix predictive contexts get full-weight direct predictions.
-        for cid in meta["resolved_context_ids"]:
-            for rel in self.index.relations_from.get(cid, []):
-                if rel.relation_type == RelationType.PREDICTION.value:
-                    add(rel, 1.0, self.policy.exact_context_prediction_weight, True)
+        if self.policy.enable_direct_context_prediction:
+            for cid in meta["resolved_context_ids"]:
+                for rel in self.index.relations_from.get(cid, []):
+                    if rel.relation_type == RelationType.PREDICTION.value:
+                        add(rel, 1.0, self.policy.exact_context_prediction_weight, True)
 
         # Latest lexical item supplies bigram transition predictions.
-        if lexical_ids:
+        if lexical_ids and self.policy.enable_transition_prediction:
             last = lexical_ids[-1]
             act = recalled[last].activation if last in recalled else self.policy.seed_recent_word_weight
             for rel in self.index.relations_from.get(last, []):
@@ -369,12 +385,13 @@ class RuntimeCognition:
                     add(rel, act, self.policy.transition_weight, True)
 
         # Recalled contexts can contribute prediction evidence at a lower weight.
-        for trace in recall:
-            if trace.node_id in context_ids:
-                continue
-            for rel in self.index.relations_from.get(trace.node_id, []):
-                if rel.relation_type == RelationType.PREDICTION.value:
-                    add(rel, trace.activation, self.policy.recalled_prediction_weight, False)
+        if self.policy.enable_recalled_context_prediction:
+            for trace in recall:
+                if trace.node_id in context_ids:
+                    continue
+                for rel in self.index.relations_from.get(trace.node_id, []):
+                    if rel.relation_type == RelationType.PREDICTION.value:
+                        add(rel, trace.activation, self.policy.recalled_prediction_weight, False)
 
         candidates: list[PredictionCandidate] = []
         for target_id, cs in contributions.items():

@@ -26,10 +26,11 @@ TESTS=[
     'test_pareto_sweep.py',
     'test_generalization.py',
     'test_generalization_ladder.py',
+    'test_mechanism_attribution.py',
 ]
 env=os.environ.copy()
 old=env.get('PYTHONPATH','')
 env['PYTHONPATH']=str(ROOT)+(os.pathsep+old if old else '')
 for name in TESTS:
     subprocess.run([sys.executable, str(ROOT/'tests'/name)], check=True, cwd=ROOT, env=env)
-print('FORGE_V20_ALL_TESTS_OK')
+print('FORGE_V21_ALL_TESTS_OK')

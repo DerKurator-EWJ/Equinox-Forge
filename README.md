@@ -1768,3 +1768,87 @@ Evaluation JSONL:
 
 The included deterministic demo currently reaches L0–L4 Top-1 in the small fixture and fails L5.
 That is a pipeline/diagnostic result, not evidence of broad natural-language generalization.
+
+
+---
+
+# Step 0.21 — Mechanism Attribution / Ablation Suite
+
+v0.21 asks a different question from the L0–L5 ladder: **why did the runtime succeed?**
+Every ablation runs against the exact same immutable `.eqbase` pack and the same persisted
+evaluation-only teacher reference. No teacher evidence is recompiled for an ablation.
+
+## Runtime mechanism switches
+
+`RuntimeCognitionPolicy` now exposes independent switches for:
+
+- exact-context resolution
+- known-suffix context resolution
+- lexical seeding
+- structural child→parent routing
+- associative / semantic relation recall
+- direct context prediction
+- transition prediction
+- prediction from recalled contexts
+
+All switches default to `True`, so v0.16–v0.20 behavior is unchanged.
+
+## Attribution design
+
+The suite performs leave-one-mechanism-out tests plus targeted combination ablations. For every
+mechanism and every populated L0–L5 level it reports:
+
+- Top-1 retention delta
+- NDCG delta
+- retained teacher-probability-mass delta
+- recall-node delta
+- relation-check delta
+- exact prompts that lose or gain Top-1
+
+Single ablations are interpreted as **necessity under the current fixed BASE**, not as unique causal
+credit. Redundant paths can hide one another, so v0.21 also contains combination probes such as
+`no_suffix_and_parent_routing`.
+
+## Deterministic fixture result
+
+The included fixture retains 5/6 ladder cases at baseline (L0–L4; L5 remains unsupported).
+The ablations identify:
+
+```text
+L0/L1 direct result path:
+  direct context prediction is necessary
+
+L1 redundancy:
+  disable suffix only       -> survives
+  disable parent only       -> survives
+  disable suffix + parent   -> L1 fails
+
+L2/L3/L4 transfer path:
+  lexical seeds
+      ↓
+  parent routing
+      ↓
+  recalled-context prediction
+```
+
+Removing any one of those three mechanisms drops all L2–L4 Top-1 successes in the fixture.
+`relation_recall` and `transition_prediction` are neutral there, which is expected because that
+specific BASE contains teacher prediction edges but no supporting semantic-recall or corpus-transition
+channel for those cases.
+
+This is a controlled attribution result, not a claim that the same mechanisms dominate on larger or
+natural corpora.
+
+## CLI
+
+```bash
+eqforge benchmark-mechanisms /path/to/local/model out/attribution \
+  --train-jsonl train.jsonl \
+  --eval-jsonl eval.jsonl \
+  --source-id teacher-A \
+  --teacher-top-k 8 \
+  --runtime-top-k 8
+```
+
+Outputs include the normal v0.20 ladder artifacts under `out/attribution/ladder/` plus
+`mechanism-attribution-report.json` with per-case and per-level ablation traces.
