@@ -1,6 +1,6 @@
 [project]
 name = "equinox-forge"
-version = "0.44.0"
+version = "0.45.0"
 description = "Model-independent canonical knowledge compiler for Equinox"
 requires-python = ">=3.10"
 dependencies = [
@@ -24,6 +24,7 @@ eqforge-active-probe = "equinox_forge.active_probe_selection:main"
 eqforge-iterative-active = "equinox_forge.iterative_active_learning:main"
 eqforge-structural-gain-audit = "equinox_forge.structural_gain_audit:main"
 eqforge-canonical-id-space = "equinox_forge.canonical_id_space:main"
+eqforge-structural-closure = "equinox_forge.structural_closure:main"
 
 [project.optional-dependencies]
 domain-trial = [

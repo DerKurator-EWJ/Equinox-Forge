@@ -1,3 +1,31 @@
+# Equinox Forge v0.45 — Structural Closure
+
+v0.45 adds a non-duplicating structural closure on top of the canonical numeric ID space. A concept ID can now address local facts plus ancestor-rooted relations through numeric hierarchy paths while each semantic fact remains stored exactly once in the canonical graph. The closure records origin and inheritance depth instead of copying parent knowledge into every child. RuntimeCognition remains unchanged from v0.40.
+
+```text
+ID_Eule
+  ↓ structural closure
+local Eule relations
++ Vogel relations (depth 1)
++ Tier relations  (depth 2)
+
+base semantic triples: unchanged
+```
+
+The closure is a routing/addressability layer, not yet a blanket semantic-inheritance rule and not yet a recursive macro collapse.
+
+Run:
+
+```bash
+eqforge-structural-closure --out out/v0_45_structural_closure
+```
+
+See `RELEASE_V0_45.md` and `benchmarks/v0_45/`.
+
+---
+
+## Previous milestone — v0.44 Canonical ID Space
+
 # Equinox Forge v0.44 — Canonical ID Space
 
 v0.44 introduces the numeric identity layer intended to become Equinox's language-independent knowledge substrate. Canonical nodes and relation types receive deterministic 63-bit handles; compiled knowledge can be materialized as pure numeric `(subject, predicate, object)` triples, while human-language surfaces live in a separate binding table. RuntimeCognition is unchanged from v0.40.

@@ -8,7 +8,6 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from equinox_forge import __version__
 from equinox_forge.canonical_id_space import (
     ID_SPACE_VERSION,
     bind_surface,
@@ -24,7 +23,6 @@ from equinox_forge.canonical_id_space import (
 from equinox_forge.database import CanonicalDB
 from equinox_forge.ir import IRNode, Modality, NodeKind, RelationEvidence, RelationType, SourceRef
 
-assert __version__ == "0.44.0"
 assert ID_SPACE_VERSION == "0.44"
 
 
