@@ -1,0 +1,4 @@
+Hund ist ein
+Katze ist ein
+Hund kann
+Katze kann

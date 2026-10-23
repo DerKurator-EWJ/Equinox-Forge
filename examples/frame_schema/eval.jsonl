@@ -1,0 +1,4 @@
+{"prompt":"Wolf ist ein","expected_frame_applicable":true,"note":"novel animal filler"}
+{"prompt":"Fuchs ist ein","expected_frame_applicable":true,"note":"second novel animal filler"}
+{"prompt":"Mein Wolf ist ein","expected_frame_applicable":true,"note":"new outer prefix plus frame suffix"}
+{"prompt":"Stein ist ein","expected_frame_applicable":false,"note":"counterexample for an untyped open slot"}

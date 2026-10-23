@@ -30,6 +30,8 @@ from .pareto_sweep import ParetoSweepConfig, run_behaviour_pareto_sweep
 from .generalization import compile_and_benchmark_heldout_generalization
 from .generalization_ladder import compile_and_benchmark_generalization_ladder, load_ladder_train_jsonl, load_ladder_eval_jsonl
 from .mechanism_attribution import compile_and_benchmark_mechanism_attribution
+from .frame_induction import FrameInductionPolicy, induce_relation_frames, persist_frame_document
+from .frame_schema_benchmark import compile_and_benchmark_frame_schemas, load_frame_eval_jsonl
 
 
 def ingest(db_path: str, doc_path: str):
@@ -874,6 +876,69 @@ def _benchmark_mechanism_attribution(args) -> int:
     print(json.dumps(report.to_dict(), ensure_ascii=False, indent=2, sort_keys=True))
     return 0
 
+def _induce_frames(args) -> int:
+    policy = FrameInductionPolicy(
+        min_contexts=args.min_contexts,
+        min_unique_fillers=args.min_unique_fillers,
+        min_target_context_fraction=args.min_target_context_fraction,
+        min_target_score=args.min_target_score,
+        evidence_confidence=args.evidence_confidence,
+        allow_open_text_slot=not args.closed_slot,
+    )
+    try:
+        with CanonicalDB(args.db) as c:
+            doc, report = induce_relation_frames(c.db, policy, source_id=args.source_id, source_version=args.source_version)
+            errors=[x for x in validate_document(doc) if x.severity=="error"]
+            if errors:
+                raise ValueError("induced frame IR invalid: " + "; ".join(x.message for x in errors))
+            save_document(doc,args.output)
+            report_path=Path(args.report) if args.report else Path(args.output).with_suffix(".report.json")
+            report_path.write_text(json.dumps(report.to_dict(),ensure_ascii=False,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+            if args.persist:
+                persist_frame_document(c.db,doc); c.db.commit()
+            payload={"output":str(Path(args.output)),"report":str(report_path),"persisted":bool(args.persist),"frame_induction":report.to_dict(),"db_stats":c.stats()}
+    except Exception as exc:
+        print(f"ERROR: frame induction failed: {exc}")
+        return 3
+    print(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True))
+    return 0
+
+
+def _benchmark_frames(args) -> int:
+    probe_cfg=BehaviourProbeConfig(
+        top_k=args.teacher_top_k,temperature=args.temperature,min_probability=args.min_probability,
+        max_surface_chars=args.max_surface_chars,evidence_confidence=args.evidence_confidence,
+        strip_leading_space=not args.keep_leading_space,include_punctuation_only=args.include_punctuation_only,
+        include_numeric_only=not args.exclude_numeric_only,max_prompt_words=args.max_prompt_words,
+    )
+    runtime=RuntimeCognitionPolicy(
+        max_recall_nodes=args.max_recall_nodes,max_recall_depth=args.max_recall_depth,
+        max_relation_neighbors=args.max_relation_neighbors,max_structural_parents=args.max_structural_parents,
+        max_predictions=max(args.runtime_top_k,args.max_predictions),min_activation=args.min_activation,
+        min_prediction_score=args.min_prediction_score,frame_match_weight=args.frame_match_weight,
+        max_frame_matches=args.max_frame_matches,
+    )
+    frame_policy=FrameInductionPolicy(
+        min_contexts=args.min_contexts,min_unique_fillers=args.min_unique_fillers,
+        min_target_context_fraction=args.min_target_context_fraction,min_target_score=args.min_target_score,
+        evidence_confidence=args.frame_evidence_confidence,allow_open_text_slot=not args.closed_slot,
+    )
+    try:
+        train=load_prompts(args.train)
+        evaluation=load_frame_eval_jsonl(args.eval_jsonl)
+        backend=TransformersCausalLMBackend(args.model_dir,device=args.device,trust_remote_code=args.trust_remote_code,dtype=args.dtype)
+        report=compile_and_benchmark_frame_schemas(
+            backend,train,evaluation,args.output_dir,args.source_id,args.source_version,probe_cfg=probe_cfg,
+            frame_policy=frame_policy,cognition_policy=runtime,runtime_top_k=args.runtime_top_k,
+            pack_id=args.pack_id,pack_version=args.pack_version,
+        )
+    except Exception as exc:
+        print(f"ERROR: frame schema benchmark failed: {exc}")
+        return 3
+    print(json.dumps(report.to_dict(),ensure_ascii=False,indent=2,sort_keys=True))
+    return 0
+
+
 def _list_artifacts(args) -> int:
     with CanonicalDB(args.db) as c:
         rows = list_artifacts(c.db, build_target_id=args.target_id, statuses=args.status or None)
@@ -1302,6 +1367,39 @@ def main():
     ma.add_argument("--allow-contract-violations", action="store_true")
     ma.add_argument("--single-only", action="store_true", help="skip combination ablations")
 
+    fi=sub.add_parser("induce-frames", help="induce provisional one-slot relational frame schemas from predictive contexts")
+    fi.add_argument("db"); fi.add_argument("output")
+    fi.add_argument("--report")
+    fi.add_argument("--source-id",default="derived:frame-induction")
+    fi.add_argument("--source-version",default="0.22")
+    fi.add_argument("--min-contexts",type=int,default=2)
+    fi.add_argument("--min-unique-fillers",type=int,default=2)
+    fi.add_argument("--min-target-context-fraction",type=float,default=1.0)
+    fi.add_argument("--min-target-score",type=float,default=0.01)
+    fi.add_argument("--evidence-confidence",type=float,default=0.90)
+    fi.add_argument("--closed-slot",action="store_true",help="mark induced slot non-open; v0.22 runtime open-slot transfer then will not be used")
+    fi.add_argument("--persist",action="store_true",help="persist induced frame nodes/evidence into the canonical DB")
+
+    fb=sub.add_parser("benchmark-frames", help="compile induced relation frames and benchmark isolated held-out schema transfer")
+    fb.add_argument("model_dir"); fb.add_argument("output_dir")
+    fb.add_argument("--train",action="append",required=True,help="UTF-8 train prompt file; repeatable")
+    fb.add_argument("--eval-jsonl",required=True,help="JSONL: {prompt, expected_frame_applicable?, note?}")
+    fb.add_argument("--source-id",required=True); fb.add_argument("--source-version",default="local")
+    fb.add_argument("--teacher-top-k",type=int,default=8); fb.add_argument("--runtime-top-k",type=int,default=8)
+    fb.add_argument("--temperature",type=float,default=1.0); fb.add_argument("--min-probability",type=float,default=0.0)
+    fb.add_argument("--max-surface-chars",type=int,default=64); fb.add_argument("--max-prompt-words",type=int,default=64)
+    fb.add_argument("--evidence-confidence",type=float,default=0.95)
+    fb.add_argument("--keep-leading-space",action="store_true"); fb.add_argument("--include-punctuation-only",action="store_true"); fb.add_argument("--exclude-numeric-only",action="store_true")
+    fb.add_argument("--device",default="cpu"); fb.add_argument("--dtype",default="auto"); fb.add_argument("--trust-remote-code",action="store_true")
+    fb.add_argument("--max-recall-nodes",type=int,default=96); fb.add_argument("--max-recall-depth",type=int,default=3)
+    fb.add_argument("--max-relation-neighbors",type=int,default=24); fb.add_argument("--max-structural-parents",type=int,default=24)
+    fb.add_argument("--max-predictions",type=int,default=8); fb.add_argument("--min-activation",type=float,default=0.06); fb.add_argument("--min-prediction-score",type=float,default=0.0)
+    fb.add_argument("--frame-match-weight",type=float,default=0.82); fb.add_argument("--max-frame-matches",type=int,default=8)
+    fb.add_argument("--min-contexts",type=int,default=2); fb.add_argument("--min-unique-fillers",type=int,default=2)
+    fb.add_argument("--min-target-context-fraction",type=float,default=1.0); fb.add_argument("--min-target-score",type=float,default=0.01)
+    fb.add_argument("--frame-evidence-confidence",type=float,default=0.90); fb.add_argument("--closed-slot",action="store_true")
+    fb.add_argument("--pack-id",default="equinox-frame-schema-benchmark"); fb.add_argument("--pack-version",type=int,default=22)
+
     ar=sub.add_parser("artifacts", help="list current derived compiler artifacts")
     ar.add_argument("db"); ar.add_argument("--target-id"); ar.add_argument("--status", action="append", default=[])
 
@@ -1426,6 +1524,10 @@ def main():
         raise SystemExit(_benchmark_generalization_ladder(a))
     elif a.cmd=="benchmark-mechanisms":
         raise SystemExit(_benchmark_mechanism_attribution(a))
+    elif a.cmd=="induce-frames":
+        raise SystemExit(_induce_frames(a))
+    elif a.cmd=="benchmark-frames":
+        raise SystemExit(_benchmark_frames(a))
     elif a.cmd=="artifacts":
         raise SystemExit(_list_artifacts(a))
     elif a.cmd=="source-policy":

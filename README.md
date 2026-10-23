@@ -1,3 +1,133 @@
+# Equinox Forge v0.22 — Relation / Frame Schema Induction
+
+**Current milestone:** v0.22 turns repeated concrete predictive contexts into explicit provisional relational frames and makes those frames executable in the compiled `.eqbase` runtime.
+
+The new path is:
+
+```text
+Hund ist ein  ─┐
+                ├─ shared structure + shared prediction ─→ [SLOT_0] ist ein → Tier
+Katze ist ein ─┘
+                                                     ↓
+                                             compiled .eqbase
+                                                     ↓
+                                             Wolf ist ein
+                                                     ↓
+                                                   Tier
+```
+
+The slot is deliberately called `SLOT_0`, **not `ENTITY`**. Two fillers such as `Hund` and `Katze` are enough to justify a structural variable in a repeated frame, but not enough to prove an ontological type. The frame remains marked `provisional` and preserves its source-context provenance.
+
+## What v0.22 adds
+
+- automatic one-slot frame induction from predictive `TEMPLATE` contexts;
+- a required minimum number of supporting contexts and distinct fillers;
+- target agreement thresholds so unrelated contexts do not automatically form a frame;
+- explicit slot concept nodes with the concrete fillers that induced them;
+- deterministic frame IDs and derived `prediction` evidence;
+- provenance back to every concrete source context;
+- runtime frame indexing by pattern width;
+- suffix-aware wildcard matching against live text;
+- an independent `enable_frame_schema_matching` runtime switch;
+- lower `frame_match_weight` for provisional schemas;
+- `induce-frames` CLI for existing Canonical DBs;
+- `benchmark-frames` for held-out frame transfer and counterexample testing.
+
+## Isolated transfer test
+
+The bundled deterministic fixture compiles only:
+
+```text
+Hund ist ein  → Tier / Haustier / Wesen
+Katze ist ein → Tier / Haustier / Wesen
+```
+
+It then disables exact lookup, suffix lookup, lexical seeds, parent routing, relation recall, transitions, and recalled-context prediction. With only the induced frame enabled:
+
+```text
+Wolf ist ein       → Tier   ✓
+Fuchs ist ein      → Tier   ✓
+Mein Wolf ist ein  → Tier   ✓   (frame matched on the live suffix)
+```
+
+None of `Wolf`, `Fuchs`, or the full held-out prompts are present in the compiled BASE.
+
+The same test also includes the counterexample:
+
+```text
+Stein ist ein
+Teacher top-1: Objekt
+Open frame:    Tier    ✗
+```
+
+That negative result is intentional. An **untyped open slot overgeneralizes** because v0.22 knows the repeated structural frame but does not yet know the admissible semantic class of a novel filler.
+
+Demo result:
+
+```text
+induced frames                  1
+pattern                         [SLOT_0] ist ein
+BASE bytes                      2,772
+frame-only Top-1               75 %
+no-frame isolated Top-1         0 %
+frame applicability recall     100 %
+frame applicability precision   75 %
+```
+
+This is therefore evidence for a narrower claim:
+
+> A repeated predictive relation can be compiled into an explicit reusable schema that transfers to unseen surface fillers.
+
+It is **not** evidence that Equinox already possesses reliable semantic slot typing. The false positive on `Stein` makes the next missing mechanism measurable instead of hiding it.
+
+## CLI
+
+Induce frames from an existing Canonical DB without mutating it:
+
+```bash
+eqforge induce-frames master.sqlite frames.eqir.json
+```
+
+Persist accepted frames explicitly:
+
+```bash
+eqforge induce-frames master.sqlite frames.eqir.json --persist
+```
+
+For a local Hugging Face teacher, benchmark held-out frame transfer:
+
+```bash
+eqforge benchmark-frames /path/to/model out/frame-test \
+  --train train-prompts.txt \
+  --eval-jsonl frame-eval.jsonl \
+  --source-id teacher-A
+```
+
+Evaluation JSONL may contain an **evaluation-only** applicability annotation:
+
+```json
+{"prompt":"Wolf ist ein","expected_frame_applicable":true}
+{"prompt":"Stein ist ein","expected_frame_applicable":false}
+```
+
+Those labels are never compiled into the BASE.
+
+## Current limitation and next research question
+
+v0.22 has deliberately exposed the next problem:
+
+```text
+structural slot
+      ≠
+semantic type constraint
+```
+
+The natural next milestone is a typed / constrained slot system that can use substitution, contextual similarity, concept evidence, or other independent support to decide whether a novel filler is admissible for a frame. The benchmark should then test whether `Wolf` remains accepted while `Stein` is rejected **without using held-out labels as training data**.
+
+---
+
+Historical documentation from the earlier Forge milestones remains below.
+
 # Equinox Forge v0.20 — Generalization Ladder
 
 **Current milestone:** v0.20 stratifies Equinox transfer from exact replay through progressively harder held-out structural conditions (L0–L5), validates each level assignment, and reports the exact point where the current runtime stops transferring successfully.

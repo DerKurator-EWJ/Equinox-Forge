@@ -12,7 +12,7 @@ from .runtime_pack import LoadedRuntimePack, RuntimeNode, load_base_pack
 from .runtime_query import RuntimeIndex
 
 RUNTIME_COGNITION_FORMAT = "equinox-runtime-cognition-v1"
-RUNTIME_COGNITION_VERSION = "0.16"
+RUNTIME_COGNITION_VERSION = "0.22"
 
 
 @dataclass
@@ -40,6 +40,10 @@ class RuntimeCognitionPolicy:
     enable_direct_context_prediction: bool = True
     enable_transition_prediction: bool = True
     enable_recalled_context_prediction: bool = True
+    # v0.22: explicit induced frame schemas such as [SLOT_0] ist ein.
+    enable_frame_schema_matching: bool = True
+    frame_match_weight: float = 0.82
+    max_frame_matches: int = 8
     # Relation weights are recall routing priors, not learned semantics.
     relation_weights: dict[str, float] = field(default_factory=lambda: {
         RelationType.ASSOCIATION.value: 0.55,
@@ -59,9 +63,11 @@ class RuntimeCognitionPolicy:
         if self.max_relation_neighbors < 1: raise ValueError("max_relation_neighbors must be >= 1")
         if self.max_structural_parents < 1: raise ValueError("max_structural_parents must be >= 1")
         if self.max_predictions < 1: raise ValueError("max_predictions must be >= 1")
+        if self.max_frame_matches < 1: raise ValueError("max_frame_matches must be >= 1")
         if not 0 <= self.min_activation <= 1: raise ValueError("min_activation must be in [0,1]")
         if not 0 <= self.min_prediction_score <= 1: raise ValueError("min_prediction_score must be in [0,1]")
         if not 0 < self.depth_decay <= 1: raise ValueError("depth_decay must be in (0,1]")
+        if not 0 < self.frame_match_weight <= 1: raise ValueError("frame_match_weight must be in (0,1]")
 
 
 @dataclass
@@ -202,12 +208,58 @@ class RuntimeCognition:
         self.index = RuntimeIndex(pack)
         self.policy = policy or RuntimeCognitionPolicy()
         self.policy.validate()
+        # Frame schemas are an explicit compiled abstraction, not inferred ad hoc at
+        # query time. Build a tiny width index once when the pack is opened.
+        self._frames_by_width: dict[int, list[tuple[str, list[str], int, bool, set[str]]]] = {}
+        for node in pack.nodes:
+            meta = node.metadata or {}
+            if meta.get("role") != "induced_frame_schema":
+                continue
+            pattern = meta.get("pattern_tokens")
+            if not isinstance(pattern, list) or not pattern or not all(isinstance(x, str) for x in pattern):
+                continue
+            support = int(meta.get("support_count", 0) or 0)
+            open_slot = bool(meta.get("open_text_slots", True))
+            allowed_fillers: set[str] = set()
+            for slot_id in meta.get("slot_node_ids", []) or []:
+                slot_node = self.index.node_by_id.get(slot_id)
+                if slot_node is not None:
+                    allowed_fillers.update(str(x) for x in ((slot_node.metadata or {}).get("filler_surfaces", []) or []))
+            self._frames_by_width.setdefault(len(pattern), []).append((node.node_id, list(pattern), support, open_slot, allowed_fillers))
+        for width in self._frames_by_width:
+            self._frames_by_width[width].sort(key=lambda x: (-x[2], x[0]))
 
     @classmethod
     def from_path(cls, path: str | Path, policy: RuntimeCognitionPolicy | None = None) -> "RuntimeCognition":
         return cls(load_base_pack(path), policy)
 
-    def _resolve_context(self, context: str) -> tuple[list[str], list[str], list[str]]:
+    def _match_frame_schemas(self, tokens: list[str]) -> tuple[list[str], int]:
+        if not self.policy.enable_frame_schema_matching or not tokens:
+            return [], 0
+        checks = 0
+        # Prefer the longest matching frame so a specific learned schema wins over
+        # a shorter wildcard. Match against the live suffix, mirroring n-gram context
+        # resolution while allowing a compiled slot to consume an unseen surface.
+        for width in sorted((w for w in self._frames_by_width if w <= len(tokens)), reverse=True):
+            live = tokens[-width:]
+            matches: list[tuple[int, str]] = []
+            for node_id, pattern, support, open_slot, allowed_fillers in self._frames_by_width[width]:
+                checks += 1
+                ok = True
+                for p, t in zip(pattern, live):
+                    if p == "*":
+                        if not open_slot and t not in allowed_fillers:
+                            ok = False; break
+                    elif p != t:
+                        ok = False; break
+                if ok:
+                    matches.append((support, node_id))
+            if matches:
+                matches.sort(key=lambda x: (-x[0], x[1]))
+                return [nid for _, nid in matches[:self.policy.max_frame_matches]], checks
+        return [], checks
+
+    def _resolve_context(self, context: str) -> tuple[list[str], list[str], list[str], int]:
         text = " ".join(_surface_tokens(context))
         exact = list(self.index.surface_to_nodes.get(text, [])) if text else []
         exact_nodes = sorted((self.index.node_by_id[x] for x in exact), key=_node_preference)
@@ -238,9 +290,15 @@ class RuntimeCognition:
                 if ids:
                     fallback = sorted(ids, key=lambda x: _node_preference(self.index.node_by_id[x]))
                     break
+
+        frames: list[str] = []
+        frame_checks = 0
+        if not exact_context and not fallback:
+            frames, frame_checks = self._match_frame_schemas(tokens)
+
         if not self.policy.enable_lexical_seeds:
             lexical = []
-        return exact_context or fallback, lexical, tokens
+        return exact_context or fallback or frames, lexical, tokens, frame_checks
 
     def _relation_quality(self, rel: CompiledRelation, weight: float) -> float:
         # source_count is only a mild confidence bonus; it never substitutes for
@@ -249,10 +307,12 @@ class RuntimeCognition:
         return max(0.0, min(1.0, rel.score * rel.confidence * weight * source_bonus))
 
     def recall(self, context: str) -> tuple[list[RecallTrace], dict[str, Any]]:
-        context_ids, lexical_ids, tokens = self._resolve_context(context)
+        context_ids, lexical_ids, tokens, frame_checks = self._resolve_context(context)
         seeds: list[tuple[str, float, str]] = []
         for nid in context_ids:
-            seeds.append((nid, 1.0, "exact_or_suffix_context"))
+            node = self.index.node_by_id.get(nid)
+            is_frame = bool(node and (node.metadata or {}).get("role") == "induced_frame_schema")
+            seeds.append((nid, self.policy.frame_match_weight if is_frame else 1.0, "frame_schema" if is_frame else "exact_or_suffix_context"))
         for i, nid in enumerate(lexical_ids):
             if i == len(lexical_ids) - 1:
                 act = self.policy.seed_recent_word_weight
@@ -342,6 +402,7 @@ class RuntimeCognition:
                 "queue_pops": popped,
                 "relation_checks": relation_checks,
                 "parent_checks": parent_checks,
+                "frame_match_checks": frame_checks,
             },
         }
         return traces, meta
@@ -370,11 +431,16 @@ class RuntimeCognition:
             ))
 
         # Exact/suffix predictive contexts get full-weight direct predictions.
+        # Induced frame schemas are explicit compiled hypotheses and therefore use
+        # the lower frame_match_weight even when they resolve the live context.
         if self.policy.enable_direct_context_prediction:
             for cid in meta["resolved_context_ids"]:
+                node = self.index.node_by_id.get(cid)
+                is_frame = bool(node and (node.metadata or {}).get("role") == "induced_frame_schema")
+                activation = self.policy.frame_match_weight if is_frame else 1.0
                 for rel in self.index.relations_from.get(cid, []):
                     if rel.relation_type == RelationType.PREDICTION.value:
-                        add(rel, 1.0, self.policy.exact_context_prediction_weight, True)
+                        add(rel, activation, self.policy.exact_context_prediction_weight, True)
 
         # Latest lexical item supplies bigram transition predictions.
         if lexical_ids and self.policy.enable_transition_prediction:
