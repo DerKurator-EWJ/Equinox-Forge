@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from typing import Any
 import hashlib
 import json
@@ -8,6 +8,7 @@ import math
 import sqlite3
 
 from .ir import ForgeDocument, IRNode, RelationType, NodeKind
+from .source_lineage import SourceLineageGraph
 from .sense_compiler import (
     SenseCompilePolicy,
     FusionWeights,
@@ -20,7 +21,7 @@ from .sense_compiler import (
 )
 
 CONSENSUS_FORMAT = "equinox-forge-consensus-v1"
-CONSENSUS_VERSION = "0.9"
+CONSENSUS_VERSION = "0.38"
 
 
 @dataclass(frozen=True)
@@ -60,6 +61,9 @@ class SourceVote:
     competing_pairs: int
     channel_observations: dict[str, int]
     quality: float
+    raw_source_keys: list[str] = field(default_factory=list)
+    lineage_roots: list[str] = field(default_factory=list)
+    lineage_internal_conflict: bool = False
 
 
 @dataclass
@@ -140,6 +144,74 @@ def _source_weights(db: sqlite3.Connection) -> dict[str, float]:
         out[f"{src}@{ver}"] = 0.0 if not bool(enabled) else max(0.0, min(1.0, float(weight)))
     return out
 
+
+
+
+def _weighted_optional_mean(values: list[tuple[float | None, float]]) -> float | None:
+    rows = [(float(v), max(0.0, float(w))) for v, w in values if v is not None and float(w) > 0.0]
+    den = sum(w for _, w in rows)
+    if den <= 0.0:
+        return None
+    return sum(v * w for v, w in rows) / den
+
+
+def _collapse_votes_by_lineage(db: sqlite3.Connection, votes: list[SourceVote]) -> list[SourceVote]:
+    """Collapse correlated source votes into conservative epistemic components.
+
+    If no participating source has lineage metadata, the original vote list is
+    returned unchanged for backward compatibility.  Within a correlated family,
+    unanimous decisive votes count once; support/conflict disagreement inside the
+    family becomes abstention instead of a within-family majority vote.
+    """
+    if not votes:
+        return []
+    graph = SourceLineageGraph.from_db(db)
+    keys = [v.source_key for v in votes]
+    if not any(key in graph.parents for key in keys):
+        return votes
+    by_key = {v.source_key: v for v in votes}
+    out: list[SourceVote] = []
+    for component in graph.components(keys):
+        members = [by_key[k] for k in component.sources if k in by_key]
+        if not members:
+            continue
+        decisive = {v.vote for v in members if v.vote in {"support", "conflict"}}
+        internal_conflict = len(decisive) > 1
+        if internal_conflict or not decisive:
+            vote = "abstain"
+            selected = members
+            quality = 0.0
+            weight = max((v.source_weight for v in members), default=0.0)
+        else:
+            vote = next(iter(decisive))
+            selected = [v for v in members if v.vote == vote]
+            weight = max((v.source_weight for v in selected), default=0.0)
+            den = sum(max(0.0, v.source_weight) for v in selected)
+            quality = (
+                sum(v.quality * max(0.0, v.source_weight) for v in selected) / den
+                if den > 0.0 else 0.0
+            )
+        channel_observations: dict[str, int] = {}
+        for v in members:
+            for name, count in v.channel_observations.items():
+                channel_observations[name] = channel_observations.get(name, 0) + int(count)
+        weights = [(v.internal_score, v.source_weight) for v in members]
+        comp = [(v.competing_score, v.source_weight) for v in members]
+        out.append(SourceVote(
+            source_key="lineage:" + "|".join(component.roots),
+            source_weight=weight,
+            vote=vote,
+            internal_score=_weighted_optional_mean(weights),
+            competing_score=_weighted_optional_mean(comp),
+            internal_pairs=max((v.internal_pairs for v in members), default=0),
+            competing_pairs=max((v.competing_pairs for v in members), default=0),
+            channel_observations=channel_observations,
+            quality=max(0.0, min(1.0, quality)),
+            raw_source_keys=list(component.sources),
+            lineage_roots=list(component.roots),
+            lineage_internal_conflict=internal_conflict,
+        ))
+    return out
 
 def _sym(relmap: dict[tuple[str, str, str], float], a: str, b: str, typ: str) -> float | None:
     vals = []
@@ -278,10 +350,11 @@ def assess_hypotheses(
     assessments: list[HypothesisAssessment] = []
     for node in sorted((n for n in doc.nodes if n.metadata.get("provisional") and n.metadata.get("target_id") == target_id), key=lambda n: n.node_id):
         cluster = sorted(node.metadata.get("contexts") or [m for m in node.members if m != target_id])
-        votes = [
+        raw_votes = [
             _vote_for_cluster(db, relmap, cluster, all_contexts, context_lex, context_members, sense_policy.weights, cp, src, source_weights.get(src, 1.0))
             for src, relmap in sorted(source_maps.items())
         ]
+        votes = _collapse_votes_by_lineage(db, raw_votes)
         support = [v for v in votes if v.vote == "support"]
         conflict = [v for v in votes if v.vote == "conflict"]
         abstain = [v for v in votes if v.vote == "abstain"]
@@ -354,13 +427,13 @@ def track_hypothesis_run(
             seen_runs = 1
             first_seen = run_id
         status = "candidate"
-        reason = "insufficient_independent_confirmation"
+        reason = "insufficient_independent_lineage_confirmation"
         if a.conflict_sources >= cp.quarantine_conflicts and a.conflict_weight >= cp.quarantine_conflict_weight:
-            status = "quarantined"; reason = "weighted_multi_source_conflict"
+            status = "quarantined"; reason = "weighted_multi_lineage_conflict"
         elif a.conflict_weight > 0.0 and a.consensus_score < cp.stable_consensus:
-            status = "contested"; reason = "weighted_source_conflict"
+            status = "contested"; reason = "weighted_lineage_conflict"
         elif a.support_sources >= cp.stable_min_sources and a.support_weight >= cp.stable_min_support_weight and consecutive_seen >= cp.stable_min_runs and a.consensus_score >= cp.stable_consensus:
-            status = "stable"; reason = "repeated_weighted_cross_source_consensus"
+            status = "stable"; reason = "repeated_weighted_cross_lineage_consensus"
         a.previous_status = prev_status
         a.status = status
         a.seen_runs = seen_runs

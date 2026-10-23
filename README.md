@@ -1,35 +1,46 @@
-# Equinox Forge v0.37 — Source Lineage / Correlated Evidence
+# Equinox Forge v0.38 — Global Lineage-Aware Consensus
 
-v0.37 attacks pseudo-consensus caused by correlated teachers. Different `source_id`s no longer automatically count as independent evidence for relation-composition induction or lifecycle promotion. Forge can now register explicit parent/child source ancestry, resolve transitive roots, cluster sources that share ancestry, and count those clusters as conservative independent lineage components.
+v0.38 extends the source-lineage model introduced in v0.37 across the general evidence stack. Correlated source descendants no longer manufacture artificial source count or confidence in compiled relations, provisional-sense consensus, or exception consensus.
 
 Frozen controls:
 
 ```text
-3 sibling source IDs -> 1 effective lineage -> no stable induction
-3 sources across 2 disjoint roots -> 2 effective lineages -> stable induction allowed
-multi-parent blend + its ancestor families -> 1 correlated component
+3 sibling relation sources @ confidence .60
+-> 1 effective lineage
+-> compiled confidence .60, not .936
+
++ 1 genuinely independent root
+-> 2 effective lineages
+-> compiled confidence .84
+
+3 correlated sense supporters
+-> candidate
+
+2 independent lineage supporters
+-> stable
+
+3 correlated exception supporters
+-> candidate
+
+2 independent lineage supporters
+-> stable
 ```
 
-Lifecycle novelty is lineage-aware as well:
-
-```text
-support_1               -> candidate
-same-lineage aliases    -> candidate
-new independent lineage -> stable
-conflict_1              -> contested
-same-lineage aliases    -> contested
-new conflict lineage    -> quarantined
-```
-
-Unregistered sources remain backward-compatible and are treated as independent roots of themselves.
+Within one correlated family, support/conflict disagreement becomes lineage-level abstention instead of a family majority vote. Relation scores are also alias-count invariant inside one lineage. Databases without registered ancestry retain historical aggregation behavior.
 
 Run:
 
 ```bash
-eqforge-source-lineage --out out/v0_37_source_lineage
+eqforge-global-lineage --out out/v0_38_global_lineage_consensus
 ```
 
-See `RELEASE_V0_37.md` and `benchmarks/v0_37/`.
+See `RELEASE_V0_38.md` and `benchmarks/v0_38/`.
+
+---
+
+## Previous milestone — v0.37 Source Lineage / Correlated Evidence
+
+v0.37 introduced explicit source ancestry for relation-composition induction and lifecycle promotion. See `RELEASE_V0_37.md` and `benchmarks/v0_37/`.
 
 ---
 
@@ -2951,3 +2962,24 @@ induction and runtime authorization are now separate: a newly discovered overrid
 Runtime lifecycle gating keeps non-stable overrides in the `.eqbase` for auditability while preventing
 them from changing predictions. Source trust weights are honored without allowing one source to count
 as several independent sources. See `RELEASE_V0_29.md` for the lifecycle contract and fixture.
+
+# Step 0.38 — Global Lineage-Aware Consensus
+
+v0.38 extends the v0.37 source-lineage model across the general evidence stack. Distinct source IDs that share transitive ancestry no longer manufacture artificial source count or confidence in compiled relations, provisional-sense consensus, or exception consensus.
+
+```text
+Teacher A ─┐
+Teacher B ─┼─ Foundation X
+Teacher C ─┘
+
+raw source ids:        3
+effective lineages:    1
+```
+
+Compiled relation confidence is now combined across independent lineage components. Within one correlated family, alias multiplication cannot increase confidence or move the relation score merely by adding more descendants. Consensus systems likewise collapse family votes before applying stability or quarantine thresholds; disagreement inside one lineage becomes abstention rather than an intra-family majority vote.
+
+Databases without registered lineage metadata retain historical behavior. See `RELEASE_V0_38.md` and run:
+
+```bash
+eqforge-global-lineage --out out/v0_38_global_lineage_consensus
+```

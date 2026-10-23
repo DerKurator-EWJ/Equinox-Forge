@@ -1,15 +1,16 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from typing import Any
 import hashlib
 import json
 import sqlite3
 
 from .ir import ForgeDocument, RelationType
+from .source_lineage import SourceLineageGraph
 
 EXCEPTION_CONSENSUS_FORMAT = "equinox-forge-exception-consensus-v1"
-EXCEPTION_CONSENSUS_VERSION = "0.29"
+EXCEPTION_CONSENSUS_VERSION = "0.38"
 
 
 def ensure_exception_consensus_schema(db: sqlite3.Connection) -> None:
@@ -77,6 +78,9 @@ class ExceptionSourceVote:
     exception_score: float
     general_score: float
     margin: float
+    raw_source_keys: list[str] = field(default_factory=list)
+    lineage_roots: list[str] = field(default_factory=list)
+    lineage_internal_conflict: bool = False
 
 
 @dataclass
@@ -165,6 +169,51 @@ def _votes_for_override(db: sqlite3.Connection, meta: dict[str,Any], policy: Exc
     return votes
 
 
+
+
+def _collapse_exception_votes_by_lineage(db: sqlite3.Connection, votes: list[ExceptionSourceVote]) -> list[ExceptionSourceVote]:
+    if not votes:
+        return []
+    graph = SourceLineageGraph.from_db(db)
+    keys = [v.source_key for v in votes]
+    if not any(key in graph.parents for key in keys):
+        return votes
+    by_key = {v.source_key: v for v in votes}
+    out: list[ExceptionSourceVote] = []
+    for component in graph.components(keys):
+        members = [by_key[k] for k in component.sources if k in by_key]
+        if not members:
+            continue
+        decisive = {v.vote for v in members if v.vote in {"support", "conflict"}}
+        internal_conflict = len(decisive) > 1
+        if internal_conflict or not decisive:
+            vote = "abstain"
+            selected = members
+        else:
+            vote = next(iter(decisive))
+            selected = [v for v in members if v.vote == vote]
+        weight = max((v.source_weight for v in selected), default=0.0)
+        den = sum(max(0.0, v.source_weight) for v in members)
+        if den > 0.0:
+            es = sum(v.exception_score * max(0.0, v.source_weight) for v in members) / den
+            gs = sum(v.general_score * max(0.0, v.source_weight) for v in members) / den
+        else:
+            es = gs = 0.0
+        out.append(ExceptionSourceVote(
+            source_key="lineage:" + "|".join(component.roots),
+            source_weight=weight,
+            vote=vote,
+            observed_contexts=max((v.observed_contexts for v in members), default=0),
+            required_contexts=max((v.required_contexts for v in members), default=0),
+            exception_score=es,
+            general_score=gs,
+            margin=es-gs,
+            raw_source_keys=list(component.sources),
+            lineage_roots=list(component.roots),
+            lineage_internal_conflict=internal_conflict,
+        ))
+    return out
+
 def _set_node_lifecycle(db: sqlite3.Connection, override_id: str, status: str, payload: dict[str,Any]) -> None:
     row=db.execute("SELECT metadata_json FROM nodes WHERE node_id=?",(override_id,)).fetchone()
     if not row: return
@@ -205,7 +254,8 @@ def track_exception_run(db: sqlite3.Connection, doc: ForgeDocument, policy: Exce
     assessments=[]
     for node in sorted(overrides,key=lambda n:n.node_id):
         meta=dict(node.metadata or {})
-        votes=_votes_for_override(db,meta,policy)
+        raw_votes=_votes_for_override(db,meta,policy)
+        votes=_collapse_exception_votes_by_lineage(db,raw_votes)
         support=[v for v in votes if v.vote=="support"]; conflict=[v for v in votes if v.vote=="conflict"]; abstain=[v for v in votes if v.vote=="abstain"]
         sw=sum(v.source_weight for v in support); cw=sum(v.source_weight for v in conflict); dw=sw+cw
         consensus=0.0 if dw<=0 else sw/dw
@@ -219,13 +269,13 @@ def track_exception_run(db: sqlite3.Connection, doc: ForgeDocument, policy: Exce
         clean_support=(len(support)>=policy.stable_min_sources and sw>=policy.stable_min_support_weight and consensus>=policy.stable_consensus and not conflict)
         streak=prev_streak+1 if clean_support else 0
         if len(conflict)>=policy.quarantine_conflicts and cw>=policy.quarantine_conflict_weight:
-            status="quarantined"; reason="weighted_multi_source_conflict"
+            status="quarantined"; reason="weighted_multi_lineage_conflict"
         elif conflict:
-            status="contested"; reason="source_conflict"
+            status="contested"; reason="lineage_conflict"
         elif clean_support and streak>=policy.stable_min_runs:
-            status="stable"; reason="repeated_cross_source_consensus"
+            status="stable"; reason="repeated_cross_lineage_consensus"
         else:
-            status="candidate"; reason="insufficient_repeated_independent_confirmation"
+            status="candidate"; reason="insufficient_repeated_independent_lineage_confirmation"
         payload={
             "consensus_score":consensus,"support_sources":len(support),"conflict_sources":len(conflict),
             "support_weight":sw,"conflict_weight":cw,"support_streak":streak,"reason":reason,
