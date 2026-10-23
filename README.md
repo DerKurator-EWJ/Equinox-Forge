@@ -1,5 +1,81 @@
-# Equinox Forge v0.26 — Higher-Concept Utility / Hierarchical Frame Transfer
+# Equinox Forge v0.27 — Hierarchical Specificity / Override Resolution
 
+v0.27 adds explicit **specificity precedence** to compiled frame schemas. Once a general rule has been promoted to a higher latent concept, it must not drown out a more specific lower-concept rule merely because the general rule has a larger raw prediction score.
+
+## Runtime precedence
+
+The runtime already resolves an exact predictive context before frame matching. v0.27 now adds a second categorical precedence layer among equal-width frames:
+
+```text
+exact compiled context
+        >
+direct / lower-prototype frame
+        >
+hierarchically transferred frame
+        >
+untyped open frame
+```
+
+This is **override semantics**, not another score bonus. If a direct subtype frame and a broader inherited frame both admit the same live filler, the broader frame is suppressed and contributes no prediction score. Frames tied at the same specificity scope may still ensemble normally.
+
+## Why this matters
+
+A hierarchy becomes behaviorally useful only if it can express both inheritance and exceptions. In the deterministic fixture, the broad inherited frame predicts `Luft` with a higher raw score, while a bird-specific lower-scope frame predicts `Himmel` with a deliberately lower raw score.
+
+Without v0.27 specificity resolution:
+
+```text
+Adler atmet → Luft      # broad rule wins by score
+```
+
+With v0.27:
+
+```text
+Adler → bird prototype
+      → specific frame
+      → Himmel           # specific rule overrides broader inherited rule
+```
+
+The same immutable `.eqbase` is used for both runs; only the runtime specificity switch changes.
+
+## Auditability
+
+Frame admission diagnostics now expose:
+
+- `specificity_scope_class`;
+- `specificity_scope_rank`;
+- `specificity_ancestor_hops`;
+- `suppressed_by_specificity`;
+- `specificity_suppressed_by`;
+- `specificity_winner_frame_ids`.
+
+Runtime work metrics additionally report `frame_specificity_suppressed`.
+
+## Benchmark CLI
+
+```bash
+eqforge benchmark-specificity knowledge.eqbase cases.jsonl \
+  --disable-exact-context \
+  --disable-suffix-context \
+  --disable-lexical-seeds \
+  --disable-parent-routing \
+  --disable-relation-recall \
+  --disable-transition-prediction \
+  --disable-recalled-context-prediction
+```
+
+The benchmark compares legacy equal-width frame aggregation (`enable_frame_specificity_override=False`) against v0.27 resolution on the same pack and reports changed/improved/regressed Top-1 cases plus suppressed broader frames.
+
+## Scope / non-claims
+
+- v0.27 does not learn exceptions automatically; it resolves conflicts once specific and general compiled rules coexist.
+- Scope rank is categorical runtime precedence, not a probability or truth score.
+- Exact contexts retain priority because they are resolved before frame schemas.
+- Equal-specificity conflicts remain an ensemble/ranking problem and are intentionally not silently collapsed.
+
+---
+
+## Previous milestone: v0.26
 v0.26 is the first milestone that tests whether a recursively induced higher concept is **useful for behavior**, not merely representable.
 
 ## Core result

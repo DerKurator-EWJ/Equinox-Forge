@@ -34,6 +34,7 @@ from .frame_induction import FrameInductionPolicy, induce_relation_frames, persi
 from .prototype_hierarchy import PrototypeHierarchyPolicy, induce_prototype_hierarchy
 from .hierarchical_frame_transfer import HierarchicalFrameTransferPolicy, promote_frames_to_higher_concepts
 from .frame_schema_benchmark import compile_and_benchmark_frame_schemas, load_frame_eval_jsonl
+from .specificity_resolution import load_specificity_cases, benchmark_specificity_resolution
 
 
 def ingest(db_path: str, doc_path: str):
@@ -671,6 +672,41 @@ def _benchmark_predictions(args) -> int:
     print(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True))
     return 0
 
+
+
+def _benchmark_specificity(args) -> int:
+    policy = RuntimeCognitionPolicy(
+        max_recall_nodes=args.max_recall_nodes,
+        max_recall_depth=args.max_recall_depth,
+        max_relation_neighbors=args.max_relation_neighbors,
+        max_structural_parents=args.max_structural_parents,
+        max_predictions=args.max_predictions,
+        min_activation=args.min_activation,
+        min_prediction_score=args.min_prediction_score,
+        enable_exact_context=not args.disable_exact_context,
+        enable_suffix_context=not args.disable_suffix_context,
+        enable_lexical_seeds=not args.disable_lexical_seeds,
+        enable_parent_routing=not args.disable_parent_routing,
+        enable_relation_recall=not args.disable_relation_recall,
+        enable_transition_prediction=not args.disable_transition_prediction,
+        enable_recalled_context_prediction=not args.disable_recalled_context_prediction,
+        enable_direct_context_prediction=not args.disable_direct_context_prediction,
+        enable_frame_schema_matching=True,
+        enable_semantic_slot_admission=not args.disable_semantic_slot_admission,
+        enable_slot_prototype_admission=not args.disable_slot_prototype_admission,
+        enable_hierarchical_slot_admission=not args.disable_hierarchical_slot_admission,
+    )
+    try:
+        cases = load_specificity_cases(args.datasets)
+        report = benchmark_specificity_resolution(args.pack, cases, policy=policy)
+        payload = report.to_dict()
+    except Exception as exc:
+        print(f"ERROR: specificity benchmark failed: {exc}")
+        return 3
+    if args.output:
+        Path(args.output).write_text(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+    print(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True))
+    return 0
 
 def _benchmark_retention(args) -> int:
     probe_cfg = BehaviourProbeConfig(
@@ -1325,6 +1361,29 @@ def main():
     pbb.add_argument("--min-prediction-score", type=float, default=0.01)
     pbb.add_argument("--output")
 
+    sp=sub.add_parser("benchmark-specificity", help="compare legacy frame aggregation with v0.27 hierarchical specificity/override resolution on the same .eqbase")
+    sp.add_argument("pack")
+    sp.add_argument("datasets", nargs="+", help="JSONL/TSV rows with context and optional expected surface")
+    sp.add_argument("--max-recall-nodes", type=int, default=96)
+    sp.add_argument("--max-recall-depth", type=int, default=3)
+    sp.add_argument("--max-relation-neighbors", type=int, default=24)
+    sp.add_argument("--max-structural-parents", type=int, default=24)
+    sp.add_argument("--max-predictions", type=int, default=8)
+    sp.add_argument("--min-activation", type=float, default=0.06)
+    sp.add_argument("--min-prediction-score", type=float, default=0.0)
+    sp.add_argument("--disable-exact-context", action="store_true")
+    sp.add_argument("--disable-suffix-context", action="store_true")
+    sp.add_argument("--disable-lexical-seeds", action="store_true")
+    sp.add_argument("--disable-parent-routing", action="store_true")
+    sp.add_argument("--disable-relation-recall", action="store_true")
+    sp.add_argument("--disable-transition-prediction", action="store_true")
+    sp.add_argument("--disable-recalled-context-prediction", action="store_true")
+    sp.add_argument("--disable-direct-context-prediction", action="store_true")
+    sp.add_argument("--disable-semantic-slot-admission", action="store_true")
+    sp.add_argument("--disable-slot-prototype-admission", action="store_true")
+    sp.add_argument("--disable-hierarchical-slot-admission", action="store_true")
+    sp.add_argument("--output")
+
     br=sub.add_parser("benchmark-retention", help="compile controlled teacher next-token behaviour into .eqbase and measure replay retention")
     br.add_argument("model_dir")
     br.add_argument("prompts", nargs="+", help="UTF-8 files containing one controlled prompt per line")
@@ -1691,6 +1750,8 @@ def main():
         raise SystemExit(_predict_base(a))
     elif a.cmd=="benchmark-predictions":
         raise SystemExit(_benchmark_predictions(a))
+    elif a.cmd=="benchmark-specificity":
+        raise SystemExit(_benchmark_specificity(a))
     elif a.cmd=="benchmark-retention":
         raise SystemExit(_benchmark_retention(a))
     elif a.cmd=="benchmark-pareto":

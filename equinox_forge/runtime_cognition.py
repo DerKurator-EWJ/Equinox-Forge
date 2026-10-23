@@ -12,7 +12,7 @@ from .runtime_pack import LoadedRuntimePack, RuntimeNode, load_base_pack
 from .runtime_query import RuntimeIndex
 
 RUNTIME_COGNITION_FORMAT = "equinox-runtime-cognition-v1"
-RUNTIME_COGNITION_VERSION = "0.26"
+RUNTIME_COGNITION_VERSION = "0.27"
 
 
 @dataclass
@@ -51,6 +51,11 @@ class RuntimeCognitionPolicy:
     # v0.26: allow a slot to admit a candidate through a compiled multi-hop IS_A
     # chain into a higher recursive latent concept.
     enable_hierarchical_slot_admission: bool = True
+    # v0.27: when multiple frame schemas of identical structural width admit the
+    # same live context, retain only the most specific scope. Exact contexts are
+    # already resolved before frame matching; among frames the order is direct
+    # lower/prototype scope > hierarchical transferred scope > untyped open scope.
+    enable_frame_specificity_override: bool = True
     max_hierarchical_slot_hops: int = 8
     frame_match_weight: float = 0.82
     max_frame_matches: int = 8
@@ -223,7 +228,7 @@ class RuntimeCognition:
         self.policy.validate()
         # Frame schemas are an explicit compiled abstraction, not inferred ad hoc at
         # query time. Build a tiny width index once when the pack is opened.
-        self._frames_by_width: dict[int, list[tuple[str, list[str], int, bool, set[str], list[str]]]] = {}
+        self._frames_by_width: dict[int, list[dict[str, Any]]] = {}
         for node in pack.nodes:
             meta = node.metadata or {}
             if meta.get("role") != "induced_frame_schema":
@@ -234,14 +239,48 @@ class RuntimeCognition:
             support = int(meta.get("support_count", 0) or 0)
             open_slot = bool(meta.get("open_text_slots", True))
             allowed_fillers: set[str] = set()
-            for slot_id in meta.get("slot_node_ids", []) or []:
+            slot_ids = [str(x) for x in (meta.get("slot_node_ids", []) or [])]
+            slot_profiles: list[dict[str, Any]] = []
+            for slot_id in slot_ids:
                 slot_node = self.index.node_by_id.get(slot_id)
                 if slot_node is not None:
-                    allowed_fillers.update(str(x) for x in ((slot_node.metadata or {}).get("filler_surfaces", []) or []))
-            slot_ids = [str(x) for x in (meta.get("slot_node_ids", []) or [])]
-            self._frames_by_width.setdefault(len(pattern), []).append((node.node_id, list(pattern), support, open_slot, allowed_fillers, slot_ids))
+                    smeta = slot_node.metadata or {}
+                    allowed_fillers.update(str(x) for x in (smeta.get("filler_surfaces", []) or []))
+                    slot_profiles.append(dict(smeta.get("semantic_admission") or {}))
+
+            hierarchical = bool(meta.get("hierarchical_transfer"))
+            ancestor_hops = int(meta.get("ancestor_hops", 0) or 0)
+            typed = any(bool(x.get("enabled")) for x in slot_profiles)
+            prototype_typed = any(bool(x.get("prototype_node_id")) for x in slot_profiles)
+            # The absolute numbers are categorical ranks, not probabilities. They
+            # exist solely to make scope precedence deterministic. Lower ancestor
+            # hop count means a narrower hierarchical promotion.
+            if hierarchical:
+                scope_class = "hierarchical_concept"
+                scope_rank = 3000 - max(0, ancestor_hops)
+            elif prototype_typed:
+                scope_class = "direct_prototype"
+                scope_rank = 5000
+            elif typed or not open_slot:
+                scope_class = "direct_typed"
+                scope_rank = 4500
+            else:
+                scope_class = "open_untyped"
+                scope_rank = 1000
+            self._frames_by_width.setdefault(len(pattern), []).append({
+                "node_id": node.node_id,
+                "pattern": list(pattern),
+                "support": support,
+                "open_slot": open_slot,
+                "allowed_fillers": allowed_fillers,
+                "slot_ids": slot_ids,
+                "scope_class": scope_class,
+                "scope_rank": scope_rank,
+                "ancestor_hops": ancestor_hops,
+                "hierarchical_transfer": hierarchical,
+            })
         for width in self._frames_by_width:
-            self._frames_by_width[width].sort(key=lambda x: (-x[2], x[0]))
+            self._frames_by_width[width].sort(key=lambda x: (-int(x["scope_rank"]), -int(x["support"]), str(x["node_id"])))
 
     @classmethod
     def from_path(cls, path: str | Path, policy: RuntimeCognitionPolicy | None = None) -> "RuntimeCognition":
@@ -393,18 +432,28 @@ class RuntimeCognition:
             return [], 0, []
         checks = 0
         diagnostics: list[dict[str, Any]] = []
-        # Prefer the longest matching frame so a specific learned schema wins over
-        # a shorter wildcard. Match against the live suffix, mirroring n-gram context
-        # resolution while allowing a compiled slot to consume a novel surface.
+        # Prefer the longest structural frame first. Within the same width v0.27
+        # applies *scope specificity* before support/score aggregation: a direct
+        # subtype frame suppresses a broader hierarchical promotion when both admit
+        # the same live filler. This is override semantics, not a score bonus.
         for width in sorted((w for w in self._frames_by_width if w <= len(tokens)), reverse=True):
             live = tokens[-width:]
-            matches: list[tuple[int, str]] = []
+            matches: list[dict[str, Any]] = []
             width_had_structural_match = False
-            for node_id, pattern, support, open_slot, allowed_fillers, slot_ids in self._frames_by_width[width]:
+            for spec in self._frames_by_width[width]:
+                node_id = str(spec["node_id"]); pattern = list(spec["pattern"]); support = int(spec["support"])
+                open_slot = bool(spec["open_slot"]); allowed_fillers = set(spec["allowed_fillers"]); slot_ids = list(spec["slot_ids"])
                 checks += 1
                 ok = True
                 slot_cursor = 0
-                frame_diag = {"frame_node_id": node_id, "pattern": pattern, "live": list(live), "slot_checks": [], "structural_match": True, "admitted": False}
+                frame_diag = {
+                    "frame_node_id": node_id, "pattern": pattern, "live": list(live), "slot_checks": [],
+                    "structural_match": True, "admitted": False,
+                    "specificity_scope_class": spec["scope_class"],
+                    "specificity_scope_rank": int(spec["scope_rank"]),
+                    "specificity_ancestor_hops": int(spec["ancestor_hops"]),
+                    "suppressed_by_specificity": False,
+                }
                 for p, t in zip(pattern, live):
                     if p == "*":
                         sid = slot_ids[slot_cursor] if slot_cursor < len(slot_ids) else ""
@@ -428,10 +477,23 @@ class RuntimeCognition:
                     frame_diag["admitted"] = ok
                     diagnostics.append(frame_diag)
                 if ok:
-                    matches.append((support, node_id))
+                    matches.append({**spec, "diag": frame_diag})
             if matches:
-                matches.sort(key=lambda x: (-x[0], x[1]))
-                return [nid for _, nid in matches[:self.policy.max_frame_matches]], checks, diagnostics
+                selected = list(matches)
+                if self.policy.enable_frame_specificity_override:
+                    best_rank = max(int(x["scope_rank"]) for x in matches)
+                    selected = [x for x in matches if int(x["scope_rank"]) == best_rank]
+                    selected_ids = {str(x["node_id"]) for x in selected}
+                    winner_ids = sorted(selected_ids)
+                    for x in matches:
+                        diag = x["diag"]
+                        diag["specificity_winner_rank"] = best_rank
+                        diag["specificity_winner_frame_ids"] = winner_ids
+                        if str(x["node_id"]) not in selected_ids:
+                            diag["suppressed_by_specificity"] = True
+                            diag["specificity_suppressed_by"] = winner_ids
+                selected.sort(key=lambda x: (-int(x["support"]), str(x["node_id"])))
+                return [str(x["node_id"]) for x in selected[:self.policy.max_frame_matches]], checks, diagnostics
             # If a structurally matching longest frame was rejected by typed admission,
             # do not silently fall through to a shorter, broader schema.
             if width_had_structural_match:
@@ -586,6 +648,7 @@ class RuntimeCognition:
                 "frame_match_checks": frame_checks,
                 "frame_admission_checks": sum(len(x.get("slot_checks", [])) for x in frame_admission),
                 "frame_admission_rejections": sum(1 for x in frame_admission if x.get("structural_match") and not x.get("admitted")),
+                "frame_specificity_suppressed": sum(1 for x in frame_admission if x.get("suppressed_by_specificity")),
             },
         }
         return traces, meta
