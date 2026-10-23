@@ -1,0 +1,251 @@
+{
+  "base_pack": {
+    "binary_major": 1,
+    "binary_minor": 0,
+    "bytes_per_node": 321.36,
+    "bytes_per_relation": 13.0,
+    "compile_ms": 1.896367999506765,
+    "compression_run_id": 1,
+    "file_bytes": 16068,
+    "forge_version": "0.26",
+    "format": "equinox-runtime-base-v1",
+    "full_file_sha256": "65a3a45180a1116761ca6f71e77b171312886b23e03f933b5ea7d1c667d287c9",
+    "header_bytes": 112,
+    "index_bytes": 200,
+    "metadata_included": true,
+    "node_count": 50,
+    "node_section_bytes": 435,
+    "pack_id": "v026-demo",
+    "pack_version": 26,
+    "payload_sha256": "300e7a4d85170c9e1f536bfa7293902d9e23cc8146a57d7ccd7b1da0a9ee7574",
+    "relation_count": 28,
+    "relation_section_bytes": 364,
+    "roundtrip_valid": true,
+    "string_count": 116,
+    "string_table_bytes": 14957,
+    "verify_ms": 0.4422149995662039
+  },
+  "cases": [
+    {
+      "hierarchical_hops": 2,
+      "hierarchical_path": [
+        "m_f1bba7a819abe459ec40887b",
+        "m_d585db581a21c45af04344cf",
+        "m_fb566372de347a4a1d33cb35"
+      ],
+      "old_top1": null,
+      "prompt": "Adler atmet",
+      "v026_top1": "Luft"
+    },
+    {
+      "hierarchical_hops": 2,
+      "hierarchical_path": [
+        "m_b7f9a3adc5885683db796c26",
+        "m_d585db581a21c45af04344cf",
+        "m_fb566372de347a4a1d33cb35"
+      ],
+      "old_top1": null,
+      "prompt": "Falke atmet",
+      "v026_top1": "Luft"
+    },
+    {
+      "hierarchical_hops": null,
+      "hierarchical_path": null,
+      "old_top1": null,
+      "prompt": "Stein atmet",
+      "v026_top1": null
+    }
+  ],
+  "format": "equinox-forge-v026-demo",
+  "frame_induction": {
+    "accepted_frames": 2,
+    "candidate_groups": 6,
+    "contexts_considered": 4,
+    "format": "equinox-forge-frame-induction-v1",
+    "frames": [
+      {
+        "context_count": 2,
+        "fillers": [
+          "Hund",
+          "Katze"
+        ],
+        "frame_node_id": "m_5c69c30a39fd47877e22615d",
+        "pattern": "[SLOT_0] atmet",
+        "provisional": true,
+        "slot_position": 0,
+        "source_context_ids": [
+          "m_5eebcb77ccb8d43a8ebc9ff8",
+          "m_82a4a433c64d6eeb415c5e18"
+        ],
+        "targets": [
+          {
+            "confidence": 0.855,
+            "context_fraction": 1.0,
+            "score": 0.92,
+            "support_contexts": 2,
+            "target_node_id": "m_92ee9ad6f925e3b44033c0d1",
+            "target_surface": "Luft"
+          },
+          {
+            "confidence": 0.855,
+            "context_fraction": 1.0,
+            "score": 0.08,
+            "support_contexts": 2,
+            "target_node_id": "m_9e6f815553ba66f1de6483be",
+            "target_surface": "Sauerstoff"
+          }
+        ],
+        "unique_fillers": 2
+      },
+      {
+        "context_count": 2,
+        "fillers": [
+          "Adler",
+          "Falke"
+        ],
+        "frame_node_id": "m_dcccd030d750860d0019097f",
+        "pattern": "[SLOT_0] fliegt",
+        "provisional": true,
+        "slot_position": 0,
+        "source_context_ids": [
+          "m_259e642b6d6611d0a8e17622",
+          "m_b502de0c74271723b1d80283"
+        ],
+        "targets": [
+          {
+            "confidence": 0.855,
+            "context_fraction": 1.0,
+            "score": 0.9099999999999999,
+            "support_contexts": 2,
+            "target_node_id": "m_2dcae55e40cb13f02324840d",
+            "target_surface": "Himmel"
+          },
+          {
+            "confidence": 0.855,
+            "context_fraction": 1.0,
+            "score": 0.09,
+            "support_contexts": 2,
+            "target_node_id": "m_32b251b828c0860191683367",
+            "target_surface": "hoch"
+          }
+        ],
+        "unique_fillers": 2
+      }
+    ],
+    "generated_nodes": 40,
+    "generated_prediction_evidence": 4,
+    "generated_prototype_memberships": 4,
+    "generated_slot_prototypes": 2,
+    "notes": [
+      "v0.24 retains typed slot admission and can additionally collapse a coherent filler cohort into a provisional latent slot prototype.",
+      "Slot labels are provisional structural variables, not semantic type claims such as ENTITY unless separate evidence supports such a type.",
+      "Frame predictions are derived evidence with explicit source-context provenance; original teacher/corpus evidence remains unchanged.",
+      "Open-slot runtime matching is intentionally auditable and can be disabled independently from lexical/parent routing.",
+      "A semantic_typed slot stores only compile-time semantic evidence; it does not import held-out frame answers or evaluation labels.",
+      "When latent prototypes are enabled, candidate-to-prototype IS_A evidence is compiled offline from independent semantic relations so runtime admission need not re-evaluate every filler pair."
+    ],
+    "rejected_insufficient_contexts": 4,
+    "rejected_insufficient_fillers": 0,
+    "rejected_no_shared_targets": 0,
+    "version": "0.24"
+  },
+  "frame_transfer": {
+    "bindings": [
+      {
+        "ancestor_hops": 1,
+        "base_prototype_node_id": "m_7911f660da48e0a9e6294145",
+        "higher_concept_node_id": "m_fb566372de347a4a1d33cb35",
+        "higher_concept_surface": "Concept_38561e5670",
+        "original_frame_node_id": "m_5c69c30a39fd47877e22615d",
+        "original_slot_node_id": "m_fbf9c297f8334e101c249be3",
+        "path_min_quality": 0.8511525,
+        "prediction_targets": [
+          "m_92ee9ad6f925e3b44033c0d1",
+          "m_9e6f815553ba66f1de6483be"
+        ],
+        "target_hierarchy_depth": 1,
+        "transferred_frame_node_id": "m_5d9863c1f6b82f4d910307df",
+        "transferred_slot_node_id": "m_80cd7e8fb727abef2cdace5b"
+      },
+      {
+        "ancestor_hops": 1,
+        "base_prototype_node_id": "m_d585db581a21c45af04344cf",
+        "higher_concept_node_id": "m_fb566372de347a4a1d33cb35",
+        "higher_concept_surface": "Concept_38561e5670",
+        "original_frame_node_id": "m_dcccd030d750860d0019097f",
+        "original_slot_node_id": "m_420965e6477eccd9460fca42",
+        "path_min_quality": 0.8511525,
+        "prediction_targets": [
+          "m_2dcae55e40cb13f02324840d",
+          "m_32b251b828c0860191683367"
+        ],
+        "target_hierarchy_depth": 1,
+        "transferred_frame_node_id": "m_d1392dc0cb4439f01daa9b1a",
+        "transferred_slot_node_id": "m_50c729e7443adaa20b49abd5"
+      }
+    ],
+    "format": "equinox-forge-hierarchical-frame-transfer-v1",
+    "frames_considered": 2,
+    "frames_promoted": 2,
+    "frames_with_prototype": 2,
+    "frames_without_eligible_ancestor": 0,
+    "generated_nodes": 4,
+    "generated_prediction_evidence": 4,
+    "notes": [
+      "Promotion broadens only slot admission through an already compiled IS_A hierarchy; it does not invent new prediction targets.",
+      "Original frames remain intact. The promoted frame is a separate provisional derived artifact and can be removed/rebuilt independently.",
+      "A runtime candidate must reach the promoted higher concept through compiled IS_A membership edges within the configured hop and path-quality limits.",
+      "Higher-concept labels remain latent Concept_* identifiers; no human ontology name is asserted by this step."
+    ],
+    "version": "0.26"
+  },
+  "prototype_hierarchy": {
+    "base_prototypes": 2,
+    "format": "equinox-forge-prototype-hierarchy-v1",
+    "frontier_remaining": 1,
+    "generated_concepts": 1,
+    "generated_memberships": 2,
+    "highest_hierarchy_depth": 1,
+    "levels_generated": 1,
+    "merges": [
+      {
+        "child_node_ids": [
+          "m_7911f660da48e0a9e6294145",
+          "m_d585db581a21c45af04344cf"
+        ],
+        "child_surfaces": [
+          "Concept_35a2a3a3d1",
+          "Concept_d85b81a84b"
+        ],
+        "cross_pair_count": 4,
+        "hierarchy_depth": 1,
+        "leaf_node_ids": [
+          "m_42178d06f9c5e1b98384186a",
+          "m_8f8d6efd0bd55cf0022982ac",
+          "m_b7f9a3adc5885683db796c26",
+          "m_f1bba7a819abe459ec40887b"
+        ],
+        "leaf_surfaces": [
+          "Adler",
+          "Falke",
+          "Hund",
+          "Katze"
+        ],
+        "mean_cross_score": 0.89595,
+        "min_cross_score": 0.891,
+        "node_id": "m_fb566372de347a4a1d33cb35",
+        "supporting_pair_count": 4,
+        "supporting_pair_fraction": 1.0,
+        "threshold": 0.85
+      }
+    ],
+    "notes": [
+      "Recursive concepts are built only from previously induced concepts whose underlying leaf fillers have independent semantic support.",
+      "Higher concepts contain lower concept nodes as members; raw surface/Q nodes are not flattened into the composition hierarchy.",
+      "The cross-leaf threshold may relax by depth, but never below min_score_floor; every merge remains complete-link compatible at its own level.",
+      "Child->parent IS_A edges are derived and provisional. Raw semantic evidence remains unchanged and can rebuild the hierarchy later.",
+      "No ontology label such as ANIMAL is asserted automatically; Concept_* names remain latent until separately grounded."
+    ],
+    "version": "0.25"
+  }
+}

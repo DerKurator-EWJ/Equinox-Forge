@@ -12,7 +12,7 @@ from .runtime_pack import LoadedRuntimePack, RuntimeNode, load_base_pack
 from .runtime_query import RuntimeIndex
 
 RUNTIME_COGNITION_FORMAT = "equinox-runtime-cognition-v1"
-RUNTIME_COGNITION_VERSION = "0.24"
+RUNTIME_COGNITION_VERSION = "0.26"
 
 
 @dataclass
@@ -48,6 +48,10 @@ class RuntimeCognitionPolicy:
     # v0.24: prefer a compiled latent class membership edge (candidate -> prototype)
     # over re-evaluating pairwise candidate-to-filler similarity at runtime.
     enable_slot_prototype_admission: bool = True
+    # v0.26: allow a slot to admit a candidate through a compiled multi-hop IS_A
+    # chain into a higher recursive latent concept.
+    enable_hierarchical_slot_admission: bool = True
+    max_hierarchical_slot_hops: int = 8
     frame_match_weight: float = 0.82
     max_frame_matches: int = 8
     # Relation weights are recall routing priors, not learned semantics.
@@ -70,6 +74,7 @@ class RuntimeCognitionPolicy:
         if self.max_structural_parents < 1: raise ValueError("max_structural_parents must be >= 1")
         if self.max_predictions < 1: raise ValueError("max_predictions must be >= 1")
         if self.max_frame_matches < 1: raise ValueError("max_frame_matches must be >= 1")
+        if self.max_hierarchical_slot_hops < 1: raise ValueError("max_hierarchical_slot_hops must be >= 1")
         if not 0 <= self.min_activation <= 1: raise ValueError("min_activation must be in [0,1]")
         if not 0 <= self.min_prediction_score <= 1: raise ValueError("min_prediction_score must be in [0,1]")
         if not 0 < self.depth_decay <= 1: raise ValueError("depth_decay must be in (0,1]")
@@ -268,6 +273,73 @@ class RuntimeCognition:
             result.update({"admitted": True, "reason": "observed_filler", "supporting_fillers": sorted(filler_ids.intersection(candidate_ids)),
                            "required_support": min_support, "min_score": min_score})
             return result
+
+        hierarchical_id = str(profile.get("hierarchical_prototype_node_id") or "")
+        if hierarchical_id and self.policy.enable_hierarchical_slot_admission:
+            relation_type = str(profile.get("hierarchical_membership_relation_type") or RelationType.IS_A.value)
+            max_hops = min(
+                int(profile.get("hierarchical_max_hops", self.policy.max_hierarchical_slot_hops) or self.policy.max_hierarchical_slot_hops),
+                int(self.policy.max_hierarchical_slot_hops),
+            )
+            min_path_score = float(profile.get("hierarchical_min_path_score", 0.0) or 0.0)
+            best_path = None
+            total_index_lookups = 0
+            total_relation_checks = 0
+            for cid in candidate_ids:
+                queue = [(cid, 0, 1.0, [cid])]
+                seen_best = {cid: (0, 1.0)}
+                pos = 0
+                while pos < len(queue):
+                    current, hops, quality, path = queue[pos]; pos += 1
+                    if current == hierarchical_id and hops > 0:
+                        candidate = (quality, -hops, cid, list(path))
+                        if best_path is None or candidate[:3] > best_path[:3]:
+                            best_path = candidate
+                        continue
+                    if hops >= max_hops:
+                        continue
+                    total_index_lookups += 1
+                    bucket = self.index.relations_from.get(current, [])
+                    total_relation_checks += len(bucket)
+                    for rel in bucket:
+                        if rel.relation_type != relation_type:
+                            continue
+                        nxt = rel.to_id
+                        if nxt in path:
+                            continue
+                        edge_q = max(0.0, min(1.0, float(rel.score) * float(rel.confidence)))
+                        nq = min(quality, edge_q)
+                        nh = hops + 1
+                        old = seen_best.get(nxt)
+                        if old is not None and old[0] <= nh and old[1] >= nq - 1e-12:
+                            continue
+                        seen_best[nxt] = (nh, nq)
+                        queue.append((nxt, nh, nq, path + [nxt]))
+            if best_path is not None and best_path[0] + 1e-12 >= min_path_score:
+                result.update({
+                    "hierarchical_prototype_node_id": hierarchical_id,
+                    "hierarchical_relation_type": relation_type,
+                    "hierarchical_path_score": float(best_path[0]),
+                    "hierarchical_hops": int(-best_path[1]),
+                    "hierarchical_candidate_node_id": best_path[2],
+                    "hierarchical_path": best_path[3],
+                    "hierarchical_min_path_score": min_path_score,
+                    "hierarchical_index_lookups": total_index_lookups,
+                    "hierarchical_relation_checks": total_relation_checks,
+                    "admitted": True,
+                    "reason": "hierarchical_prototype_membership",
+                })
+                return result
+            # Keep evaluating the direct base-prototype path below. This makes the
+            # transferred frame backward-compatible for its original subtype.
+            result.update({
+                "hierarchical_prototype_node_id": hierarchical_id,
+                "hierarchical_relation_type": relation_type,
+                "hierarchical_path_score": float(best_path[0]) if best_path is not None else 0.0,
+                "hierarchical_min_path_score": min_path_score,
+                "hierarchical_index_lookups": total_index_lookups,
+                "hierarchical_relation_checks": total_relation_checks,
+            })
 
         prototype_id = str(profile.get("prototype_node_id") or "")
         if prototype_id and self.policy.enable_slot_prototype_admission:

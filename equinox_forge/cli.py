@@ -32,6 +32,7 @@ from .generalization_ladder import compile_and_benchmark_generalization_ladder, 
 from .mechanism_attribution import compile_and_benchmark_mechanism_attribution
 from .frame_induction import FrameInductionPolicy, induce_relation_frames, persist_frame_document
 from .prototype_hierarchy import PrototypeHierarchyPolicy, induce_prototype_hierarchy
+from .hierarchical_frame_transfer import HierarchicalFrameTransferPolicy, promote_frames_to_higher_concepts
 from .frame_schema_benchmark import compile_and_benchmark_frame_schemas, load_frame_eval_jsonl
 
 
@@ -964,6 +965,47 @@ def _induce_prototype_hierarchy(args) -> int:
     return 0
 
 
+def _promote_hierarchical_frames(args) -> int:
+    policy = HierarchicalFrameTransferPolicy(
+        min_ancestor_hops=args.min_ancestor_hops,
+        max_ancestor_hops=args.max_ancestor_hops,
+        min_path_edge_quality=args.min_path_edge_quality,
+        prefer_highest_ancestor=not args.prefer_nearest_ancestor,
+        require_recursive_concept=not args.allow_nonrecursive_ancestor,
+        prediction_confidence_scale=args.prediction_confidence_scale,
+        hierarchical_admission_min_path_score=args.admission_min_path_score,
+    )
+    try:
+        with CanonicalDB(args.db) as c:
+            doc, report = promote_frames_to_higher_concepts(
+                c.db, policy, source_id=args.source_id, source_version=args.source_version
+            )
+            errors = [x for x in validate_document(doc) if x.severity == "error"]
+            if errors:
+                raise ValueError("hierarchical frame transfer IR invalid: " + "; ".join(x.message for x in errors))
+            save_document(doc, args.output)
+            report_path = Path(args.report) if args.report else Path(args.output).with_suffix(".report.json")
+            report_path.write_text(
+                json.dumps(report.to_dict(), ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+            if args.persist:
+                persist_frame_document(c.db, doc)
+                c.db.commit()
+            payload = {
+                "output": str(Path(args.output)),
+                "report": str(report_path),
+                "persisted": bool(args.persist),
+                "hierarchical_frame_transfer": report.to_dict(),
+                "db_stats": c.stats(),
+            }
+    except Exception as exc:
+        print(f"ERROR: hierarchical frame transfer failed: {exc}")
+        return 3
+    print(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
+
 def _benchmark_frames(args) -> int:
     probe_cfg=BehaviourProbeConfig(
         top_k=args.teacher_top_k,temperature=args.temperature,min_probability=args.min_probability,
@@ -1485,6 +1527,20 @@ def main():
     ph.add_argument("--allow-overlapping-leaf-sets",action="store_true")
     ph.add_argument("--persist",action="store_true",help="persist recursive concept nodes/evidence into the canonical DB")
 
+    hf=sub.add_parser("promote-hierarchical-frames", help="bind prototype-typed frames to reachable higher recursive concepts")
+    hf.add_argument("db"); hf.add_argument("output")
+    hf.add_argument("--report")
+    hf.add_argument("--source-id",default="derived:hierarchical-frame-transfer")
+    hf.add_argument("--source-version",default="0.26")
+    hf.add_argument("--min-ancestor-hops",type=int,default=1)
+    hf.add_argument("--max-ancestor-hops",type=int,default=4)
+    hf.add_argument("--min-path-edge-quality",type=float,default=0.0)
+    hf.add_argument("--admission-min-path-score",type=float,default=0.55)
+    hf.add_argument("--prediction-confidence-scale",type=float,default=1.0)
+    hf.add_argument("--prefer-nearest-ancestor",action="store_true")
+    hf.add_argument("--allow-nonrecursive-ancestor",action="store_true")
+    hf.add_argument("--persist",action="store_true",help="persist transferred frame nodes/evidence into the canonical DB")
+
 
     fb=sub.add_parser("benchmark-frames", help="compile induced relation frames and benchmark isolated held-out schema transfer")
     fb.add_argument("model_dir"); fb.add_argument("output_dir")
@@ -1649,6 +1705,8 @@ def main():
         raise SystemExit(_induce_frames(a))
     elif a.cmd=="induce-prototype-hierarchy":
         raise SystemExit(_induce_prototype_hierarchy(a))
+    elif a.cmd=="promote-hierarchical-frames":
+        raise SystemExit(_promote_hierarchical_frames(a))
     elif a.cmd=="benchmark-frames":
         raise SystemExit(_benchmark_frames(a))
     elif a.cmd=="artifacts":
