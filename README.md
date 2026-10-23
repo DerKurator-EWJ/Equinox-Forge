@@ -1,4 +1,28 @@
-# Equinox Forge v0.48 — Specific-to-General Numeric Runtime
+# Equinox Forge v0.49 — Macro-Aware Numeric Routing
+
+v0.49 connects the recursive macro IDs to the DB-independent numeric runtime. Local concept evidence remains authoritative; inherited answers may use compile-time validated macro shortcuts, with automatic fallback to the frozen v0.48 specific-to-general path. The reference benchmark preserves 12/12 answers while reducing hierarchy-node touches from 38 to 23 (39.47%).
+
+```text
+Concept ID
+  ↓ local?
+validated Macro ID
+  ↓
+answer
+
+otherwise → v0.48 parent fallback
+```
+
+Run:
+
+```bash
+eqforge-macro-numeric-runtime --out out/v0_49_macro_numeric_runtime
+```
+
+See `RELEASE_V0_49.md` and `benchmarks/v0_49/`.
+
+---
+
+## Previous milestone — v0.48 Specific-to-General Numeric Runtime
 
 v0.48 is the first runtime layer that executes the canonical numeric ID space directly. A query starts at the most specific concept ID, uses a qualifying local fact if present, and only then climbs numeric parent links. Local overrides therefore beat stronger general evidence by specificity; weak local evidence can fall back to a parent. The exported runtime pack is DB-independent and keeps surface strings in a separate I/O binding layer.
 
