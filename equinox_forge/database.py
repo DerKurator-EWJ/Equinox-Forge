@@ -1,6 +1,7 @@
 from __future__ import annotations
 import json
 import sqlite3
+import hashlib
 from pathlib import Path
 from .ir import IRNode, RelationEvidence
 
@@ -24,6 +25,7 @@ CREATE TABLE IF NOT EXISTS node_members(
 );
 CREATE TABLE IF NOT EXISTS evidence(
   evidence_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  evidence_fingerprint TEXT UNIQUE,
   from_id TEXT NOT NULL,
   to_id TEXT NOT NULL,
   relation_type TEXT NOT NULL,
@@ -50,6 +52,7 @@ CREATE TABLE IF NOT EXISTS source_aliases(
   source_version TEXT NOT NULL,
   external_id TEXT NOT NULL,
   node_id TEXT NOT NULL,
+  metadata_json TEXT NOT NULL DEFAULT '{}',
   PRIMARY KEY(source_id,source_version,external_id)
 );
 """
@@ -61,6 +64,18 @@ class CanonicalDB:
         self.db = sqlite3.connect(self.path)
         self.db.execute("PRAGMA foreign_keys=ON")
         self.db.executescript(SCHEMA)
+        self._migrate_schema()
+
+    def _migrate_schema(self):
+        # v0.3 makes repeated extraction runs idempotent. Existing v0.1/v0.2 DBs
+        # did not have this column, so add it non-destructively when needed.
+        cols = {row[1] for row in self.db.execute("PRAGMA table_info(evidence)")}
+        if "evidence_fingerprint" not in cols:
+            self.db.execute("ALTER TABLE evidence ADD COLUMN evidence_fingerprint TEXT")
+        self.db.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_evidence_fingerprint ON evidence(evidence_fingerprint)")
+        alias_cols = {row[1] for row in self.db.execute("PRAGMA table_info(source_aliases)")}
+        if "metadata_json" not in alias_cols:
+            self.db.execute("ALTER TABLE source_aliases ADD COLUMN metadata_json TEXT NOT NULL DEFAULT '{}'")
 
     def close(self): self.db.close()
     def __enter__(self): return self
@@ -79,9 +94,17 @@ class CanonicalDB:
             self.db.execute("INSERT OR IGNORE INTO node_members(parent_id,position,child_id) VALUES(?,?,?)",(node.node_id,pos,child))
 
     def add_evidence(self, e: RelationEvidence):
+        metadata_json = json.dumps(e.metadata,ensure_ascii=False,sort_keys=True)
+        raw = json.dumps({
+            "from":e.from_id,"to":e.to_id,"type":e.relation_type,
+            "score":float(e.score),"confidence":float(e.confidence),
+            "source":e.source.source_id,"version":e.source.source_version,
+            "extraction":e.source.extraction,"metadata":e.metadata,
+        },ensure_ascii=False,separators=(",",":"),sort_keys=True).encode("utf-8")
+        fp = hashlib.sha256(raw).hexdigest()
         self.db.execute(
-            "INSERT INTO evidence(from_id,to_id,relation_type,score,confidence,source_id,source_version,extraction,metadata_json) VALUES(?,?,?,?,?,?,?,?,?)",
-            (e.from_id,e.to_id,e.relation_type,float(e.score),float(e.confidence),e.source.source_id,e.source.source_version,e.source.extraction,json.dumps(e.metadata,ensure_ascii=False,sort_keys=True)),
+            "INSERT OR IGNORE INTO evidence(evidence_fingerprint,from_id,to_id,relation_type,score,confidence,source_id,source_version,extraction,metadata_json) VALUES(?,?,?,?,?,?,?,?,?,?)",
+            (fp,e.from_id,e.to_id,e.relation_type,float(e.score),float(e.confidence),e.source.source_id,e.source.source_version,e.source.extraction,metadata_json),
         )
 
     def register_source_model(self, source_id: str, source_version: str, adapter_id: str, adapter_hash: str, model_type: str, manifest: dict):
@@ -90,8 +113,11 @@ class CanonicalDB:
             (source_id,source_version,adapter_id,adapter_hash,model_type,json.dumps(manifest,ensure_ascii=False,sort_keys=True)),
         )
 
-    def alias(self, source_id: str, source_version: str, external_id: str, node_id: str):
-        self.db.execute("INSERT OR REPLACE INTO source_aliases VALUES(?,?,?,?)",(source_id,source_version,external_id,node_id))
+    def alias(self, source_id: str, source_version: str, external_id: str, node_id: str, metadata: dict | None = None):
+        self.db.execute(
+            "INSERT OR REPLACE INTO source_aliases(source_id,source_version,external_id,node_id,metadata_json) VALUES(?,?,?,?,?)",
+            (source_id,source_version,external_id,node_id,json.dumps(metadata or {},ensure_ascii=False,sort_keys=True)),
+        )
 
     def commit(self): self.db.commit()
 

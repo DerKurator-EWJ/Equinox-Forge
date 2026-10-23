@@ -1,0 +1,33 @@
+{
+  "db_stats": {
+    "evidence": 14,
+    "nodes": 35,
+    "registered_models": 1,
+    "sources": 1
+  },
+  "extraction": {
+    "adapter_hash": "9c0838cf663e028cda80c3c1f271fbe1af321fc9f4ff9cf10728b24a3a1cd42c",
+    "adapter_id": "hf-deepseek-v3-v1",
+    "canonical_surfaces": 11,
+    "duplicate_surface_tokens": 0,
+    "embedding_shape": [
+      13,
+      6
+    ],
+    "embedding_tensor": "model.embed_tokens.weight",
+    "evidence_records": 14,
+    "format": "equinox-forge-text-teacher-extractor-v1",
+    "min_similarity": 0.6,
+    "q_nodes": 24,
+    "selected_teacher_tokens": 11,
+    "skipped_invalid_surface": 1,
+    "skipped_special": 1,
+    "source_id": "synthetic/semantic",
+    "source_version": "v1",
+    "surface_nodes": 11,
+    "tokenizer_entries": 13,
+    "top_k": 2
+  },
+  "output": "out/synthetic.eqir.json",
+  "report": "out/synthetic.eqir.report.json"
+}

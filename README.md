@@ -1,117 +1,233 @@
-# Equinox Forge v0.2 — Hugging Face Adapter Contract
+# Equinox Forge v0.3 — First Text Teacher Extractor
 
-Forge v0.2 freezes the boundary between **teacher/model-specific extraction** and the **model-independent Equinox compiler**.
+Forge v0.3 is the first step that turns **actual Hugging Face Safetensors data** into Canonical Equinox IR.
 
-The goal is deliberately not to write a new compiler for every Hugging Face model. A new teacher family should normally require only an adapter JSON that declares where useful teacher signals live and which extraction channels are allowed.
+It keeps the architectural boundary introduced in v0.2:
 
-## Pipeline
+`teacher checkpoint -> adapter -> bounded extraction -> Canonical IR -> Canonical DB -> compile`
 
-`Hugging Face model -> adapter contract -> extraction plan -> extractor -> Canonical IR -> canonical DB -> Equinox compilation`
+The teacher tensor is **never** treated as an Equinox runtime weight. It is only an evidence source.
 
-The v0.1 Canonical IR, content-derived IDs, evidence aggregation and SQLite database remain intact.
+## What v0.3 extracts
 
-## Adapter format
+The first extraction channel is deliberately narrow:
 
-`equinox-forge-hf-adapter-v1` separates four things:
+1. inspect a local Hugging Face model;
+2. resolve its `input_embeddings` tensor through the v0.2 adapter contract;
+3. read a bounded subset of token embeddings from Safetensors;
+4. decode token surfaces from local tokenizer JSON;
+5. convert each accepted text surface into Equinox character-Q nodes plus a level-1 surface macro;
+6. average duplicate token surfaces into one canonical surface vector;
+7. compute sparse top-k cosine neighbours;
+8. emit `semantic_similarity` evidence with full source/adapter/tensor provenance;
+9. optionally ingest nodes, evidence, source model metadata and token aliases into the Canonical SQLite DB.
 
-- model identity: family, `model_type`, architecture names;
-- Equinox target semantics: modality and Q strategy (`unicode_character` for the first language branch);
-- tensor **roles**, not hard-coded compiler assumptions;
-- extraction channels and their prerequisites.
+This is **not yet language understanding** and does not claim that cosine similarity equals meaning. It is the first measurable bridge from a real teacher representation into the Equinox evidence system.
 
-Example roles:
+## Why the Q layer is characters
 
-- `input_embeddings`
-- `output_head`
-- `transformer_layers`
+For the text branch, the first Equinox representation uses:
 
-Example channels:
+`Q = Unicode character`
 
-- `token_embedding_neighbors`: static sparse neighbour evidence;
-- `output_prediction_priors`: directed prediction evidence;
-- `runtime_hidden_states`: behaviour extraction that requires executing the teacher.
+A teacher token such as `Hund` becomes a surface macro over:
 
-A teacher tensor is never declared to be an Equinox weight. It is only a source from which an extractor may generate canonical evidence.
+`H -> u -> n -> d`
 
-## Local Hugging Face inspection
+The teacher tokenizer remains source provenance only. Therefore two different models can map their own token IDs to the same canonical Equinox surface node.
 
-Forge can inspect a downloaded model directory without loading the model into RAM. It reads:
+Teacher token IDs are deliberately **not stored on canonical nodes**. They live in `source_aliases`, so importing another teacher cannot contaminate a shared canonical node with model-specific identity.
 
-- `config.json`;
-- common tokenizer file presence;
-- `*.safetensors.index.json` weight maps;
-- or, for unsharded Safetensors, only the small JSON header.
+## Subwords are not silently called words
 
-Tensor payloads are not loaded by `inspect-hf` or `plan-hf`.
+Hugging Face vocabularies often contain BPE / WordPiece / SentencePiece fragments. Forge v0.3 therefore labels imported level-1 nodes as generic text surfaces rather than pretending every teacher token is a whole word.
 
-## Extraction plans
+Common static decoding is supported for:
 
-Before extraction, Forge resolves every adapter role against the actual local model and emits a deterministic extraction plan containing:
+- GPT-2 / ByteLevel BPE reversible byte alphabet;
+- `Ġ` word boundaries;
+- SentencePiece `▁` boundaries;
+- WordPiece `##` continuation markers;
+- JSON BPE / WordPiece vocabularies;
+- JSON Unigram vocabularies.
 
-- adapter hash;
-- resolved tensor names;
-- enabled/unavailable channels;
-- model-type/architecture warnings;
-- validity status.
+A checkpoint that only exposes a binary `tokenizer.model` / `spiece.model` without `tokenizer.json` or `vocab.json` is not parsed in v0.3.
 
-This is the reproducibility boundary: later evidence can record exactly which adapter version/hash was used.
+## Sparse extraction
 
-## Included adapter templates
+The extractor never creates every possible pair. For each canonical surface it keeps at most `top_k` embedding neighbours above `min_similarity`.
+
+The implementation computes cosine similarities in row batches and uses partial top-k selection rather than fully sorting each vocabulary row.
+
+For a bounded extraction of `N` surfaces with `k` neighbours, stored relation evidence is approximately `O(N*k)`, not `O(N²)`.
+
+The similarity search is still `O(N²)` arithmetic in v0.3. ANN indexing is a later scaling step.
+
+## Bounded Safetensors reads
+
+Forge uses `safetensors.safe_open(...).get_slice()` and reads only the row interval needed by the selected token IDs rather than materializing the complete embedding matrix.
+
+This matters for future large teachers where the full embedding matrix may be many gigabytes.
+
+## Score and confidence are separate
+
+For embedding-neighbour evidence:
+
+- `score` = cosine similarity, clamped to the canonical `[0,1]` relation-score range after applying the configured minimum threshold;
+- `confidence` = trust assigned to this extraction channel (`0.55` by default).
+
+Confidence is intentionally **not** calculated from cosine magnitude. A very high cosine value does not prove that the relation has semantic truth.
+
+Later channels can add independent evidence to the same canonical pair:
+
+- controlled teacher predictions;
+- hidden-state probes;
+- corpus observations;
+- structured knowledge graphs;
+- other teacher models.
+
+The compiler can then aggregate those independent sources.
+
+## Idempotent ingestion
+
+v0.3 adds an `evidence_fingerprint` to the Canonical DB. Re-running the exact same extraction does not duplicate the same evidence record.
+
+Existing v0.1/v0.2 SQLite databases are migrated non-destructively when opened:
+
+- `evidence_fingerprint` is added when absent;
+- `source_aliases.metadata_json` is added when absent.
+
+## Included adapters
 
 - `adapters/deepseek_v3.json`
 - `adapters/qwen2.json`
+- `adapters/gpt2.json`
 
-These are configuration templates. They are still checked against the actual local model before any extraction is allowed. A model update therefore cannot silently move a tensor and keep using a stale assumption.
-
-## Canonical DB addition
-
-v0.2 adds `source_models`, recording:
-
-- source/model version;
-- adapter ID;
-- adapter SHA-256;
-- model type;
-- inspected source manifest.
-
-Raw relation evidence remains separate, as in v0.1.
+The actual local checkpoint is always inspected before extraction. Adapter tensor names are not blindly trusted.
 
 ## CLI
 
+### Inspect and plan
+
 ```bash
-python -m equinox_forge.cli validate-adapter adapters/deepseek_v3.json
-python -m equinox_forge.cli inspect-hf /path/to/hf/model
-python -m equinox_forge.cli plan-hf /path/to/hf/model adapters/deepseek_v3.json --output out/plan.json
-python -m equinox_forge.cli detect-adapter /path/to/hf/model --adapters adapters
-python -m equinox_forge.cli auto-adapter /path/to/hf/model out/my_model_adapter.json --adapter-id my-model-v1
+python -m equinox_forge.cli inspect-hf /path/to/model
+python -m equinox_forge.cli plan-hf /path/to/model adapters/gpt2.json --output out/plan.json
 ```
 
-The existing v0.1 commands (`validate`, `ingest`, `stats`, `compile`, `export`) remain available.
+### Extract bounded text evidence
 
-## Synthetic offline test
+```bash
+python -m equinox_forge.cli extract-text \
+  /path/to/model \
+  adapters/gpt2.json \
+  out/teacher.eqir.json \
+  --source-id my-teacher \
+  --source-version v1 \
+  --db out/master.sqlite \
+  --max-tokens 10000 \
+  --top-k 8 \
+  --min-similarity 0.30
+```
 
-`examples/hf_synthetic/` contains a tiny Hugging-Face-like directory with only config/tokenizer metadata and a Safetensors index. No model weights are required to test adapter resolution.
+Useful bounds:
+
+- `--start-token-id`
+- `--max-tokens`
+- `--top-k`
+- `--min-similarity`
+- `--batch-size`
+- `--max-surface-chars`
+- `--evidence-confidence`
+
+### Compile current evidence
+
+```bash
+python -m equinox_forge.cli compile out/master.sqlite
+```
+
+## Offline Safetensors integration fixture
+
+`examples/hf_teacher_synthetic/` is a complete Hugging-Face-like local directory containing:
+
+- `config.json`;
+- `tokenizer.json`;
+- `tokenizer_config.json`;
+- a real `model.safetensors` file.
+
+Its vectors are deliberately hand-authored so the test can prove that expected clusters such as `Hund/Hunde`, `Auto/Wagen` and `laufen/rennen` are recovered. It is **not a trained language model** and is not used as evidence for model quality.
+
+Example:
+
+```bash
+python -m equinox_forge.cli extract-text \
+  examples/hf_teacher_synthetic \
+  adapters/deepseek_v3.json \
+  out/synthetic.eqir.json \
+  --source-id synthetic/semantic \
+  --source-version v1 \
+  --db out/synthetic.sqlite \
+  --max-tokens 32 \
+  --top-k 2 \
+  --min-similarity 0.60
+```
+
+Expected current fixture result:
+
+```text
+11 accepted teacher tokens
+11 canonical text surfaces
+24 unique character-Q nodes
+14 sparse relation-evidence records
+35 total nodes
+```
+
+## Tests
 
 ```bash
 python tests/test_forge.py
 python tests/test_hf_adapter.py
+python tests/test_text_teacher.py
+python tests/test_db_migration_v02.py
 ```
 
-## Important boundaries
+The tests cover:
 
-v0.2 does **not** yet extract millions of vectors and does not execute a Transformer. That is intentional. It first makes the interface stable so the next extractor cannot leak model-specific assumptions into the canonical compiler.
+- v0.1 canonical ID / relation aggregation behaviour;
+- v0.2 adapter planning;
+- real Safetensors row extraction;
+- tokenizer surface conversion;
+- expected nearest-neighbour relations;
+- idempotent evidence ingestion;
+- migration of an older v0.2-style database.
 
-The first real extractor should start with a small open causal language model and produce bounded evidence for a small vocabulary before scaling toward DeepSeek-class models.
+## Deliberate limits of v0.3
+
+v0.3 does **not** yet:
+
+- execute a Transformer;
+- extract hidden states;
+- extract contextual next-token behaviour;
+- infer complete words/phrases from arbitrary subword streams;
+- claim embedding similarity is equivalent to semantic knowledge;
+- compile a final Android `BASE.eqx` language pack;
+- use ANN search for million-node embedding spaces.
+
+These limits are intentional. v0.3 proves the first teacher-data path without mixing model-specific runtime behaviour into the Canonical Equinox representation.
 
 ## Next Forge step
 
-**v0.3 — First Text Teacher Extractor**
+**v0.4 — Controlled Language Evidence**
 
-Planned proof:
+The next useful step is to add a small probe-corpus pipeline that turns teacher/corpus context into structures above token surfaces:
 
-1. load a small Hugging Face causal LM;
-2. decode a bounded vocabulary into surface strings;
-3. map those strings to Equinox character-Q / surface macros;
-4. extract sparse top-k embedding-neighbour evidence;
-5. optionally add controlled next-token prediction evidence;
-6. ingest the resulting IR into the canonical DB;
-7. verify deduplication and measure source/IR/runtime sizes.
+`characters -> surfaces -> words/phrases -> contextual relations`
+
+The key goal is to stop relying on static embedding geometry alone and start producing evidence for:
+
+- directed transition / prediction;
+- contextual co-activation;
+- substitution classes;
+- word-form composition;
+- phrase macros.
+
+That is the first step toward a language BASE that Equinox can actually query rather than merely a static similarity graph.

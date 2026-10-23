@@ -1,0 +1,29 @@
+{
+  "version": "1.0",
+  "added_tokens": [
+    {
+      "id": 0,
+      "content": "<unk>",
+      "special": true
+    }
+  ],
+  "model": {
+    "type": "BPE",
+    "vocab": {
+      "<unk>": 0,
+      "ĠHund": 1,
+      "ĠHunde": 2,
+      "ĠTier": 3,
+      "ĠKatze": 4,
+      "ĠAuto": 5,
+      "ĠWagen": 6,
+      "ĠBaum": 7,
+      "ĠPflanze": 8,
+      "Ġlaufen": 9,
+      "Ġrennen": 10,
+      "!": 11,
+      "123": 12
+    },
+    "merges": []
+  }
+}

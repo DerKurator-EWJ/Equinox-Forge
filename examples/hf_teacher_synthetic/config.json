@@ -1,0 +1,9 @@
+{
+  "model_type": "deepseek_v3",
+  "architectures": [
+    "DeepseekV3ForCausalLM"
+  ],
+  "vocab_size": 13,
+  "hidden_size": 6,
+  "num_hidden_layers": 1
+}

@@ -1,0 +1,674 @@
+{
+  "evidence": [
+    {
+      "confidence": 0.55,
+      "from_id": "m_42178d06f9c5e1b98384186a",
+      "metadata": {
+        "adapter_hash": "9c0838cf663e028cda80c3c1f271fbe1af321fc9f4ff9cf10728b24a3a1cd42c",
+        "adapter_id": "hf-deepseek-v3-v1",
+        "cosine": 0.9997122287750244,
+        "embedding_tensor": "model.embed_tokens.weight",
+        "teacher_signal": "input_embedding_cosine"
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.9997122287750244,
+      "source": {
+        "extraction": "token_embedding_neighbors",
+        "source_id": "synthetic/semantic",
+        "source_version": "v1"
+      },
+      "to_id": "m_00c9da23936184dd7cd05d8b"
+    },
+    {
+      "confidence": 0.55,
+      "from_id": "m_42178d06f9c5e1b98384186a",
+      "metadata": {
+        "adapter_hash": "9c0838cf663e028cda80c3c1f271fbe1af321fc9f4ff9cf10728b24a3a1cd42c",
+        "adapter_id": "hf-deepseek-v3-v1",
+        "cosine": 0.9957120418548584,
+        "embedding_tensor": "model.embed_tokens.weight",
+        "teacher_signal": "input_embedding_cosine"
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.9957120418548584,
+      "source": {
+        "extraction": "token_embedding_neighbors",
+        "source_id": "synthetic/semantic",
+        "source_version": "v1"
+      },
+      "to_id": "m_8f8d6efd0bd55cf0022982ac"
+    },
+    {
+      "confidence": 0.55,
+      "from_id": "m_00c9da23936184dd7cd05d8b",
+      "metadata": {
+        "adapter_hash": "9c0838cf663e028cda80c3c1f271fbe1af321fc9f4ff9cf10728b24a3a1cd42c",
+        "adapter_id": "hf-deepseek-v3-v1",
+        "cosine": 0.9997122287750244,
+        "embedding_tensor": "model.embed_tokens.weight",
+        "teacher_signal": "input_embedding_cosine"
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.9997122287750244,
+      "source": {
+        "extraction": "token_embedding_neighbors",
+        "source_id": "synthetic/semantic",
+        "source_version": "v1"
+      },
+      "to_id": "m_42178d06f9c5e1b98384186a"
+    },
+    {
+      "confidence": 0.55,
+      "from_id": "m_00c9da23936184dd7cd05d8b",
+      "metadata": {
+        "adapter_hash": "9c0838cf663e028cda80c3c1f271fbe1af321fc9f4ff9cf10728b24a3a1cd42c",
+        "adapter_id": "hf-deepseek-v3-v1",
+        "cosine": 0.9936950206756592,
+        "embedding_tensor": "model.embed_tokens.weight",
+        "teacher_signal": "input_embedding_cosine"
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.9936950206756592,
+      "source": {
+        "extraction": "token_embedding_neighbors",
+        "source_id": "synthetic/semantic",
+        "source_version": "v1"
+      },
+      "to_id": "m_8f8d6efd0bd55cf0022982ac"
+    },
+    {
+      "confidence": 0.55,
+      "from_id": "m_57daeeb6b1f4d6a5ae840cbc",
+      "metadata": {
+        "adapter_hash": "9c0838cf663e028cda80c3c1f271fbe1af321fc9f4ff9cf10728b24a3a1cd42c",
+        "adapter_id": "hf-deepseek-v3-v1",
+        "cosine": 0.9909955859184265,
+        "embedding_tensor": "model.embed_tokens.weight",
+        "teacher_signal": "input_embedding_cosine"
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.9909955859184265,
+      "source": {
+        "extraction": "token_embedding_neighbors",
+        "source_id": "synthetic/semantic",
+        "source_version": "v1"
+      },
+      "to_id": "m_00c9da23936184dd7cd05d8b"
+    },
+    {
+      "confidence": 0.55,
+      "from_id": "m_57daeeb6b1f4d6a5ae840cbc",
+      "metadata": {
+        "adapter_hash": "9c0838cf663e028cda80c3c1f271fbe1af321fc9f4ff9cf10728b24a3a1cd42c",
+        "adapter_id": "hf-deepseek-v3-v1",
+        "cosine": 0.9889460206031799,
+        "embedding_tensor": "model.embed_tokens.weight",
+        "teacher_signal": "input_embedding_cosine"
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.9889460206031799,
+      "source": {
+        "extraction": "token_embedding_neighbors",
+        "source_id": "synthetic/semantic",
+        "source_version": "v1"
+      },
+      "to_id": "m_42178d06f9c5e1b98384186a"
+    },
+    {
+      "confidence": 0.55,
+      "from_id": "m_8f8d6efd0bd55cf0022982ac",
+      "metadata": {
+        "adapter_hash": "9c0838cf663e028cda80c3c1f271fbe1af321fc9f4ff9cf10728b24a3a1cd42c",
+        "adapter_id": "hf-deepseek-v3-v1",
+        "cosine": 0.9957120418548584,
+        "embedding_tensor": "model.embed_tokens.weight",
+        "teacher_signal": "input_embedding_cosine"
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.9957120418548584,
+      "source": {
+        "extraction": "token_embedding_neighbors",
+        "source_id": "synthetic/semantic",
+        "source_version": "v1"
+      },
+      "to_id": "m_42178d06f9c5e1b98384186a"
+    },
+    {
+      "confidence": 0.55,
+      "from_id": "m_8f8d6efd0bd55cf0022982ac",
+      "metadata": {
+        "adapter_hash": "9c0838cf663e028cda80c3c1f271fbe1af321fc9f4ff9cf10728b24a3a1cd42c",
+        "adapter_id": "hf-deepseek-v3-v1",
+        "cosine": 0.9936950206756592,
+        "embedding_tensor": "model.embed_tokens.weight",
+        "teacher_signal": "input_embedding_cosine"
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.9936950206756592,
+      "source": {
+        "extraction": "token_embedding_neighbors",
+        "source_id": "synthetic/semantic",
+        "source_version": "v1"
+      },
+      "to_id": "m_00c9da23936184dd7cd05d8b"
+    },
+    {
+      "confidence": 0.55,
+      "from_id": "m_2e909eb633c28288fb3aa52e",
+      "metadata": {
+        "adapter_hash": "9c0838cf663e028cda80c3c1f271fbe1af321fc9f4ff9cf10728b24a3a1cd42c",
+        "adapter_id": "hf-deepseek-v3-v1",
+        "cosine": 0.9996874928474426,
+        "embedding_tensor": "model.embed_tokens.weight",
+        "teacher_signal": "input_embedding_cosine"
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.9996874928474426,
+      "source": {
+        "extraction": "token_embedding_neighbors",
+        "source_id": "synthetic/semantic",
+        "source_version": "v1"
+      },
+      "to_id": "m_f36682bda6e2d431cd08434e"
+    },
+    {
+      "confidence": 0.55,
+      "from_id": "m_f36682bda6e2d431cd08434e",
+      "metadata": {
+        "adapter_hash": "9c0838cf663e028cda80c3c1f271fbe1af321fc9f4ff9cf10728b24a3a1cd42c",
+        "adapter_id": "hf-deepseek-v3-v1",
+        "cosine": 0.9996874928474426,
+        "embedding_tensor": "model.embed_tokens.weight",
+        "teacher_signal": "input_embedding_cosine"
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.9996874928474426,
+      "source": {
+        "extraction": "token_embedding_neighbors",
+        "source_id": "synthetic/semantic",
+        "source_version": "v1"
+      },
+      "to_id": "m_2e909eb633c28288fb3aa52e"
+    },
+    {
+      "confidence": 0.55,
+      "from_id": "m_ce3d649f89c70d738efe8cbe",
+      "metadata": {
+        "adapter_hash": "9c0838cf663e028cda80c3c1f271fbe1af321fc9f4ff9cf10728b24a3a1cd42c",
+        "adapter_id": "hf-deepseek-v3-v1",
+        "cosine": 0.9975818395614624,
+        "embedding_tensor": "model.embed_tokens.weight",
+        "teacher_signal": "input_embedding_cosine"
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.9975818395614624,
+      "source": {
+        "extraction": "token_embedding_neighbors",
+        "source_id": "synthetic/semantic",
+        "source_version": "v1"
+      },
+      "to_id": "m_d66cdd0b0313afa3f54c9801"
+    },
+    {
+      "confidence": 0.55,
+      "from_id": "m_d66cdd0b0313afa3f54c9801",
+      "metadata": {
+        "adapter_hash": "9c0838cf663e028cda80c3c1f271fbe1af321fc9f4ff9cf10728b24a3a1cd42c",
+        "adapter_id": "hf-deepseek-v3-v1",
+        "cosine": 0.9975818395614624,
+        "embedding_tensor": "model.embed_tokens.weight",
+        "teacher_signal": "input_embedding_cosine"
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.9975818395614624,
+      "source": {
+        "extraction": "token_embedding_neighbors",
+        "source_id": "synthetic/semantic",
+        "source_version": "v1"
+      },
+      "to_id": "m_ce3d649f89c70d738efe8cbe"
+    },
+    {
+      "confidence": 0.55,
+      "from_id": "m_2ae150ec010ac9543a5147fa",
+      "metadata": {
+        "adapter_hash": "9c0838cf663e028cda80c3c1f271fbe1af321fc9f4ff9cf10728b24a3a1cd42c",
+        "adapter_id": "hf-deepseek-v3-v1",
+        "cosine": 0.9990091919898987,
+        "embedding_tensor": "model.embed_tokens.weight",
+        "teacher_signal": "input_embedding_cosine"
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.9990091919898987,
+      "source": {
+        "extraction": "token_embedding_neighbors",
+        "source_id": "synthetic/semantic",
+        "source_version": "v1"
+      },
+      "to_id": "m_6d15ab1799132404c74af865"
+    },
+    {
+      "confidence": 0.55,
+      "from_id": "m_6d15ab1799132404c74af865",
+      "metadata": {
+        "adapter_hash": "9c0838cf663e028cda80c3c1f271fbe1af321fc9f4ff9cf10728b24a3a1cd42c",
+        "adapter_id": "hf-deepseek-v3-v1",
+        "cosine": 0.9990091919898987,
+        "embedding_tensor": "model.embed_tokens.weight",
+        "teacher_signal": "input_embedding_cosine"
+      },
+      "relation_type": "semantic_similarity",
+      "score": 0.9990091919898987,
+      "source": {
+        "extraction": "token_embedding_neighbors",
+        "source_id": "synthetic/semantic",
+        "source_version": "v1"
+      },
+      "to_id": "m_2ae150ec010ac9543a5147fa"
+    }
+  ],
+  "format": "equinox-forge-ir-v1",
+  "nodes": [
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_63226e2b8308e87a2c8b9efc",
+      "surface": "H"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_4e304d1d5053c0418f3cf06b",
+      "surface": "u"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f9c1ab02b020bf72a42dbb99",
+      "surface": "n"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_c6f6e6994e2cd21c9c0b4935",
+      "surface": "d"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_99799369ad132cd7e47da92b",
+      "surface": "e"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f33bd22ce5519138db3a4bce",
+      "surface": "T"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_1a371ca4988365289108f6c2",
+      "surface": "i"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_b531642b306274deb5568859",
+      "surface": "r"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_15a18ac39698288fb1a91018",
+      "surface": "K"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_0e89cc9028126dcb350ad7f0",
+      "surface": "a"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f534dbef81ff2a5b9c86842b",
+      "surface": "t"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_ad652928813fe3dcb86d10f9",
+      "surface": "z"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_40d685af630718a8cbbd6e43",
+      "surface": "A"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_067d7443db67e2be71e514a6",
+      "surface": "o"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_755669593e03ab127f4d84c6",
+      "surface": "W"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_49770d6a9583104eae68dd29",
+      "surface": "g"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_91ad68ed9d0649716410d850",
+      "surface": "B"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_9eb1cf62c9af901d123c2a8c",
+      "surface": "m"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_eed43465d7d3d62229b9d745",
+      "surface": "P"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_378672f12cb4344e8e3fe7dd",
+      "surface": "f"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_1519008e6800cb8f93869359",
+      "surface": "l"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_d4877164a1743bf9e4ca68d6",
+      "surface": "1"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_7f1476e14727541d0b89dbdb",
+      "surface": "2"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_0e3cd998550d5bcb8d7550f5",
+      "surface": "3"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_63226e2b8308e87a2c8b9efc",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_c6f6e6994e2cd21c9c0b4935"
+      ],
+      "metadata": {
+        "surface_role": "text_surface"
+      },
+      "modality": "text",
+      "node_id": "m_42178d06f9c5e1b98384186a",
+      "surface": "Hund"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_63226e2b8308e87a2c8b9efc",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_c6f6e6994e2cd21c9c0b4935",
+        "q_99799369ad132cd7e47da92b"
+      ],
+      "metadata": {
+        "surface_role": "text_surface"
+      },
+      "modality": "text",
+      "node_id": "m_00c9da23936184dd7cd05d8b",
+      "surface": "Hunde"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_f33bd22ce5519138db3a4bce",
+        "q_1a371ca4988365289108f6c2",
+        "q_99799369ad132cd7e47da92b",
+        "q_b531642b306274deb5568859"
+      ],
+      "metadata": {
+        "surface_role": "text_surface"
+      },
+      "modality": "text",
+      "node_id": "m_57daeeb6b1f4d6a5ae840cbc",
+      "surface": "Tier"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_15a18ac39698288fb1a91018",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_ad652928813fe3dcb86d10f9",
+        "q_99799369ad132cd7e47da92b"
+      ],
+      "metadata": {
+        "surface_role": "text_surface"
+      },
+      "modality": "text",
+      "node_id": "m_8f8d6efd0bd55cf0022982ac",
+      "surface": "Katze"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_40d685af630718a8cbbd6e43",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_067d7443db67e2be71e514a6"
+      ],
+      "metadata": {
+        "surface_role": "text_surface"
+      },
+      "modality": "text",
+      "node_id": "m_2e909eb633c28288fb3aa52e",
+      "surface": "Auto"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_755669593e03ab127f4d84c6",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_49770d6a9583104eae68dd29",
+        "q_99799369ad132cd7e47da92b",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {
+        "surface_role": "text_surface"
+      },
+      "modality": "text",
+      "node_id": "m_f36682bda6e2d431cd08434e",
+      "surface": "Wagen"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_91ad68ed9d0649716410d850",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_9eb1cf62c9af901d123c2a8c"
+      ],
+      "metadata": {
+        "surface_role": "text_surface"
+      },
+      "modality": "text",
+      "node_id": "m_ce3d649f89c70d738efe8cbe",
+      "surface": "Baum"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_eed43465d7d3d62229b9d745",
+        "q_378672f12cb4344e8e3fe7dd",
+        "q_1519008e6800cb8f93869359",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_ad652928813fe3dcb86d10f9",
+        "q_99799369ad132cd7e47da92b"
+      ],
+      "metadata": {
+        "surface_role": "text_surface"
+      },
+      "modality": "text",
+      "node_id": "m_d66cdd0b0313afa3f54c9801",
+      "surface": "Pflanze"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_1519008e6800cb8f93869359",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_378672f12cb4344e8e3fe7dd",
+        "q_99799369ad132cd7e47da92b",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {
+        "surface_role": "text_surface"
+      },
+      "modality": "text",
+      "node_id": "m_2ae150ec010ac9543a5147fa",
+      "surface": "laufen"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_b531642b306274deb5568859",
+        "q_99799369ad132cd7e47da92b",
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_99799369ad132cd7e47da92b",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {
+        "surface_role": "text_surface"
+      },
+      "modality": "text",
+      "node_id": "m_6d15ab1799132404c74af865",
+      "surface": "rennen"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_d4877164a1743bf9e4ca68d6",
+        "q_7f1476e14727541d0b89dbdb",
+        "q_0e3cd998550d5bcb8d7550f5"
+      ],
+      "metadata": {
+        "surface_role": "text_surface"
+      },
+      "modality": "text",
+      "node_id": "m_8f70473e392feaaf65a83d27",
+      "surface": "123"
+    }
+  ]
+}
