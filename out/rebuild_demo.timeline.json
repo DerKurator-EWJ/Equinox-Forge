@@ -1,0 +1,476 @@
+[
+  {
+    "effective_evidence": 8,
+    "hypotheses": [
+      {
+        "abstain_sources": 1,
+        "conflict_sources": 0,
+        "conflict_weight": 0,
+        "consecutive_seen": 1,
+        "consensus_score": 1.0,
+        "decisive_sources": 2,
+        "decisive_weight": 2.0,
+        "hypothesis_id": "m_35f1914dc3ebe3c9c3427c32",
+        "mean_support_quality": 0.94,
+        "membership_hash": "d8bb5f080eae14386eb5",
+        "missed_runs": 0,
+        "previous_status": null,
+        "seen_runs": 1,
+        "status": "candidate",
+        "support_sources": 2,
+        "support_weight": 2.0,
+        "votes": [
+          {
+            "channel_observations": {
+              "hidden_similarity": 0,
+              "prediction_signature": 0,
+              "semantic_similarity": 0,
+              "substitution": 0,
+              "transition": 0
+            },
+            "competing_pairs": 0,
+            "competing_score": null,
+            "internal_pairs": 0,
+            "internal_score": null,
+            "quality": 0.0,
+            "source_key": "context-fixture@1",
+            "source_weight": 1.0,
+            "vote": "abstain"
+          },
+          {
+            "channel_observations": {
+              "hidden_similarity": 1,
+              "prediction_signature": 0,
+              "semantic_similarity": 0,
+              "substitution": 0,
+              "transition": 0
+            },
+            "competing_pairs": 0,
+            "competing_score": null,
+            "internal_pairs": 1,
+            "internal_score": 0.95,
+            "quality": 0.95,
+            "source_key": "teacher-A@1",
+            "source_weight": 1.0,
+            "vote": "support"
+          },
+          {
+            "channel_observations": {
+              "hidden_similarity": 1,
+              "prediction_signature": 0,
+              "semantic_similarity": 0,
+              "substitution": 0,
+              "transition": 0
+            },
+            "competing_pairs": 0,
+            "competing_score": null,
+            "internal_pairs": 1,
+            "internal_score": 0.93,
+            "quality": 0.93,
+            "source_key": "teacher-B@1",
+            "source_weight": 1.0,
+            "vote": "support"
+          }
+        ]
+      },
+      {
+        "abstain_sources": 1,
+        "conflict_sources": 0,
+        "conflict_weight": 0,
+        "consecutive_seen": 1,
+        "consensus_score": 1.0,
+        "decisive_sources": 2,
+        "decisive_weight": 2.0,
+        "hypothesis_id": "m_ba26b7c3e0738c1b91e2376b",
+        "mean_support_quality": 0.94,
+        "membership_hash": "2ad5bdbf0c67ca014837",
+        "missed_runs": 0,
+        "previous_status": null,
+        "seen_runs": 1,
+        "status": "candidate",
+        "support_sources": 2,
+        "support_weight": 2.0,
+        "votes": [
+          {
+            "channel_observations": {
+              "hidden_similarity": 0,
+              "prediction_signature": 0,
+              "semantic_similarity": 0,
+              "substitution": 0,
+              "transition": 0
+            },
+            "competing_pairs": 0,
+            "competing_score": null,
+            "internal_pairs": 0,
+            "internal_score": null,
+            "quality": 0.0,
+            "source_key": "context-fixture@1",
+            "source_weight": 1.0,
+            "vote": "abstain"
+          },
+          {
+            "channel_observations": {
+              "hidden_similarity": 1,
+              "prediction_signature": 0,
+              "semantic_similarity": 0,
+              "substitution": 0,
+              "transition": 0
+            },
+            "competing_pairs": 0,
+            "competing_score": null,
+            "internal_pairs": 1,
+            "internal_score": 0.95,
+            "quality": 0.95,
+            "source_key": "teacher-A@1",
+            "source_weight": 1.0,
+            "vote": "support"
+          },
+          {
+            "channel_observations": {
+              "hidden_similarity": 1,
+              "prediction_signature": 0,
+              "semantic_similarity": 0,
+              "substitution": 0,
+              "transition": 0
+            },
+            "competing_pairs": 0,
+            "competing_score": null,
+            "internal_pairs": 1,
+            "internal_score": 0.93,
+            "quality": 0.93,
+            "source_key": "teacher-B@1",
+            "source_weight": 1.0,
+            "vote": "support"
+          }
+        ]
+      }
+    ],
+    "label": "full-trust-1",
+    "missing_hypotheses": [],
+    "raw_evidence": 8,
+    "source_policy_hash": "5d79b8cfea1b973adba987c29408ad74362bafe08bf37ae4651e8f83b4403e2f"
+  },
+  {
+    "effective_evidence": 8,
+    "hypotheses": [
+      {
+        "abstain_sources": 1,
+        "conflict_sources": 0,
+        "conflict_weight": 0,
+        "consecutive_seen": 2,
+        "consensus_score": 1.0,
+        "decisive_sources": 2,
+        "decisive_weight": 2.0,
+        "hypothesis_id": "m_35f1914dc3ebe3c9c3427c32",
+        "mean_support_quality": 0.94,
+        "membership_hash": "d8bb5f080eae14386eb5",
+        "missed_runs": 0,
+        "previous_status": "candidate",
+        "seen_runs": 2,
+        "status": "stable",
+        "support_sources": 2,
+        "support_weight": 2.0,
+        "votes": [
+          {
+            "channel_observations": {
+              "hidden_similarity": 0,
+              "prediction_signature": 0,
+              "semantic_similarity": 0,
+              "substitution": 0,
+              "transition": 0
+            },
+            "competing_pairs": 0,
+            "competing_score": null,
+            "internal_pairs": 0,
+            "internal_score": null,
+            "quality": 0.0,
+            "source_key": "context-fixture@1",
+            "source_weight": 1.0,
+            "vote": "abstain"
+          },
+          {
+            "channel_observations": {
+              "hidden_similarity": 1,
+              "prediction_signature": 0,
+              "semantic_similarity": 0,
+              "substitution": 0,
+              "transition": 0
+            },
+            "competing_pairs": 0,
+            "competing_score": null,
+            "internal_pairs": 1,
+            "internal_score": 0.95,
+            "quality": 0.95,
+            "source_key": "teacher-A@1",
+            "source_weight": 1.0,
+            "vote": "support"
+          },
+          {
+            "channel_observations": {
+              "hidden_similarity": 1,
+              "prediction_signature": 0,
+              "semantic_similarity": 0,
+              "substitution": 0,
+              "transition": 0
+            },
+            "competing_pairs": 0,
+            "competing_score": null,
+            "internal_pairs": 1,
+            "internal_score": 0.93,
+            "quality": 0.93,
+            "source_key": "teacher-B@1",
+            "source_weight": 1.0,
+            "vote": "support"
+          }
+        ]
+      },
+      {
+        "abstain_sources": 1,
+        "conflict_sources": 0,
+        "conflict_weight": 0,
+        "consecutive_seen": 2,
+        "consensus_score": 1.0,
+        "decisive_sources": 2,
+        "decisive_weight": 2.0,
+        "hypothesis_id": "m_ba26b7c3e0738c1b91e2376b",
+        "mean_support_quality": 0.94,
+        "membership_hash": "2ad5bdbf0c67ca014837",
+        "missed_runs": 0,
+        "previous_status": "candidate",
+        "seen_runs": 2,
+        "status": "stable",
+        "support_sources": 2,
+        "support_weight": 2.0,
+        "votes": [
+          {
+            "channel_observations": {
+              "hidden_similarity": 0,
+              "prediction_signature": 0,
+              "semantic_similarity": 0,
+              "substitution": 0,
+              "transition": 0
+            },
+            "competing_pairs": 0,
+            "competing_score": null,
+            "internal_pairs": 0,
+            "internal_score": null,
+            "quality": 0.0,
+            "source_key": "context-fixture@1",
+            "source_weight": 1.0,
+            "vote": "abstain"
+          },
+          {
+            "channel_observations": {
+              "hidden_similarity": 1,
+              "prediction_signature": 0,
+              "semantic_similarity": 0,
+              "substitution": 0,
+              "transition": 0
+            },
+            "competing_pairs": 0,
+            "competing_score": null,
+            "internal_pairs": 1,
+            "internal_score": 0.95,
+            "quality": 0.95,
+            "source_key": "teacher-A@1",
+            "source_weight": 1.0,
+            "vote": "support"
+          },
+          {
+            "channel_observations": {
+              "hidden_similarity": 1,
+              "prediction_signature": 0,
+              "semantic_similarity": 0,
+              "substitution": 0,
+              "transition": 0
+            },
+            "competing_pairs": 0,
+            "competing_score": null,
+            "internal_pairs": 1,
+            "internal_score": 0.93,
+            "quality": 0.93,
+            "source_key": "teacher-B@1",
+            "source_weight": 1.0,
+            "vote": "support"
+          }
+        ]
+      }
+    ],
+    "label": "full-trust-2",
+    "missing_hypotheses": [],
+    "raw_evidence": 8,
+    "source_policy_hash": "5d79b8cfea1b973adba987c29408ad74362bafe08bf37ae4651e8f83b4403e2f"
+  },
+  {
+    "effective_evidence": 8,
+    "hypotheses": [
+      {
+        "abstain_sources": 1,
+        "conflict_sources": 0,
+        "conflict_weight": 0,
+        "consecutive_seen": 3,
+        "consensus_score": 1.0,
+        "decisive_sources": 2,
+        "decisive_weight": 1.4,
+        "hypothesis_id": "m_35f1914dc3ebe3c9c3427c32",
+        "mean_support_quality": 0.9442857142857144,
+        "membership_hash": "d8bb5f080eae14386eb5",
+        "missed_runs": 0,
+        "previous_status": "stable",
+        "seen_runs": 3,
+        "status": "candidate",
+        "support_sources": 2,
+        "support_weight": 1.4,
+        "votes": [
+          {
+            "channel_observations": {
+              "hidden_similarity": 0,
+              "prediction_signature": 0,
+              "semantic_similarity": 0,
+              "substitution": 0,
+              "transition": 0
+            },
+            "competing_pairs": 0,
+            "competing_score": null,
+            "internal_pairs": 0,
+            "internal_score": null,
+            "quality": 0.0,
+            "source_key": "context-fixture@1",
+            "source_weight": 1.0,
+            "vote": "abstain"
+          },
+          {
+            "channel_observations": {
+              "hidden_similarity": 1,
+              "prediction_signature": 0,
+              "semantic_similarity": 0,
+              "substitution": 0,
+              "transition": 0
+            },
+            "competing_pairs": 0,
+            "competing_score": null,
+            "internal_pairs": 1,
+            "internal_score": 0.95,
+            "quality": 0.95,
+            "source_key": "teacher-A@1",
+            "source_weight": 1.0,
+            "vote": "support"
+          },
+          {
+            "channel_observations": {
+              "hidden_similarity": 1,
+              "prediction_signature": 0,
+              "semantic_similarity": 0,
+              "substitution": 0,
+              "transition": 0
+            },
+            "competing_pairs": 0,
+            "competing_score": null,
+            "internal_pairs": 1,
+            "internal_score": 0.93,
+            "quality": 0.93,
+            "source_key": "teacher-B@1",
+            "source_weight": 0.4,
+            "vote": "support"
+          }
+        ]
+      },
+      {
+        "abstain_sources": 1,
+        "conflict_sources": 0,
+        "conflict_weight": 0,
+        "consecutive_seen": 3,
+        "consensus_score": 1.0,
+        "decisive_sources": 2,
+        "decisive_weight": 1.4,
+        "hypothesis_id": "m_ba26b7c3e0738c1b91e2376b",
+        "mean_support_quality": 0.9442857142857144,
+        "membership_hash": "2ad5bdbf0c67ca014837",
+        "missed_runs": 0,
+        "previous_status": "stable",
+        "seen_runs": 3,
+        "status": "candidate",
+        "support_sources": 2,
+        "support_weight": 1.4,
+        "votes": [
+          {
+            "channel_observations": {
+              "hidden_similarity": 0,
+              "prediction_signature": 0,
+              "semantic_similarity": 0,
+              "substitution": 0,
+              "transition": 0
+            },
+            "competing_pairs": 0,
+            "competing_score": null,
+            "internal_pairs": 0,
+            "internal_score": null,
+            "quality": 0.0,
+            "source_key": "context-fixture@1",
+            "source_weight": 1.0,
+            "vote": "abstain"
+          },
+          {
+            "channel_observations": {
+              "hidden_similarity": 1,
+              "prediction_signature": 0,
+              "semantic_similarity": 0,
+              "substitution": 0,
+              "transition": 0
+            },
+            "competing_pairs": 0,
+            "competing_score": null,
+            "internal_pairs": 1,
+            "internal_score": 0.95,
+            "quality": 0.95,
+            "source_key": "teacher-A@1",
+            "source_weight": 1.0,
+            "vote": "support"
+          },
+          {
+            "channel_observations": {
+              "hidden_similarity": 1,
+              "prediction_signature": 0,
+              "semantic_similarity": 0,
+              "substitution": 0,
+              "transition": 0
+            },
+            "competing_pairs": 0,
+            "competing_score": null,
+            "internal_pairs": 1,
+            "internal_score": 0.93,
+            "quality": 0.93,
+            "source_key": "teacher-B@1",
+            "source_weight": 0.4,
+            "vote": "support"
+          }
+        ]
+      }
+    ],
+    "label": "teacher-B-weight-0.4",
+    "missing_hypotheses": [],
+    "raw_evidence": 8,
+    "source_policy_hash": "e11cda16e90e3a53eb104fdc7ab4d2f1bcd18d30b5a1a87a658290abadf06443"
+  },
+  {
+    "effective_evidence": 6,
+    "hypotheses": [],
+    "label": "teacher-A-disabled",
+    "missing_hypotheses": [
+      {
+        "hypothesis_id": "m_35f1914dc3ebe3c9c3427c32",
+        "missed_runs": 1,
+        "previous_status": "candidate",
+        "status": "contested"
+      },
+      {
+        "hypothesis_id": "m_ba26b7c3e0738c1b91e2376b",
+        "missed_runs": 1,
+        "previous_status": "candidate",
+        "status": "contested"
+      }
+    ],
+    "raw_evidence": 8,
+    "source_policy_hash": "aa54031892cad2e0a8bc9204240566954d66bb5146832c96a785b3a256d13d10"
+  }
+]

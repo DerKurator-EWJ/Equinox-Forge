@@ -1,0 +1,201 @@
+{
+  "evidence": [
+    {
+      "confidence": 0.94,
+      "from_id": "bank",
+      "metadata": {
+        "channels": [
+          "hidden_similarity",
+          "lexical_overlap"
+        ],
+        "context_count": 2,
+        "derived": true,
+        "min_internal_score": 0.94,
+        "policy_hash": "5e898d392aa5cf88",
+        "role": "provisional_sense"
+      },
+      "relation_type": "association",
+      "score": 0.94,
+      "source": {
+        "extraction": "evidence_fusion_complete_link",
+        "source_id": "equinox-forge-sense-compiler",
+        "source_version": "0.7"
+      },
+      "to_id": "m_35f1914dc3ebe3c9c3427c32"
+    },
+    {
+      "confidence": 0.94,
+      "from_id": "bank",
+      "metadata": {
+        "channels": [
+          "hidden_similarity",
+          "lexical_overlap"
+        ],
+        "context_count": 2,
+        "derived": true,
+        "min_internal_score": 0.94,
+        "policy_hash": "5e898d392aa5cf88",
+        "role": "provisional_sense"
+      },
+      "relation_type": "association",
+      "score": 0.94,
+      "source": {
+        "extraction": "evidence_fusion_complete_link",
+        "source_id": "equinox-forge-sense-compiler",
+        "source_version": "0.7"
+      },
+      "to_id": "m_ba26b7c3e0738c1b91e2376b"
+    }
+  ],
+  "format": "equinox-forge-ir-v1",
+  "nodes": [
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q-bank",
+      "surface": "B"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q-bank"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "bank",
+      "surface": "Bank"
+    },
+    {
+      "kind": "composite",
+      "level": 2,
+      "members": [
+        "bank"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "ctx1",
+      "surface": null
+    },
+    {
+      "kind": "composite",
+      "level": 2,
+      "members": [
+        "bank"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "ctx2",
+      "surface": null
+    },
+    {
+      "kind": "composite",
+      "level": 2,
+      "members": [
+        "bank"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "ctx3",
+      "surface": null
+    },
+    {
+      "kind": "composite",
+      "level": 2,
+      "members": [
+        "bank"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "ctx4",
+      "surface": null
+    },
+    {
+      "kind": "concept",
+      "level": 3,
+      "members": [
+        "bank",
+        "ctx1",
+        "ctx2"
+      ],
+      "metadata": {
+        "compiler": "equinox-forge-sense-compiler-v1",
+        "compiler_version": "0.7",
+        "conflict_sources": 0,
+        "conflict_weight": 0,
+        "consecutive_seen": 2,
+        "consensus_policy_hash": "a0efbedb49fe47c64cd7",
+        "consensus_score": 1.0,
+        "contexts": [
+          "ctx1",
+          "ctx2"
+        ],
+        "fusion_weights": {
+          "hidden_similarity": 1.0,
+          "lexical_overlap": 0.0,
+          "prediction_signature": 0.0,
+          "semantic_similarity": 0.0,
+          "substitution": 0.0,
+          "transition": 0.0
+        },
+        "lifecycle_status": "stable",
+        "min_channels": 1,
+        "provisional": true,
+        "seen_runs": 2,
+        "support_sources": 2,
+        "support_weight": 2.0,
+        "target_id": "bank",
+        "target_surface": "Bank",
+        "threshold": 0.75
+      },
+      "modality": "text",
+      "node_id": "m_35f1914dc3ebe3c9c3427c32",
+      "surface": "sense:Bank"
+    },
+    {
+      "kind": "concept",
+      "level": 3,
+      "members": [
+        "bank",
+        "ctx3",
+        "ctx4"
+      ],
+      "metadata": {
+        "compiler": "equinox-forge-sense-compiler-v1",
+        "compiler_version": "0.7",
+        "conflict_sources": 0,
+        "conflict_weight": 0,
+        "consecutive_seen": 2,
+        "consensus_policy_hash": "a0efbedb49fe47c64cd7",
+        "consensus_score": 1.0,
+        "contexts": [
+          "ctx3",
+          "ctx4"
+        ],
+        "fusion_weights": {
+          "hidden_similarity": 1.0,
+          "lexical_overlap": 0.0,
+          "prediction_signature": 0.0,
+          "semantic_similarity": 0.0,
+          "substitution": 0.0,
+          "transition": 0.0
+        },
+        "lifecycle_status": "stable",
+        "min_channels": 1,
+        "provisional": true,
+        "seen_runs": 2,
+        "support_sources": 2,
+        "support_weight": 2.0,
+        "target_id": "bank",
+        "target_surface": "Bank",
+        "threshold": 0.75
+      },
+      "modality": "text",
+      "node_id": "m_ba26b7c3e0738c1b91e2376b",
+      "surface": "sense:Bank"
+    }
+  ]
+}

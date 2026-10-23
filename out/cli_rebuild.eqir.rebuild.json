@@ -1,0 +1,194 @@
+{
+  "consensus_report": {
+    "format": "equinox-forge-consensus-v1",
+    "hypotheses": [],
+    "missing_hypotheses": [
+      {
+        "hypothesis_id": "m_35f1914dc3ebe3c9c3427c32",
+        "missed_runs": 2,
+        "previous_status": "contested",
+        "status": "quarantined"
+      },
+      {
+        "hypothesis_id": "m_ba26b7c3e0738c1b91e2376b",
+        "missed_runs": 2,
+        "previous_status": "contested",
+        "status": "quarantined"
+      }
+    ],
+    "policy": {
+      "min_observed_pairs": 1,
+      "quarantine_after_misses": 2,
+      "quarantine_conflict_weight": 1.5,
+      "quarantine_conflicts": 2,
+      "source_vote_margin": 0.08,
+      "source_vote_threshold": 0.58,
+      "stable_consensus": 0.75,
+      "stable_min_runs": 2,
+      "stable_min_sources": 2,
+      "stable_min_support_weight": 1.5
+    },
+    "policy_hash": "a0efbedb49fe47c64cd7",
+    "run_id": 5,
+    "target_id": "bank",
+    "version": "0.9"
+  },
+  "disabled_source_versions": 1,
+  "effective_evidence_count": 6,
+  "format": "equinox-forge-rebuild-v1",
+  "raw_evidence_count": 8,
+  "rebuild_run_id": 5,
+  "reweighted_source_versions": 1,
+  "sense_report": {
+    "accepted_pair_count": 0,
+    "clusters": [],
+    "clusters_created": 0,
+    "contexts_found": 4,
+    "format": "equinox-forge-sense-compiler-v1",
+    "min_channels": 1,
+    "pair_count": 6,
+    "pairs": [
+      {
+        "a_context": "ctx1",
+        "available_channels": 1,
+        "b_context": "ctx2",
+        "channel_scores": {
+          "hidden_similarity": 0.37200000000000005,
+          "lexical_overlap": 1.0,
+          "prediction_signature": null,
+          "semantic_similarity": null,
+          "substitution": null,
+          "transition": null
+        },
+        "fused_score": 0.37200000000000005,
+        "used_weights": {
+          "hidden_similarity": 1.0
+        }
+      },
+      {
+        "a_context": "ctx1",
+        "available_channels": 0,
+        "b_context": "ctx3",
+        "channel_scores": {
+          "hidden_similarity": null,
+          "lexical_overlap": 1.0,
+          "prediction_signature": null,
+          "semantic_similarity": null,
+          "substitution": null,
+          "transition": null
+        },
+        "fused_score": 0.0,
+        "used_weights": {}
+      },
+      {
+        "a_context": "ctx1",
+        "available_channels": 0,
+        "b_context": "ctx4",
+        "channel_scores": {
+          "hidden_similarity": null,
+          "lexical_overlap": 1.0,
+          "prediction_signature": null,
+          "semantic_similarity": null,
+          "substitution": null,
+          "transition": null
+        },
+        "fused_score": 0.0,
+        "used_weights": {}
+      },
+      {
+        "a_context": "ctx2",
+        "available_channels": 0,
+        "b_context": "ctx3",
+        "channel_scores": {
+          "hidden_similarity": null,
+          "lexical_overlap": 1.0,
+          "prediction_signature": null,
+          "semantic_similarity": null,
+          "substitution": null,
+          "transition": null
+        },
+        "fused_score": 0.0,
+        "used_weights": {}
+      },
+      {
+        "a_context": "ctx2",
+        "available_channels": 0,
+        "b_context": "ctx4",
+        "channel_scores": {
+          "hidden_similarity": null,
+          "lexical_overlap": 1.0,
+          "prediction_signature": null,
+          "semantic_similarity": null,
+          "substitution": null,
+          "transition": null
+        },
+        "fused_score": 0.0,
+        "used_weights": {}
+      },
+      {
+        "a_context": "ctx3",
+        "available_channels": 1,
+        "b_context": "ctx4",
+        "channel_scores": {
+          "hidden_similarity": 0.37200000000000005,
+          "lexical_overlap": 1.0,
+          "prediction_signature": null,
+          "semantic_similarity": null,
+          "substitution": null,
+          "transition": null
+        },
+        "fused_score": 0.37200000000000005,
+        "used_weights": {
+          "hidden_similarity": 1.0
+        }
+      }
+    ],
+    "target_id": "bank",
+    "target_surface": "Bank",
+    "threshold": 0.75,
+    "unresolved_contexts": 4,
+    "weights": {
+      "hidden_similarity": 1.0,
+      "lexical_overlap": 0.0,
+      "prediction_signature": 0.0,
+      "semantic_similarity": 0.0,
+      "substitution": 0.0,
+      "transition": 0.0
+    }
+  },
+  "source_policies": [
+    {
+      "enabled": true,
+      "explicit": false,
+      "metadata": {},
+      "note": "",
+      "source_id": "context-fixture",
+      "source_version": "1",
+      "trust_weight": 1.0,
+      "updated_at": null
+    },
+    {
+      "enabled": false,
+      "explicit": true,
+      "metadata": {},
+      "note": "",
+      "source_id": "teacher-A",
+      "source_version": "1",
+      "trust_weight": 1.0,
+      "updated_at": "2026-09-17 18:36:19"
+    },
+    {
+      "enabled": true,
+      "explicit": true,
+      "metadata": {},
+      "note": "",
+      "source_id": "teacher-B",
+      "source_version": "1",
+      "trust_weight": 0.4,
+      "updated_at": "2026-09-17 18:36:19"
+    }
+  ],
+  "source_policy_hash": "aa54031892cad2e0a8bc9204240566954d66bb5146832c96a785b3a256d13d10",
+  "target_id": "bank",
+  "version": "0.9"
+}

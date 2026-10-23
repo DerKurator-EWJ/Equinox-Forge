@@ -1,316 +1,301 @@
-# Equinox Forge v0.8 — Cross-Teacher Consensus & Hypothesis Stability
+# Equinox Forge v0.9 — Source Ablation, Reweighting & Rebuild Engine
 
-Forge v0.8 adds a persistent **quality-control layer for derived Equinox knowledge**.
+Forge v0.9 makes provenance **operational**.
 
-The previous pipeline can already create provisional higher-order concepts from multiple evidence channels:
-
-```text
-embeddings
-+ corpus observations
-+ teacher next-token behaviour
-+ contextual hidden-state evidence
-        ↓
-Evidence Fusion
-        ↓
-Provisional Sense / Concept
-```
-
-v0.8 asks the next necessary question:
-
-> Does that derived concept remain supported when independent sources and later rebuilds are taken into account?
-
-The new pipeline is:
+Until v0.8, Forge could preserve source provenance, fuse evidence, create provisional sense concepts, and track cross-teacher stability. v0.9 adds the ability to change the trust policy for a source **after extraction** and rebuild derived Equinox knowledge without running the original teacher again.
 
 ```text
-raw source evidence
+raw extracted evidence (immutable history)
         ↓
-provisional sense compiler
+source policy
+  enabled / disabled
+  trust weight 0..1
+  version replacement
         ↓
-source-specific re-evaluation
+temporary effective-evidence view
         ↓
-support / conflict / abstain votes
+existing v0.1–v0.8 compiler
         ↓
-cross-source consensus
+recompiled senses + weighted consensus
         ↓
-persistent rebuild history
-        ↓
-candidate / stable / contested / quarantined
+new rebuild report / lifecycle state
 ```
 
 ## Central rule
 
-A high fused score is **not sufficient** to make a derived concept stable.
+Raw source evidence is never rewritten by an ablation or reweighting operation.
 
-A hypothesis becomes `stable` only when it receives enough independent support and survives repeated compiler runs under the same policy.
-
-Stability is reversible:
+A source policy changes only what the compiler sees during a rebuild:
 
 ```text
-candidate
-   ↓ repeated independent confirmation
-stable
-   ↓ later conflicting evidence
-contested
-   ↓ stronger/multiple conflict
-quarantined
+main.evidence        = preserved source history
+temp.evidence        = active + trust-weighted rebuild view
 ```
 
-A hypothesis that disappears on later rebuilds is also downgraded and may eventually be quarantined.
+When the rebuild finishes, the temporary view is removed.
 
-## Source-specific voting
-
-v0.8 reconstructs evidence per independent `source_id@source_version` instead of using only the already aggregated relation graph.
-
-For each provisional cluster, a source is evaluated against:
-
-- internal affinity between contexts that belong to the cluster;
-- competing affinity from those contexts to contexts outside the cluster;
-- the source-specific evidence channels that were actually observed.
-
-A source can vote:
+This means Forge can answer questions such as:
 
 ```text
-support
-conflict
-abstain
+What happens if Teacher C is removed?
+What if Teacher B is trusted only at 0.4?
+What if Qwen version 1 is replaced by version 2?
+Which derived concepts remain stable?
+Which concepts disappear or become contested?
 ```
 
-Structural lexical overlap is deliberately **not** counted as an independent source vote, because it does not originate from an external teacher/corpus source.
+without re-extracting every model.
 
-Current source-specific channels can include:
+## Persistent source policy
 
-```text
-contextual_similarity
-semantic_similarity
-substitution
-transition
-prediction_signature
-```
-
-Missing channels remain missing; they are not silently converted into positive support.
-
-## Consensus score
-
-For decisive source votes:
+The Canonical DB adds `source_policies`:
 
 ```text
-consensus = support_sources / (support_sources + conflict_sources)
-```
-
-Abstaining sources do not artificially penalize consensus.
-
-The default lifecycle policy is:
-
-```text
-source_vote_threshold      0.58
-source_vote_margin         0.08
-stable_min_sources         2
-stable_min_runs            2
-stable_consensus           0.75
-quarantine_conflicts       2
-quarantine_after_misses    2
-```
-
-These values are compiler policy, not Equinox ontology. They can be changed and the derived state rebuilt.
-
-## Persistent hypothesis history
-
-The Canonical DB now contains two new tables:
-
-### `hypothesis_runs`
-
-One record per tracked derived compile:
-
-```text
-run_id
-compiler
-target_id
-policy_hash
-output_hash
-created_at
+source_id
+source_version
+enabled
+trust_weight
+note
 metadata
+updated_at
 ```
 
-### `hypothesis_states`
-
-Persistent state for every derived hypothesis under a specific policy:
+A source without an explicit policy defaults to:
 
 ```text
-hypothesis_id
-target_id
-policy_hash
-membership_hash
-status
-first_seen_run
-last_seen_run
-seen_runs
-consecutive_seen
-missed_runs
-consensus_score
-support_sources
-conflict_sources
-metadata
+enabled      = true
+trust_weight = 1.0
 ```
 
-The raw evidence store remains untouched. Lifecycle state is derived metadata and can be rebuilt.
+Trust weight must be within `[0,1]`.
 
-## Reversible status rules
+## Ablation
 
-### `candidate`
-
-The concept exists, but has not yet accumulated enough independent and temporal confirmation.
-
-### `stable`
-
-Requires all of the configured conditions, including:
-
-```text
-support_sources >= stable_min_sources
-consecutive_seen >= stable_min_runs
-consensus_score >= stable_consensus
-```
-
-### `contested`
-
-Used when later source conflict weakens a previously accepted hypothesis or when a hypothesis disappears from a rebuild but has not yet crossed the quarantine threshold.
-
-### `quarantined`
-
-Used conservatively when:
-
-```text
-conflict_sources >= quarantine_conflicts
-```
-
-or when a previously known hypothesis repeatedly disappears from rebuilds.
-
-Quarantine means "do not trust this derived structure as normal BASE knowledge". It does not delete raw evidence.
-
-## CLI
-
-The existing sense compiler can now track stability:
+Disable one exact source version:
 
 ```bash
-python -m equinox_forge.cli compile-senses \
+python -m equinox_forge.cli source-policy set \
+  master.sqlite teacher-C 1 --disable \
+  --note "ablation experiment"
+```
+
+The source remains in `main.evidence`, but its evidence is absent from the effective rebuild view.
+
+Re-enable it:
+
+```bash
+python -m equinox_forge.cli source-policy set \
+  master.sqlite teacher-C 1 --weight 1.0
+```
+
+## Reweighting
+
+Reduce trust in a source:
+
+```bash
+python -m equinox_forge.cli source-policy set \
+  master.sqlite teacher-B 1 --weight 0.4
+```
+
+The weight affects two things:
+
+1. **relation aggregation** — effective evidence confidence is multiplied by source trust;
+2. **cross-teacher consensus** — a source vote carries the configured source weight.
+
+Independent-source count remains separate from trust weight. Therefore one source with weight `1.0` cannot impersonate two independent sources.
+
+Example:
+
+```text
+Teacher A  weight 1.0  supports
+Teacher B  weight 0.4  supports
+
+support_sources = 2
+support_weight  = 1.4
+```
+
+With the default `stable_min_support_weight = 1.5`, that hypothesis is not promoted to `stable` even though two source identities are present.
+
+## Version replacement
+
+A source version can be replaced atomically at policy level:
+
+```bash
+python -m equinox_forge.cli source-policy replace \
+  master.sqlite qwen 1 2 --weight 0.8
+```
+
+This performs:
+
+```text
+qwen@1 → disabled
+qwen@2 → enabled, weight 0.8
+```
+
+The old extracted evidence is retained for audit/replay.
+
+## Inspecting policies
+
+```bash
+python -m equinox_forge.cli source-policy list master.sqlite
+```
+
+Only explicitly configured policies:
+
+```bash
+python -m equinox_forge.cli source-policy list master.sqlite --explicit-only
+```
+
+Clear an explicit policy and return to default behavior:
+
+```bash
+python -m equinox_forge.cli source-policy clear master.sqlite teacher-B 1
+```
+
+## Deterministic policy hash
+
+Every rebuild receives a `source_policy_hash` derived only from behaviorally relevant fields:
+
+```text
+source_id
+source_version
+enabled
+trust_weight
+```
+
+Notes, timestamps, metadata and whether a default policy was explicitly written do not change the semantic policy hash.
+
+This allows reproducible rebuild comparison.
+
+## Weighted cross-teacher consensus
+
+v0.9 extends the v0.8 consensus report with:
+
+```text
+source_weight
+support_weight
+conflict_weight
+decisive_weight
+```
+
+The consensus score is now:
+
+```text
+consensus = support_weight / (support_weight + conflict_weight)
+```
+
+while `support_sources` / `conflict_sources` continue to count independent source identities.
+
+Default lifecycle controls now include:
+
+```text
+stable_min_sources          2
+stable_min_runs             2
+stable_consensus            0.75
+stable_min_support_weight   1.5
+
+quarantine_conflicts        2
+quarantine_conflict_weight  1.5
+```
+
+So two low-trust conflicting sources do not automatically have the same quarantine force as two full-trust sources.
+
+## Rebuild engine
+
+Recompile a target surface using all currently configured source policies:
+
+```bash
+python -m equinox_forge.cli rebuild-senses \
   master.sqlite \
-  bank_senses.eqir.json \
-  --surface Bank \
-  --track-stability
+  bank_rebuilt.eqir.json \
+  --surface Bank
+```
+
+The command:
+
+```text
+1. creates an effective evidence view
+2. compiles provisional senses
+3. performs weighted cross-source consensus
+4. updates hypothesis lifecycle state
+5. records a rebuild run
+6. writes a rebuild report
+7. removes the temporary view
 ```
 
 Useful controls:
 
 ```text
---source-vote-threshold 0.58
---source-vote-margin 0.08
---min-observed-pairs 1
---stable-min-sources 2
---stable-min-runs 2
---stable-consensus 0.75
---quarantine-conflicts 2
---quarantine-after-misses 2
---consensus-report path.json
+--threshold
+--min-channels
+--min-contexts
+--w-hidden
+--w-semantic
+--w-substitution
+--w-transition
+--w-prediction
+
+--stable-min-sources
+--stable-min-runs
+--stable-consensus
+--stable-min-support-weight
+--quarantine-conflicts
+--quarantine-conflict-weight
+--quarantine-after-misses
 ```
 
-The resulting derived IR concept nodes are annotated with fields such as:
+`--no-track-stability` performs a policy-aware rebuild without adding a lifecycle run.
 
-```json
-{
-  "lifecycle_status": "stable",
-  "consensus_score": 1.0,
-  "support_sources": 2,
-  "conflict_sources": 0,
-  "seen_runs": 2,
-  "consecutive_seen": 2
-}
-```
+`--ingest-derived` explicitly writes the derived nodes/evidence back to the Canonical DB; it remains opt-in.
 
-The persistent DB state is authoritative even if an older copy of a derived node already exists in the Canonical DB.
+## Rebuild history
 
-## Inspecting hypothesis state
-
-```bash
-python -m equinox_forge.cli hypotheses master.sqlite
-```
-
-Optionally filter by target ID:
-
-```bash
-python -m equinox_forge.cli hypotheses master.sqlite --target-id <canonical-id>
-```
-
-`stats` now also reports:
+The Canonical DB adds `rebuild_runs`:
 
 ```text
-hypothesis_runs
-hypotheses
+rebuild_run_id
+target_id
+source_policy_hash
+output_hash
+raw_evidence_count
+effective_evidence_count
+created_at
+metadata
 ```
 
-## Reproducible v0.8 demo
+This is separate from `hypothesis_runs` because a rebuild can be reproduced and compared even when lifecycle tracking is disabled.
+
+## Example lifecycle under source policy changes
+
+```text
+Teacher A = 1.0
+Teacher B = 1.0
+
+Rebuild 1 → candidate
+Rebuild 2 → stable
+
+Teacher B reweighted to 0.4
+Rebuild 3 → candidate
+  support_sources = 2
+  support_weight  = 1.4
+
+Teacher A disabled
+Rebuild 4 → current sense no longer clears the fusion threshold
+  → hypothesis absent from rebuilt output
+  → persisted lifecycle downgraded to contested
+```
+
+At no stage is the original A/B evidence deleted.
+
+## Reproducible demo
 
 Run:
 
 ```bash
-python examples/build_consensus_demo.py
+python examples/build_rebuild_demo.py
 ```
 
-The demo creates two `Bank` sense hypotheses and applies four rebuild stages:
-
-```text
-Run 1:
-Teacher A supports
-Teacher B supports
-→ candidate
-
-Run 2:
-same independent support again
-→ stable
-
-Run 3:
-Teacher C prefers competing cross-sense coupling
-→ contested
-
-Run 4:
-Teacher D independently adds the same conflict
-→ quarantined
-```
-
-The demo writes:
-
-```text
-out/consensus_demo.sqlite
-out/consensus_demo.eqir.json
-out/consensus_demo.states.json
-out/consensus_demo.timeline.json
-```
-
-The benchmark labels used to verify the fixture are never imported as Equinox knowledge.
-
-## Why this matters before large-scale import
-
-Without this layer, a Master Compiler could promote a mistake simply because one teacher was very confident.
-
-v0.8 changes the model to:
-
-```text
-one source says X
-        ↓
-possible evidence
-
-several independent sources say X
-        ↓
-stronger candidate
-
-same structure survives rebuilds
-        ↓
-stable derived knowledge
-
-later sources contradict X
-        ↓
-downgrade / quarantine
-```
-
-This is especially important once Forge begins combining many Hugging-Face models, datasets and future vision/audio teachers.
+The demo writes a small Canonical DB and a timeline showing promotion, reweighting and ablation.
 
 ## Regression suite
 
@@ -323,10 +308,10 @@ python tests/run_all.py
 Expected final marker:
 
 ```text
-FORGE_V08_ALL_TESTS_OK
+FORGE_V09_ALL_TESTS_OK
 ```
 
-The suite currently covers:
+Coverage now includes:
 
 ```text
 v0.1 canonical IR / database / relation aggregation
@@ -334,48 +319,41 @@ v0.2 Hugging-Face adapter contract
 v0.3 static teacher embedding extraction
 v0.4 controlled corpus evidence
 v0.5 executed causal-teacher behaviour
-v0.5 real tiny causal neural runtime
 v0.6 contextual hidden-state evidence
-v0.6 real tiny contextual neural runtime
 v0.7 evidence fusion / provisional sense compilation
-v0.7 benchmark-label non-leakage
-v0.8 source-specific consensus voting
-v0.8 candidate → stable promotion
-v0.8 stable → contested downgrade
-v0.8 multi-source quarantine
-v0.8 persistent run/state history
+v0.8 source-specific consensus + reversible lifecycle
+v0.9 source ablation without raw-data deletion
+v0.9 source trust reweighting
+v0.9 weighted consensus
+v0.9 deterministic policy hashing
+v0.9 version replacement
+v0.9 persisted rebuild history
 ```
 
-## What v0.8 does NOT prove
+## What v0.9 does NOT prove
 
-v0.8 does not prove that the compiled concepts are semantically correct in general.
+v0.9 does not determine the objectively correct trust value for a teacher. Trust weights are compiler policy and must eventually be calibrated against held-out benchmarks.
 
-It establishes the infrastructure required to distinguish:
+It also does not yet rebuild the **entire Master DB transitively** after a source change. The current engine rebuilds a specified derived target/sense family and records the result.
+
+That makes the next logical step:
+
+## Recommended next step — v0.10
+
+**Dependency Graph + Incremental Transitive Rebuild.**
+
+Instead of manually rebuilding `Bank`, `Hund`, etc., Forge should know which derived structures depend on which evidence or lower-level hypotheses:
 
 ```text
-high score
+source changed
+    ↓
+find directly affected derived nodes
+    ↓
+walk dependency graph upward
+    ↓
+rebuild only affected subgraph
+    ↓
+leave unrelated Master DB untouched
 ```
 
-from:
-
-```text
-independently supported + temporally stable derived knowledge
-```
-
-Real quality still has to be tested on larger datasets and real independent teacher models.
-
-## Recommended next step — v0.9
-
-**Source Ablation, Reweighting & Rebuild Engine**.
-
-The next step should make provenance operational:
-
-```text
-remove Teacher C
-change trust weight of Teacher B
-upgrade one source version
-rebuild derived knowledge
-compare which hypotheses survive/change
-```
-
-That will allow Forge to repair the Master DB without re-extracting every source and will be a prerequisite for safely merging many large external models.
+That is the step needed before scaling from experiments to a genuinely large continuously maintainable Master Archive.

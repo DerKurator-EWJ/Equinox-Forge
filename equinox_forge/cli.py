@@ -14,6 +14,7 @@ from .teacher_behavior import BehaviourProbeConfig, TransformersCausalLMBackend,
 from .hidden_state import HiddenStateConfig, TransformersHiddenStateBackend, extract_contextual_hidden_evidence, load_probe_dataset
 from .sense_compiler import SenseCompilePolicy, FusionWeights, compile_provisional_senses, find_text_surface_id
 from .consensus import ConsensusPolicy, track_hypothesis_run, list_hypothesis_states
+from .rebuild import set_source_policy, clear_source_policy, replace_source_version, list_source_policies, rebuild_senses
 
 
 def ingest(db_path: str, doc_path: str):
@@ -304,6 +305,98 @@ def _compile_senses(args) -> int:
         print(json.dumps(result,ensure_ascii=False,indent=2,sort_keys=True))
     return 0
 
+
+def _source_policy_set(args) -> int:
+    enabled = not args.disable
+    with CanonicalDB(args.db) as c:
+        policy = set_source_policy(
+            c.db, args.source_id, args.source_version,
+            enabled=enabled, trust_weight=args.weight,
+            note=args.note or "", metadata={"set_via": "eqforge-v0.9"},
+        )
+        print(json.dumps({"policy": {
+            "source_id": policy.source_id,
+            "source_version": policy.source_version,
+            "enabled": policy.enabled,
+            "trust_weight": policy.trust_weight,
+            "note": policy.note,
+        }, "db_stats": c.stats()}, ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
+
+def _source_policy_clear(args) -> int:
+    with CanonicalDB(args.db) as c:
+        clear_source_policy(c.db, args.source_id, args.source_version)
+        print(json.dumps({"cleared": f"{args.source_id}@{args.source_version}", "policies": list_source_policies(c.db)}, ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
+
+def _source_policy_replace(args) -> int:
+    with CanonicalDB(args.db) as c:
+        old, new = replace_source_version(c.db, args.source_id, args.old_version, args.new_version, new_trust_weight=args.weight, note=args.note or "")
+        print(json.dumps({"disabled": f"{old.source_id}@{old.source_version}", "enabled": f"{new.source_id}@{new.source_version}", "new_weight": new.trust_weight, "policies": list_source_policies(c.db)}, ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
+
+def _source_policy_list(args) -> int:
+    with CanonicalDB(args.db) as c:
+        print(json.dumps(list_source_policies(c.db, include_defaults=not args.explicit_only), ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
+
+def _rebuild_senses(args) -> int:
+    weights = FusionWeights(
+        hidden_similarity=args.w_hidden, lexical_overlap=args.w_lexical,
+        semantic_similarity=args.w_semantic, substitution=args.w_substitution,
+        transition=args.w_transition, prediction_signature=args.w_prediction,
+    )
+    sense_policy = SenseCompilePolicy(
+        threshold=args.threshold, min_channels=args.min_channels,
+        min_contexts=args.min_contexts, include_singletons=args.include_singletons,
+        weights=weights,
+    )
+    consensus_policy = ConsensusPolicy(
+        source_vote_threshold=args.source_vote_threshold,
+        source_vote_margin=args.source_vote_margin,
+        min_observed_pairs=args.min_observed_pairs,
+        stable_min_sources=args.stable_min_sources,
+        stable_min_runs=args.stable_min_runs,
+        stable_consensus=args.stable_consensus,
+        stable_min_support_weight=args.stable_min_support_weight,
+        quarantine_conflicts=args.quarantine_conflicts,
+        quarantine_conflict_weight=args.quarantine_conflict_weight,
+        quarantine_after_misses=args.quarantine_after_misses,
+    )
+    with CanonicalDB(args.db) as c:
+        try:
+            target_id = args.target_id or find_text_surface_id(c.db, args.surface)
+            doc, report = rebuild_senses(
+                c.db, target_id, sense_policy, consensus_policy,
+                track_stability=not args.no_track_stability,
+            )
+        except Exception as exc:
+            print(f"ERROR: rebuild failed: {exc}")
+            return 3
+        issues = validate_document(doc)
+        errors = [x for x in issues if x.severity == "error"]
+        if errors:
+            for x in issues: print(f"{x.severity.upper()}: {x.message}")
+            return 2
+        save_document(doc, args.output)
+        report_path = Path(args.report) if args.report else Path(args.output).with_suffix('.rebuild.json')
+        report_path.write_text(json.dumps(report.to_dict(), ensure_ascii=False, indent=2, sort_keys=True)+'\n', encoding='utf-8')
+        if args.ingest_derived:
+            for n in doc.nodes: c.upsert_node(n)
+            for e in doc.evidence: c.add_evidence(e)
+            c.commit()
+        print(json.dumps({
+            "output": str(Path(args.output)),
+            "report": str(report_path),
+            "rebuild": report.to_dict(),
+            "db_stats": c.stats(),
+        }, ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
 def main():
     p=argparse.ArgumentParser(prog="eqforge")
     sub=p.add_subparsers(dest="cmd",required=True)
@@ -432,6 +525,49 @@ def main():
     hl.add_argument("db")
     hl.add_argument("--target-id")
 
+    sp=sub.add_parser("source-policy", help="set, clear, or list persistent source trust/ablation policy")
+    sps=sp.add_subparsers(dest="source_policy_cmd", required=True)
+    spset=sps.add_parser("set")
+    spset.add_argument("db"); spset.add_argument("source_id"); spset.add_argument("source_version")
+    spset.add_argument("--weight", type=float, default=1.0)
+    spset.add_argument("--disable", action="store_true")
+    spset.add_argument("--note")
+    spclear=sps.add_parser("clear")
+    spclear.add_argument("db"); spclear.add_argument("source_id"); spclear.add_argument("source_version")
+    sprep=sps.add_parser("replace")
+    sprep.add_argument("db"); sprep.add_argument("source_id"); sprep.add_argument("old_version"); sprep.add_argument("new_version")
+    sprep.add_argument("--weight",type=float,default=1.0); sprep.add_argument("--note")
+    splist=sps.add_parser("list")
+    splist.add_argument("db"); splist.add_argument("--explicit-only", action="store_true")
+
+    rb=sub.add_parser("rebuild-senses", help="recompile derived senses using persistent source ablation/reweighting policies")
+    rb.add_argument("db"); rb.add_argument("output")
+    rbt=rb.add_mutually_exclusive_group(required=True)
+    rbt.add_argument("--surface"); rbt.add_argument("--target-id")
+    rb.add_argument("--report")
+    rb.add_argument("--threshold",type=float,default=0.62)
+    rb.add_argument("--min-channels",type=int,default=2)
+    rb.add_argument("--min-contexts",type=int,default=2)
+    rb.add_argument("--include-singletons",action="store_true")
+    rb.add_argument("--ingest-derived",action="store_true")
+    rb.add_argument("--no-track-stability",action="store_true")
+    rb.add_argument("--w-hidden",type=float,default=0.55)
+    rb.add_argument("--w-lexical",type=float,default=0.05)
+    rb.add_argument("--w-semantic",type=float,default=0.15)
+    rb.add_argument("--w-substitution",type=float,default=0.10)
+    rb.add_argument("--w-transition",type=float,default=0.05)
+    rb.add_argument("--w-prediction",type=float,default=0.10)
+    rb.add_argument("--source-vote-threshold",type=float,default=0.58)
+    rb.add_argument("--source-vote-margin",type=float,default=0.08)
+    rb.add_argument("--min-observed-pairs",type=int,default=1)
+    rb.add_argument("--stable-min-sources",type=int,default=2)
+    rb.add_argument("--stable-min-runs",type=int,default=2)
+    rb.add_argument("--stable-consensus",type=float,default=0.75)
+    rb.add_argument("--stable-min-support-weight",type=float,default=1.5)
+    rb.add_argument("--quarantine-conflicts",type=int,default=2)
+    rb.add_argument("--quarantine-conflict-weight",type=float,default=1.5)
+    rb.add_argument("--quarantine-after-misses",type=int,default=2)
+
     a=p.parse_args()
     if a.cmd=="validate":
         doc=load_document(a.document); issues=validate_document(doc)
@@ -476,6 +612,13 @@ def main():
     elif a.cmd=="hypotheses":
         with CanonicalDB(a.db) as db:
             print(json.dumps(list_hypothesis_states(db.db,a.target_id),ensure_ascii=False,indent=2,sort_keys=True))
+    elif a.cmd=="source-policy":
+        if a.source_policy_cmd=="set": raise SystemExit(_source_policy_set(a))
+        if a.source_policy_cmd=="clear": raise SystemExit(_source_policy_clear(a))
+        if a.source_policy_cmd=="replace": raise SystemExit(_source_policy_replace(a))
+        if a.source_policy_cmd=="list": raise SystemExit(_source_policy_list(a))
+    elif a.cmd=="rebuild-senses":
+        raise SystemExit(_rebuild_senses(a))
     elif a.cmd=="compile-senses":
         raise SystemExit(_compile_senses(a))
 

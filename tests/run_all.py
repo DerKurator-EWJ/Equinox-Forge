@@ -13,7 +13,8 @@ TESTS=[
     'test_tiny_contextual_runtime.py',
     'test_sense_compiler.py',
     'test_consensus_stability.py',
+    'test_rebuild_engine.py',
 ]
 for name in TESTS:
     subprocess.run([sys.executable, str(ROOT/'tests'/name)], check=True, cwd=ROOT)
-print('FORGE_V08_ALL_TESTS_OK')
+print('FORGE_V09_ALL_TESTS_OK')

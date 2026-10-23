@@ -20,7 +20,7 @@ from .sense_compiler import (
 )
 
 CONSENSUS_FORMAT = "equinox-forge-consensus-v1"
-CONSENSUS_VERSION = "0.8"
+CONSENSUS_VERSION = "0.9"
 
 
 @dataclass(frozen=True)
@@ -31,7 +31,9 @@ class ConsensusPolicy:
     stable_min_sources: int = 2
     stable_min_runs: int = 2
     stable_consensus: float = 0.75
+    stable_min_support_weight: float = 1.5
     quarantine_conflicts: int = 2
+    quarantine_conflict_weight: float = 1.5
     quarantine_after_misses: int = 2
 
     def validate(self) -> None:
@@ -42,11 +44,15 @@ class ConsensusPolicy:
         for name in ("min_observed_pairs", "stable_min_sources", "stable_min_runs", "quarantine_conflicts", "quarantine_after_misses"):
             if int(getattr(self, name)) < 1:
                 raise ValueError(f"{name} must be >= 1")
+        for name in ("stable_min_support_weight", "quarantine_conflict_weight"):
+            if float(getattr(self, name)) <= 0.0:
+                raise ValueError(f"{name} must be > 0")
 
 
 @dataclass
 class SourceVote:
     source_key: str
+    source_weight: float
     vote: str
     internal_score: float | None
     competing_score: float | None
@@ -66,6 +72,9 @@ class HypothesisAssessment:
     conflict_sources: int
     abstain_sources: int
     decisive_sources: int
+    support_weight: float
+    conflict_weight: float
+    decisive_weight: float
     mean_support_quality: float
     votes: list[dict[str, Any]]
     previous_status: str | None = None
@@ -118,6 +127,17 @@ def _source_relation_maps(db: sqlite3.Connection) -> dict[str, dict[tuple[str, s
             den = sum(c for _, c in evs)
             if den > 0:
                 out[src][key] = max(0.0, min(1.0, sum(s * c for s, c in evs) / den))
+    return out
+
+
+def _source_weights(db: sqlite3.Connection) -> dict[str, float]:
+    try:
+        rows = db.execute("SELECT source_id,source_version,enabled,trust_weight FROM main.source_policies").fetchall()
+    except sqlite3.OperationalError:
+        return {}
+    out: dict[str, float] = {}
+    for src, ver, enabled, weight in rows:
+        out[f"{src}@{ver}"] = 0.0 if not bool(enabled) else max(0.0, min(1.0, float(weight)))
     return out
 
 
@@ -202,6 +222,7 @@ def _vote_for_cluster(
     weights: FusionWeights,
     policy: ConsensusPolicy,
     source_key: str,
+    source_weight: float = 1.0,
 ) -> SourceVote:
     internal: list[float] = []
     competing: list[float] = []
@@ -233,7 +254,7 @@ def _vote_for_cluster(
         if competing_score >= base + policy.source_vote_margin:
             vote = "conflict"
             quality = max(0.0, min(1.0, competing_score - base))
-    return SourceVote(source_key, vote, internal_score, competing_score, len(internal), len(competing), observations, quality)
+    return SourceVote(source_key, float(source_weight), vote, internal_score, competing_score, len(internal), len(competing), observations, quality)
 
 
 def assess_hypotheses(
@@ -247,6 +268,7 @@ def assess_hypotheses(
     cp.validate()
     policy_hash = _policy_hash(sense_policy, cp)
     source_maps = _source_relation_maps(db)
+    source_weights = _source_weights(db)
     all_contexts = sorted({r[0] for r in db.execute(
         "SELECT DISTINCT to_id FROM evidence WHERE from_id=? AND relation_type=?",
         (target_id, RelationType.CONTEXTUAL_USE.value),
@@ -257,19 +279,23 @@ def assess_hypotheses(
     for node in sorted((n for n in doc.nodes if n.metadata.get("provisional") and n.metadata.get("target_id") == target_id), key=lambda n: n.node_id):
         cluster = sorted(node.metadata.get("contexts") or [m for m in node.members if m != target_id])
         votes = [
-            _vote_for_cluster(db, relmap, cluster, all_contexts, context_lex, context_members, sense_policy.weights, cp, src)
+            _vote_for_cluster(db, relmap, cluster, all_contexts, context_lex, context_members, sense_policy.weights, cp, src, source_weights.get(src, 1.0))
             for src, relmap in sorted(source_maps.items())
         ]
         support = [v for v in votes if v.vote == "support"]
         conflict = [v for v in votes if v.vote == "conflict"]
         abstain = [v for v in votes if v.vote == "abstain"]
         decisive = len(support) + len(conflict)
-        consensus = 0.0 if decisive == 0 else len(support) / decisive
-        mean_quality = 0.0 if not support else sum(v.quality for v in support) / len(support)
+        support_weight = sum(v.source_weight for v in support)
+        conflict_weight = sum(v.source_weight for v in conflict)
+        decisive_weight = support_weight + conflict_weight
+        consensus = 0.0 if decisive_weight <= 0.0 else support_weight / decisive_weight
+        mean_quality = 0.0 if not support else sum(v.quality * v.source_weight for v in support) / max(1e-12, support_weight)
         membership_hash = hashlib.sha256("\n".join(cluster).encode()).hexdigest()[:20]
         assessments.append(HypothesisAssessment(
             node.node_id, membership_hash, "candidate", consensus,
-            len(support), len(conflict), len(abstain), decisive, mean_quality,
+            len(support), len(conflict), len(abstain), decisive,
+            support_weight, conflict_weight, decisive_weight, mean_quality,
             [asdict(v) for v in votes],
         ))
     return assessments, policy_hash
@@ -329,12 +355,12 @@ def track_hypothesis_run(
             first_seen = run_id
         status = "candidate"
         reason = "insufficient_independent_confirmation"
-        if a.conflict_sources >= cp.quarantine_conflicts:
-            status = "quarantined"; reason = "multi_source_conflict"
-        elif a.conflict_sources > 0 and a.consensus_score < cp.stable_consensus:
-            status = "contested"; reason = "source_conflict"
-        elif a.support_sources >= cp.stable_min_sources and consecutive_seen >= cp.stable_min_runs and a.consensus_score >= cp.stable_consensus:
-            status = "stable"; reason = "repeated_cross_source_consensus"
+        if a.conflict_sources >= cp.quarantine_conflicts and a.conflict_weight >= cp.quarantine_conflict_weight:
+            status = "quarantined"; reason = "weighted_multi_source_conflict"
+        elif a.conflict_weight > 0.0 and a.consensus_score < cp.stable_consensus:
+            status = "contested"; reason = "weighted_source_conflict"
+        elif a.support_sources >= cp.stable_min_sources and a.support_weight >= cp.stable_min_support_weight and consecutive_seen >= cp.stable_min_runs and a.consensus_score >= cp.stable_consensus:
+            status = "stable"; reason = "repeated_weighted_cross_source_consensus"
         a.previous_status = prev_status
         a.status = status
         a.seen_runs = seen_runs
@@ -345,6 +371,9 @@ def track_hypothesis_run(
             "reason": reason,
             "votes": a.votes,
             "mean_support_quality": a.mean_support_quality,
+            "support_weight": a.support_weight,
+            "conflict_weight": a.conflict_weight,
+            "decisive_weight": a.decisive_weight,
         }
         db.execute(
             "INSERT INTO hypothesis_states(hypothesis_id,target_id,policy_hash,membership_hash,status,first_seen_run,last_seen_run,seen_runs,consecutive_seen,missed_runs,consensus_score,support_sources,conflict_sources,metadata_json) "
@@ -358,6 +387,8 @@ def track_hypothesis_run(
                 "consensus_score": a.consensus_score,
                 "support_sources": a.support_sources,
                 "conflict_sources": a.conflict_sources,
+                "support_weight": a.support_weight,
+                "conflict_weight": a.conflict_weight,
                 "seen_runs": seen_runs,
                 "consecutive_seen": consecutive_seen,
                 "consensus_policy_hash": policy_hash,

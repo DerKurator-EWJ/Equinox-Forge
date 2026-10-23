@@ -83,6 +83,28 @@ CREATE TABLE IF NOT EXISTS hypothesis_states(
   PRIMARY KEY(hypothesis_id,policy_hash)
 );
 CREATE INDEX IF NOT EXISTS idx_hypothesis_states_target ON hypothesis_states(target_id,policy_hash,status);
+
+CREATE TABLE IF NOT EXISTS source_policies(
+  source_id TEXT NOT NULL,
+  source_version TEXT NOT NULL,
+  enabled INTEGER NOT NULL DEFAULT 1,
+  trust_weight REAL NOT NULL DEFAULT 1.0,
+  note TEXT NOT NULL DEFAULT '',
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY(source_id,source_version)
+);
+CREATE TABLE IF NOT EXISTS rebuild_runs(
+  rebuild_run_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  target_id TEXT NOT NULL,
+  source_policy_hash TEXT NOT NULL,
+  output_hash TEXT NOT NULL,
+  raw_evidence_count INTEGER NOT NULL,
+  effective_evidence_count INTEGER NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  metadata_json TEXT NOT NULL DEFAULT '{}'
+);
+CREATE INDEX IF NOT EXISTS idx_rebuild_runs_target ON rebuild_runs(target_id,rebuild_run_id);
 """
 
 class CanonicalDB:
@@ -151,4 +173,4 @@ class CanonicalDB:
 
     def stats(self):
         q = lambda sql: self.db.execute(sql).fetchone()[0]
-        return {"nodes":q("SELECT COUNT(*) FROM nodes"),"evidence":q("SELECT COUNT(*) FROM evidence"),"sources":q("SELECT COUNT(DISTINCT source_id||'@'||source_version) FROM evidence"),"registered_models":q("SELECT COUNT(*) FROM source_models"),"hypothesis_runs":q("SELECT COUNT(*) FROM hypothesis_runs"),"hypotheses":q("SELECT COUNT(*) FROM hypothesis_states")}
+        return {"nodes":q("SELECT COUNT(*) FROM nodes"),"evidence":q("SELECT COUNT(*) FROM evidence"),"sources":q("SELECT COUNT(DISTINCT source_id||'@'||source_version) FROM evidence"),"registered_models":q("SELECT COUNT(*) FROM source_models"),"hypothesis_runs":q("SELECT COUNT(*) FROM hypothesis_runs"),"hypotheses":q("SELECT COUNT(*) FROM hypothesis_states"),"source_policies":q("SELECT COUNT(*) FROM source_policies"),"rebuild_runs":q("SELECT COUNT(*) FROM rebuild_runs")}
