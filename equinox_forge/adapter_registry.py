@@ -2,18 +2,13 @@ from __future__ import annotations
 from pathlib import Path
 from .hf_adapter import HFAdapterSpec, load_adapter, inspect_hf_model, build_extraction_plan
 
-BUILTIN_ADAPTER_DIR = Path(__file__).with_name("adapters")
 
-
-def discover_adapters(directory: str | Path | None = None) -> list[Path]:
-    root = Path(directory) if directory is not None else BUILTIN_ADAPTER_DIR
+def discover_adapters(directory: str | Path) -> list[Path]:
+    root = Path(directory)
     return sorted(root.glob("*.json")) if root.exists() else []
 
 
-def choose_adapter(
-    model_dir: str | Path,
-    adapter_dir: str | Path | None = None,
-) -> tuple[Path, HFAdapterSpec] | None:
+def choose_adapter(model_dir: str | Path, adapter_dir: str | Path) -> tuple[Path, HFAdapterSpec] | None:
     manifest = inspect_hf_model(model_dir)
     scored: list[tuple[int, str, Path, HFAdapterSpec]] = []
     for p in discover_adapters(adapter_dir):

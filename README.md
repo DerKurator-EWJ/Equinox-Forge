@@ -1,68 +1,73 @@
-# Equinox Forge v0.30 — Engineering Freeze
+# Equinox Forge v0.31 — Baseline Gauntlet
 
-v0.30 freezes the v0.29 cognitive architecture and turns the repository into a reproducible, installable research baseline. It intentionally adds no new knowledge mechanism.
+v0.31 adds **no new cognitive mechanism**. It stress-tests the frozen v0.30 baseline with a deterministic multi-track gauntlet and records where the current runtime succeeds and where it fails.
 
-The release hardens the path from source checkout to verified package:
+The most important newly frozen failure is **unsupported recombination rejection**: completely unknown prompts are rejected, but known lexical material in an unsupported combination can still activate unrelated predictions through lexical recall. The gauntlet therefore gives the next cognitive release a concrete adversarial target instead of another feature wish-list.
 
-```text
-source checkout
-      ↓
-editable or wheel install
-      ↓
-installed-package self-test
-      ↓
-33 isolated regression files
-      ↓
-machine-readable test report
-      ↓
-sdist + wheel
-```
-
-## Install and verify
+Run the full gauntlet with:
 
 ```bash
-python -m pip install -e ".[dev]"
-eqforge --version
-eqforge self-test
-python tests/run_all.py --report out/v030-regression-report.json
-python tools/verify_release.py --build
+eqforge-gauntlet --out out/v0_31_baseline_gauntlet
 ```
 
-Both `eqforge` and `equinox-forge` are installed as command aliases. The three built-in Hugging Face adapter specifications are packaged with the distribution, so `detect-adapter` no longer depends on an `adapters/` directory in the current working directory.
-
-## v0.30 release contract
-
-- `pip install -e .` and wheel installation must succeed from a clean environment;
-- `pyproject.toml`, `equinox_forge.__version__`, the README and the release note must agree on version `0.30.0`;
-- the installed package must pass `eqforge self-test` without repository-relative test files;
-- all regression scripts remain isolated processes and emit a JSON summary;
-- CI runs static fatal-error checks, builds both distribution formats and executes the release verifier on Python 3.10 and 3.12;
-- v0.29 runtime behavior remains unchanged.
-
-## Scope
-
-This is an engineering milestone, not evidence of broader model equivalence or large-scale Teacher compilation. It establishes the stable measurement surface required for the v0.31 benchmark and v0.32 ablation milestones.
-
-See `RELEASE_V0_30.md` for the exact changes and verification commands.
+The fixed cases, contract extension and deterministic reference metrics live under `benchmarks/v0_31/`. See `RELEASE_V0_31.md` for the baseline results.
 
 ---
 
-## Previous milestone: v0.29
+## Previous milestone — v0.30 Engineering Freeze
 
-v0.29 adds cross-source exception consensus and a persisted lifecycle for automatically induced subtype overrides. Candidate, contested and quarantined exceptions remain auditable in the compiled BASE, while the default runtime admits only stable exceptions.
+v0.30 deliberately adds **no new cognitive mechanism**. It freezes the v0.29 behaviour as a reproducible engineering baseline before the next scaling phase.
 
-The lifecycle is:
+The release focuses on four things:
 
-```text
-candidate → stable → contested → quarantined
-                 ↘ recovery ↗
+- deterministic package installation and explicit package discovery;
+- a version-independent regression runner with per-test timing and failure reporting;
+- a frozen benchmark contract for accuracy, generalization, rejection, runtime work, storage and compile cost;
+- release-consistency checks so code, package metadata and benchmark definitions cannot silently drift.
+
+The scientific purpose of this milestone is simple: from v0.30 onward, a change is not considered an improvement merely because it adds capability. It must be measured against an unchanged reference contract.
+
+## Frozen v0.30 evaluation families
+
+The benchmark contract defines the following families:
+
+1. exact retention / replay control;
+2. held-out surface transfer;
+3. compositional / hierarchical transfer;
+4. false-positive and unknown rejection;
+5. specificity and exception handling;
+6. consensus / conflict lifecycle;
+7. runtime work and index routing;
+8. pack size, compile time and knowledge retained per byte.
+
+See `benchmarks/v0_30/benchmark_contract.json`. Later releases may **add** benchmark cases, but the frozen v0.30 cases/metric meanings must not be rewritten to make a newer system look better.
+
+## Regression suite
+
+```bash
+python tests/run_all.py
 ```
 
-Source policies can remove conflicting evidence and require repeated clean rebuilds before an exception becomes stable again.
+The runner discovers every `test_*.py` file, executes each in a fresh Python process, records wall time, continues after failures, and exits non-zero if any test fails. A machine-readable summary can be written with:
+
+```bash
+python tests/run_all.py --json-out out/test_summary.json
+```
+
+## Installation
+
+```bash
+python -m pip install -e .
+eqforge --help
+```
+
+v0.30 explicitly limits setuptools package discovery to `equinox_forge*`; repository directories such as `out/` and `adapters/` can no longer be mistaken for import packages.
+
+For the milestone-specific release notes see `RELEASE_V0_30.md`. Historical documentation is retained below.
 
 ---
 
-## Previous milestone: v0.28 — Automatic Exception / Override Induction
+# Historical milestone documentation — v0.28 Automatic Exception / Override Induction
 
 v0.28 learns **specific subtype overrides** from systematic residual behaviour against a broader hierarchical rule.
 

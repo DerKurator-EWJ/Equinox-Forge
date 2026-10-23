@@ -1,12 +1,7 @@
-[build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "equinox-forge"
-version = "0.30.0"
+version = "0.31.0"
 description = "Model-independent canonical knowledge compiler for Equinox"
-readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
   "numpy>=1.24",
@@ -15,7 +10,7 @@ dependencies = [
 
 [project.scripts]
 eqforge = "equinox_forge.cli:main"
-equinox-forge = "equinox_forge.cli:main"
+eqforge-gauntlet = "equinox_forge.baseline_gauntlet:main"
 
 [project.optional-dependencies]
 hf-runtime = [
@@ -23,21 +18,12 @@ hf-runtime = [
   "transformers>=4.48,<5",
   "tokenizers>=0.21",
 ]
-dev = [
-  "build>=1.2",
-  "ruff>=0.8",
-]
+
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["equinox_forge*"]
-exclude = ["adapters*", "examples*", "out*", "tests*", "tools*"]
-
-[tool.setuptools.package-data]
-equinox_forge = ["adapters/*.json"]
-
-[tool.ruff]
-target-version = "py310"
-exclude = ["examples", "out"]
-
-[tool.ruff.lint]
-select = ["E9", "F63", "F7", "F82"]
+exclude = ["adapters*", "examples*", "out*", "tests*", "benchmarks*", "tools*"]
