@@ -1,0 +1,47 @@
+{
+  "adapter_hash": "9c0838cf663e028cda80c3c1f271fbe1af321fc9f4ff9cf10728b24a3a1cd42c",
+  "adapter_id": "hf-deepseek-v3-v1",
+  "architectures": [
+    "DeepseekV3ForCausalLM"
+  ],
+  "enabled_channels": [
+    "token_embedding_neighbors",
+    "output_prediction_priors",
+    "runtime_hidden_states"
+  ],
+  "format": "equinox-forge-extraction-plan-v1",
+  "modality": "text",
+  "model_dir": "/mnt/data/forge_v02/Equinox_Forge_v0_2_HFAdapterContract/examples/hf_synthetic",
+  "model_type": "deepseek_v3",
+  "q_strategy": "unicode_character",
+  "resolved_roles": [
+    {
+      "matches": [
+        "model.embed_tokens.weight"
+      ],
+      "ok": true,
+      "required": true,
+      "role": "input_embeddings"
+    },
+    {
+      "matches": [
+        "lm_head.weight"
+      ],
+      "ok": true,
+      "required": false,
+      "role": "output_head"
+    },
+    {
+      "matches": [
+        "model.layers.0.self_attn.q_proj.weight",
+        "model.layers.1.self_attn.q_proj.weight"
+      ],
+      "ok": true,
+      "required": false,
+      "role": "transformer_layers"
+    }
+  ],
+  "unavailable_channels": [],
+  "valid": true,
+  "warnings": []
+}

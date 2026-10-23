@@ -36,6 +36,15 @@ CREATE TABLE IF NOT EXISTS evidence(
 );
 CREATE INDEX IF NOT EXISTS idx_evidence_relation ON evidence(from_id,to_id,relation_type);
 CREATE INDEX IF NOT EXISTS idx_evidence_source ON evidence(source_id,source_version);
+CREATE TABLE IF NOT EXISTS source_models(
+  source_id TEXT NOT NULL,
+  source_version TEXT NOT NULL,
+  adapter_id TEXT NOT NULL,
+  adapter_hash TEXT NOT NULL,
+  model_type TEXT NOT NULL DEFAULT '',
+  manifest_json TEXT NOT NULL DEFAULT '{}',
+  PRIMARY KEY(source_id, source_version)
+);
 CREATE TABLE IF NOT EXISTS source_aliases(
   source_id TEXT NOT NULL,
   source_version TEXT NOT NULL,
@@ -75,6 +84,12 @@ class CanonicalDB:
             (e.from_id,e.to_id,e.relation_type,float(e.score),float(e.confidence),e.source.source_id,e.source.source_version,e.source.extraction,json.dumps(e.metadata,ensure_ascii=False,sort_keys=True)),
         )
 
+    def register_source_model(self, source_id: str, source_version: str, adapter_id: str, adapter_hash: str, model_type: str, manifest: dict):
+        self.db.execute(
+            "INSERT OR REPLACE INTO source_models(source_id,source_version,adapter_id,adapter_hash,model_type,manifest_json) VALUES(?,?,?,?,?,?)",
+            (source_id,source_version,adapter_id,adapter_hash,model_type,json.dumps(manifest,ensure_ascii=False,sort_keys=True)),
+        )
+
     def alias(self, source_id: str, source_version: str, external_id: str, node_id: str):
         self.db.execute("INSERT OR REPLACE INTO source_aliases VALUES(?,?,?,?)",(source_id,source_version,external_id,node_id))
 
@@ -82,4 +97,4 @@ class CanonicalDB:
 
     def stats(self):
         q = lambda sql: self.db.execute(sql).fetchone()[0]
-        return {"nodes":q("SELECT COUNT(*) FROM nodes"),"evidence":q("SELECT COUNT(*) FROM evidence"),"sources":q("SELECT COUNT(DISTINCT source_id||'@'||source_version) FROM evidence")}
+        return {"nodes":q("SELECT COUNT(*) FROM nodes"),"evidence":q("SELECT COUNT(*) FROM evidence"),"sources":q("SELECT COUNT(DISTINCT source_id||'@'||source_version) FROM evidence"),"registered_models":q("SELECT COUNT(*) FROM source_models")}

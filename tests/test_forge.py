@@ -1,4 +1,7 @@
 from pathlib import Path
+import sys
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 import tempfile
 from equinox_forge.canonical import make_text_surface, tier_name
 from equinox_forge.demo_builder import build_demo
