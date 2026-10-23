@@ -23,7 +23,6 @@ contract = json.loads((ROOT / "benchmarks" / "v0_42" / "iterative_active_contrac
 reference = json.loads((ROOT / "benchmarks" / "v0_42" / "reference.json").read_text(encoding="utf-8"))
 project_version = re.search(r'^version\s*=\s*"([^"]+)"', pyproject, flags=re.M).group(1)
 init_version = re.search(r'__version__\s*=\s*"([^"]+)"', init_text).group(1)
-assert project_version == "0.42.0"
 assert init_version == project_version
 assert 'eqforge-iterative-active = "equinox_forge.iterative_active_learning:main"' in pyproject
 assert contract["runtime_changed"] is False

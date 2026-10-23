@@ -1,3 +1,32 @@
+# Equinox Forge v0.43 — Marginal Structural Information-Gain Feasibility Audit
+
+v0.43 is a measurement release. It tests whether better prompt selection can, by itself, improve transfer on the fixed never-queryable shadow holdout under the unchanged v0.40 RuntimeCognition representation.
+
+Frozen result:
+
+```text
+Seed shadow accuracy:                 15.625%
+v0.41-style active shadow accuracy:   15.625%
+All-selectable (96-query) saturation: 15.625%
+24 random 64-query schedules:         15.625% each
+Shadow top-1 changes under saturation: 0
+Shadow score vectors changed:          16
+```
+
+The result redirects the next work away from acquisition scoring: even complete non-shadow saturation strengthens confidence mass without changing the shadow decisions. The missing capability is entity-specific cross-fact transfer/routing, not simply a better query ranking. RuntimeCognition remains v0.40.
+
+Run:
+
+```bash
+eqforge-structural-gain-audit --out out/v0_43_structural_gain_audit --random-trials 24
+```
+
+See `RELEASE_V0_43.md` and `benchmarks/v0_43/`.
+
+---
+
+## Previous milestone — v0.42 Iterative Active Learning / Frozen Shadow Holdout Audit
+
 # Equinox Forge v0.42 — Iterative Active Learning / Frozen Shadow Holdout Audit
 
 v0.42 hardens the acquisition benchmark rather than adding runtime cognition. The v0.41 selector is now run iteratively in small batches, and transfer is measured on a **fixed 32-fact shadow holdout that no strategy may ever query**.
