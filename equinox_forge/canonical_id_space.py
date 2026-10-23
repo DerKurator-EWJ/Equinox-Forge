@@ -175,6 +175,24 @@ def _register_identity(
     return numeric_id
 
 
+def register_canonical_identity(
+    db: sqlite3.Connection,
+    *,
+    namespace: str,
+    symbolic_id: str,
+    identity_kind: str = "",
+    metadata: dict[str, Any] | None = None,
+) -> int:
+    """Public deterministic identity registration for higher-order numeric layers.
+
+    v0.44 intentionally kept the stable-ID primitive private while proving the
+    canonical node/relation space. Higher-order structures (macros in v0.46+)
+    need the same collision-checked identity semantics without depending on
+    insertion order or SQLite row IDs.
+    """
+    return _register_identity(db, namespace, symbolic_id, identity_kind, metadata)
+
+
 def canonical_node_id(db: sqlite3.Connection, node_id: str) -> int:
     row = db.execute(
         "SELECT numeric_id FROM canonical_identities WHERE namespace='node' AND symbolic_id=?",

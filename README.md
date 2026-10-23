@@ -1,3 +1,28 @@
+# Equinox Forge v0.46 — Recursive Macro Collapse
+
+v0.46 adds the first true recursive collapse layer to the canonical numeric ID space. Stable common relation structures across concept IDs receive deterministic numeric macro IDs; those macro IDs can themselves participate as members in a higher collapse. When a higher macro owns shared facts, child macros keep only local residual facts and recover the full signature recursively through the macro hierarchy. The canonical semantic graph remains unchanged and auditable. RuntimeCognition remains unchanged from v0.40.
+
+```text
+Concept IDs
+   ↓ common numeric relation structure
+Macro ID (level 1)
+   ↓ shared structure between macro IDs
+Macro ID (level 2)
+   ↓ ...
+```
+
+Run:
+
+```bash
+eqforge-recursive-macro --out out/v0_46_recursive_macro_collapse
+```
+
+See `RELEASE_V0_46.md` and `benchmarks/v0_46/`.
+
+---
+
+## Previous milestone — v0.45 Structural Closure
+
 # Equinox Forge v0.45 — Structural Closure
 
 v0.45 adds a non-duplicating structural closure on top of the canonical numeric ID space. A concept ID can now address local facts plus ancestor-rooted relations through numeric hierarchy paths while each semantic fact remains stored exactly once in the canonical graph. The closure records origin and inheritance depth instead of copying parent knowledge into every child. RuntimeCognition remains unchanged from v0.40.
