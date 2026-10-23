@@ -26,6 +26,7 @@ class MacroDiscoveryPolicy:
     include_canonical: bool = True
     include_derived: bool = True
     derived_statuses: list[str] = field(default_factory=lambda: ["stable", "active"])
+    exclude_derived_build_target_prefixes: list[str] = field(default_factory=list)
     prune_dominated: bool = True
 
     def validate(self) -> None:
@@ -175,10 +176,12 @@ def _structure_sequences(db: sqlite3.Connection, policy: MacroDiscoveryPolicy) -
     if policy.include_derived:
         placeholders = ",".join("?" for _ in policy.derived_statuses)
         rows = db.execute(
-            f"SELECT node_id,payload_json FROM derived_artifacts WHERE node_id IS NOT NULL AND status IN ({placeholders}) ORDER BY build_target_id,artifact_id",
+            f"SELECT build_target_id,node_id,payload_json FROM derived_artifacts WHERE node_id IS NOT NULL AND status IN ({placeholders}) ORDER BY build_target_id,artifact_id",
             tuple(policy.derived_statuses),
         ).fetchall() if policy.derived_statuses else []
-        for node_id, payload_json in rows:
+        for build_target_id, node_id, payload_json in rows:
+            if any(build_target_id.startswith(prefix) for prefix in policy.exclude_derived_build_target_prefixes):
+                continue
             if node_id in out:
                 continue
             try:

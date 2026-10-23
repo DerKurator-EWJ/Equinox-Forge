@@ -1,3 +1,177 @@
+# Equinox Forge v0.13 — Macro Promotion + Parent Rewriting / Runtime Compression Plan
+
+Forge v0.13 turns the **potential** compression reported by v0.12 into a concrete, auditable runtime encoding plan. Eligible repeated structures compete for actual parent positions, only a mutually non-overlapping set is promoted, promoted macros are materialized through the normal v0.11 Macro Builder, and every scanned parent receives a concrete rewritten member sequence.
+
+```text
+v0.12 candidates
+      ↓
+recompute marginal usable occurrences
+      ↓
+conflict-aware deterministic selection
+      ↓
+promote selected macros
+      ↓
+rewrite parent member sequences
+      ↓
+count actual parent refs + macro definitions + overhead
+      ↓
+realized compression
+```
+
+## Central rule: canonical knowledge is not rewritten
+
+The canonical graph remains the semantic/source representation. v0.13 writes a separate **physical runtime encoding view**:
+
+```text
+canonical parent
+[A, B, C, D, E]
+
+runtime encoding
+[M_ABC, D, E]
+```
+
+The runtime rewrite can therefore be rebuilt or discarded without destroying provenance or changing the meaning of the canonical parent.
+
+## Conflict-aware promotion
+
+v0.12 candidate scores cannot simply be added: two candidates may want to replace overlapping positions in the same parent. v0.13 uses deterministic greedy marginal-gain selection.
+
+After each promotion Forge:
+
+1. reserves the exact member positions consumed by that macro;
+2. recomputes the still-usable occurrences of every remaining candidate;
+3. recomputes independent parent count and marginal compression;
+4. rejects candidates that no longer satisfy the realized thresholds;
+5. chooses the next remaining candidate by realized net saving, ratio, reuse count, length, then stable candidate id.
+
+The strategy is deliberately reported as:
+
+```text
+deterministic_greedy_marginal_gain
+```
+
+It is deterministic and conservative, but **is not claimed to be the globally optimal weighted packing solution**.
+
+## Realized cost model
+
+For each promoted macro of length `L` with `O` actually usable non-overlapping occurrences:
+
+```text
+parent_ref_savings = O * (L - 1)
+definition_refs    = L
+realized_net       = parent_ref_savings - definition_refs - definition_overhead
+```
+
+For the complete runtime view:
+
+```text
+baseline_parent_refs
+rewritten_parent_refs
+macro_definition_refs
+definition_overhead_cost
+
+encoded_total_cost = rewritten_parent_refs
+                   + macro_definition_refs
+                   + definition_overhead_cost
+
+realized_net_savings = baseline_parent_refs - encoded_total_cost
+realized_compression_ratio = realized_net_savings / baseline_parent_refs
+```
+
+Forge asserts that global realized saving exactly equals the sum of the promoted candidates' marginal savings. This catches overlap/accounting bugs instead of silently reporting optimistic compression.
+
+## Self-feedback guard
+
+Previously promoted build targets with the prefix:
+
+```text
+auto-macro:
+```
+
+are excluded from later runtime-compression discovery by default. They are compiled encodings, not new semantic observations. This prevents Forge from learning repeated patterns from its own previous compression output and makes repeated v0.13 runs stable.
+
+## Persistent runtime compression data
+
+v0.13 adds:
+
+```text
+runtime_compression_runs
+runtime_promoted_macros
+runtime_parent_rewrites
+```
+
+Each run stores the discovery/promotion policy, promoted macro ids, exact occurrence positions, original and rewritten parent sequences, and global realized metrics.
+
+Promoted macros remain ordinary Derived Artifacts and therefore can be reused by later hierarchy and runtime-pack compilers.
+
+## CLI
+
+Compile a realized runtime compression plan:
+
+```bash
+python -m equinox_forge.cli compress-runtime master.sqlite \
+  --min-pattern-size 2 \
+  --max-pattern-size 6 \
+  --min-occurrences 2 \
+  --min-parent-structures 2 \
+  --min-realized-occurrences 2 \
+  --min-realized-parent-structures 2 \
+  --min-realized-net-savings 1 \
+  --definition-overhead 1 \
+  --output runtime-compression.json
+```
+
+To calculate deterministic macro ids and rewrites without materializing new macro artifacts:
+
+```bash
+python -m equinox_forge.cli compress-runtime master.sqlite \
+  --plan-only --no-persist \
+  --output runtime-plan.json
+```
+
+## Regression fixture
+
+The v0.13 hard test contains two useful repeated macros and one competing overlapping candidate.
+
+The selected macros realize:
+
+```text
+baseline parent refs      36
+rewritten parent refs     22
+parent refs removed       14
+macro definition refs      6
+definition overhead        2
+encoded total cost        30
+realized net saving        6
+realized ratio         16.67%
+```
+
+The overlapping candidate is rejected after the stronger macro reserves its shared positions.
+
+Run everything with:
+
+```bash
+PYTHONPATH=. python tests/run_all.py
+```
+
+Expected final marker:
+
+```text
+FORGE_V13_ALL_TESTS_OK
+```
+
+## What v0.13 does NOT prove
+
+v0.13 now proves **realized structural reference compression in the Forge cost model**, not just candidate-level potential savings. It still does not prove lower wall-clock latency, lower energy consumption, or unchanged downstream task quality on a device. Those require a real runtime pack and benchmark harness.
+
+## Recommended next step — v0.14
+
+**Runtime BASE Pack Compiler + Round-Trip Loader.** Take the promoted macro definitions and rewritten parent sequences from v0.13, serialize them into a compact deterministic pack with indexes, load the pack back independently of SQLite/Forge, and verify structural equivalence plus actual byte size. This is the point where Forge can start measuring compression in **bytes**, not only references.
+
+---
+
+# Historical v0.12 documentation
+
 # Equinox Forge v0.12 — Automatic Macro Discovery + Structural Compression Metrics
 
 Forge v0.12 removes the requirement that every higher macro boundary be specified manually. It scans existing ordered canonical and derived compositions for repeated contiguous substructures, scores their **potential structural compression**, and can explicitly materialize only eligible candidates as normal v0.11 macro artifacts.

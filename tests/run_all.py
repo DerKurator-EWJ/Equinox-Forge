@@ -17,7 +17,8 @@ TESTS=[
     'test_incremental_dependency.py',
     'test_derived_macro_hierarchy.py',
     'test_macro_discovery.py',
+    'test_runtime_compression.py',
 ]
 for name in TESTS:
     subprocess.run([sys.executable, str(ROOT/'tests'/name)], check=True, cwd=ROOT)
-print('FORGE_V12_ALL_TESTS_OK')
+print('FORGE_V13_ALL_TESTS_OK')
