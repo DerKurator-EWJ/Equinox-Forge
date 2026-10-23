@@ -1,0 +1,6 @@
+# One controlled context per line.
+Der Hund ist ein
+Die Katze ist ein
+Ein Hund kann
+Ein Tier kann
+Der Hund und die Katze sind

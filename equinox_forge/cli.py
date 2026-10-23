@@ -10,6 +10,7 @@ from .hf_adapter import load_adapter, validate_adapter, inspect_hf_model, build_
 from .adapter_registry import choose_adapter
 from .text_teacher import TextExtractionConfig, extract_text_teacher
 from .language_evidence import LanguageEvidenceConfig, build_controlled_language_evidence, load_text_inputs
+from .teacher_behavior import BehaviourProbeConfig, TransformersCausalLMBackend, extract_teacher_behaviour, load_prompts
 
 
 def ingest(db_path: str, doc_path: str):
@@ -118,6 +119,69 @@ def _extract_corpus(args) -> int:
     print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
     return 0
 
+
+def _probe_teacher(args) -> int:
+    cfg = BehaviourProbeConfig(
+        top_k=args.top_k,
+        temperature=args.temperature,
+        min_probability=args.min_probability,
+        max_surface_chars=args.max_surface_chars,
+        evidence_confidence=args.evidence_confidence,
+        strip_leading_space=not args.keep_leading_space,
+        include_punctuation_only=args.include_punctuation_only,
+        include_numeric_only=not args.exclude_numeric_only,
+        max_prompt_words=args.max_prompt_words,
+    )
+    prompts = load_prompts(args.prompts)
+    try:
+        backend = TransformersCausalLMBackend(
+            args.model_dir,
+            device=args.device,
+            trust_remote_code=args.trust_remote_code,
+            dtype=args.dtype,
+        )
+    except Exception as exc:
+        print(f"ERROR: unable to initialize causal teacher backend: {exc}")
+        return 3
+    doc, report, _ = extract_teacher_behaviour(
+        backend, prompts, args.source_id, args.source_version, cfg
+    )
+    issues = validate_document(doc)
+    errors = [x for x in issues if x.severity == "error"]
+    if errors:
+        for x in issues: print(f"{x.severity.upper()}: {x.message}")
+        return 2
+    save_document(doc, args.output)
+    report_path = Path(args.report) if args.report else Path(args.output).with_suffix(".report.json")
+    report_path.write_text(json.dumps(report.to_dict(), ensure_ascii=False, indent=2, sort_keys=True)+"\n", encoding="utf-8")
+
+    db_stats = None
+    if args.db:
+        manifest = inspect_hf_model(args.model_dir)
+        spec = load_adapter(args.adapter) if args.adapter else None
+        with CanonicalDB(args.db) as db:
+            if spec is not None:
+                plan = build_extraction_plan(manifest, spec)
+                db.register_source_model(
+                    args.source_id, args.source_version, spec.adapter_id, plan.adapter_hash,
+                    manifest.model_type, {**manifest.to_dict(), "behaviour_backend": backend.manifest()},
+                )
+            for n in sorted(doc.nodes, key=lambda n:(n.level,n.node_id)):
+                db.upsert_node(n)
+            for e in doc.evidence:
+                db.add_evidence(e)
+            db.commit()
+            db_stats = db.stats()
+    result = {
+        "output": str(Path(args.output)),
+        "report": str(report_path),
+        "backend": backend.manifest(),
+        "extraction": report.to_dict(),
+    }
+    if db_stats is not None: result["db_stats"] = db_stats
+    print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
 def main():
     p=argparse.ArgumentParser(prog="eqforge")
     sub=p.add_subparsers(dest="cmd",required=True)
@@ -170,6 +234,28 @@ def main():
     lc.add_argument("--min-substitution-score", type=float, default=0.10)
     lc.add_argument("--evidence-confidence", type=float, default=0.80)
 
+    bp=sub.add_parser("probe-teacher", help="execute a local causal HF teacher and record next-token behaviour evidence")
+    bp.add_argument("model_dir")
+    bp.add_argument("prompts", nargs="+", help="UTF-8 files containing one controlled prompt per line")
+    bp.add_argument("output", help="output Canonical IR JSON")
+    bp.add_argument("--source-id", required=True)
+    bp.add_argument("--source-version", default="local")
+    bp.add_argument("--adapter", help="optional Forge adapter used for model registration/provenance")
+    bp.add_argument("--report")
+    bp.add_argument("--db", help="optional canonical SQLite DB")
+    bp.add_argument("--top-k", type=int, default=8)
+    bp.add_argument("--temperature", type=float, default=1.0)
+    bp.add_argument("--min-probability", type=float, default=0.001)
+    bp.add_argument("--max-surface-chars", type=int, default=64)
+    bp.add_argument("--max-prompt-words", type=int, default=64)
+    bp.add_argument("--evidence-confidence", type=float, default=0.95)
+    bp.add_argument("--keep-leading-space", action="store_true")
+    bp.add_argument("--include-punctuation-only", action="store_true")
+    bp.add_argument("--exclude-numeric-only", action="store_true")
+    bp.add_argument("--device", default="cpu")
+    bp.add_argument("--dtype", default="auto")
+    bp.add_argument("--trust-remote-code", action="store_true")
+
     a=p.parse_args()
     if a.cmd=="validate":
         doc=load_document(a.document); issues=validate_document(doc)
@@ -207,5 +293,7 @@ def main():
         raise SystemExit(_extract_text(a))
     elif a.cmd=="extract-corpus":
         raise SystemExit(_extract_corpus(a))
+    elif a.cmd=="probe-teacher":
+        raise SystemExit(_probe_teacher(a))
 
 if __name__=="__main__": main()
