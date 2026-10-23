@@ -23,8 +23,8 @@ contract = json.loads((ROOT / "benchmarks" / "v0_41" / "active_probe_contract.js
 reference = json.loads((ROOT / "benchmarks" / "v0_41" / "reference.json").read_text(encoding="utf-8"))
 project_version = re.search(r'^version\s*=\s*"([^"]+)"', pyproject, flags=re.M).group(1)
 init_version = re.search(r'__version__\s*=\s*"([^"]+)"', init_text).group(1)
-assert project_version == "0.41.0"
 assert init_version == project_version
+assert tuple(int(x) for x in project_version.split(".")) >= (0, 41, 0)
 assert 'eqforge-active-probe = "equinox_forge.active_probe_selection:main"' in pyproject
 assert contract["runtime_changed"] is False
 assert reference["active"]["full_accuracy"] > reference["fixed"]["full_accuracy"]

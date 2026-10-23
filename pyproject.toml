@@ -1,6 +1,6 @@
 [project]
 name = "equinox-forge"
-version = "0.41.0"
+version = "0.42.0"
 description = "Model-independent canonical knowledge compiler for Equinox"
 requires-python = ">=3.10"
 dependencies = [
@@ -21,6 +21,7 @@ eqforge-global-lineage = "equinox_forge.global_lineage_consensus:main"
 eqforge-domain-trial = "equinox_forge.real_teacher_domain_trial:main"
 eqforge-exact-authority = "equinox_forge.exact_context_authority:main"
 eqforge-active-probe = "equinox_forge.active_probe_selection:main"
+eqforge-iterative-active = "equinox_forge.iterative_active_learning:main"
 
 [project.optional-dependencies]
 domain-trial = [

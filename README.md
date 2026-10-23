@@ -1,4 +1,36 @@
-# Equinox Forge v0.41 — Active Probe Selection / Information-Gain Proxy
+# Equinox Forge v0.42 — Iterative Active Learning / Frozen Shadow Holdout Audit
+
+v0.42 hardens the acquisition benchmark rather than adding runtime cognition. The v0.41 selector is now run iteratively in small batches, and transfer is measured on a **fixed 32-fact shadow holdout that no strategy may ever query**.
+
+Frozen result:
+
+```text
+64-query full-core accuracy:
+  Iterative active:      61.71875%
+  v0.41 one-shot active: 61.71875%
+  Fixed:                 57.03125%
+  Seeded random mean:    57.34375%
+
+Frozen shadow-holdout accuracy (same 32 facts for every strategy):
+  Iterative active:      15.625%
+  v0.41 one-shot active: 15.625%
+  Fixed:                 15.625%
+  Seeded random mean:    15.625%
+```
+
+The central finding is negative but important: repeated frontier rescoring chooses the same final schedule as the one-shot v0.41 policy, and the current uncertainty proxy does **not** improve transfer on the identical untouched holdout. v0.41's higher strategy-specific unqueried accuracy is therefore reinterpreted as a query-allocation advantage, not yet as proof of stronger generalization. RuntimeCognition remains v0.40.
+
+Run:
+
+```bash
+eqforge-iterative-active --out out/v0_42_iterative_active_learning --random-trials 5
+```
+
+See `RELEASE_V0_42.md` and `benchmarks/v0_42/`.
+
+---
+
+## Previous milestone — v0.41 Active Probe Selection / Information-Gain Proxy
 
 v0.41 is the first acquisition-policy release. RuntimeCognition remains v0.40; the new work is entirely about deciding **which teacher prompts are worth spending a query on**. On the fixed 32-entity neural-teacher domain, all strategies receive the same 64 unique teacher-query budget.
 
