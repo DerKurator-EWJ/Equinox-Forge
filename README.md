@@ -1,4 +1,53 @@
-# Equinox Forge v0.34 — Evidence-Backed Relation Composition
+# Equinox Forge v0.35 — Automatic Relation Composition Induction
+
+v0.35 removes the fixture-authored composition schema used by v0.34. Forge now discovers a one-slot relation pattern and a reusable semantic path program from repeated direct observations plus an independently represented semantic graph.
+
+The deterministic induction fixture observes only:
+
+```text
+Katze wohnt in     -> Haus
+Kaninchen wohnt in -> Bau
+Fuchs wohnt in     -> Bau
+```
+
+Forge is **not** given the schema `[SLOT_0] wohnt in` or the program `is_a -> property`. It groups prompts by invariant token structure, identifies the varying slot, searches graph paths from each filler to its observed target, and promotes only a dominant path signature that satisfies support, source-diversity, coverage and quality thresholds.
+
+The positive run induces:
+
+```text
+[SLOT_0] wohnt in
+    => is_a(out) -> property(out)
+```
+
+The direct observations are then left out of the evaluated runtime BASE. The induced schema plus the semantic graph transfer to the held-out entity:
+
+```text
+Hund --is_a--> Haustier --property--> Haus
+Hund wohnt in  -> Haus
+Stein wohnt in -> ABSTAIN
+```
+
+Frozen ladder result: **L0–L5 = 1.0**.
+
+Necessary controls remain conservative:
+
+- three examples attributed to the same source do not become `stable`;
+- incomplete path coverage does not become `stable`;
+- equally supported competing programs become `contested` rather than being selected arbitrarily;
+- the held-out `Hund wohnt in` example is absent from the induction observations;
+- direct induction observations are not compiled as runtime prediction edges.
+
+Run:
+
+```bash
+eqforge-relation-induce --out out/v0_35_relation_composition_induction
+```
+
+See `RELEASE_V0_35.md` and `benchmarks/v0_35/`.
+
+---
+
+## Previous milestone — v0.34 Evidence-Backed Relation Composition
 
 v0.34 attacks the frozen L5 relation-family case without allowing opaque zero-shot guessing. A relation family that was never compiled as direct `PREDICTION` evidence may execute only when the BASE already contains both an explicit stable **relation-composition schema** and the complete non-predictive semantic path required by that schema.
 

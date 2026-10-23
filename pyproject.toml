@@ -1,6 +1,6 @@
 [project]
 name = "equinox-forge"
-version = "0.34.0"
+version = "0.35.0"
 description = "Model-independent canonical knowledge compiler for Equinox"
 requires-python = ">=3.10"
 dependencies = [
@@ -14,6 +14,7 @@ eqforge-gauntlet = "equinox_forge.baseline_gauntlet:main"
 eqforge-support-gate = "equinox_forge.support_gate_benchmark:main"
 eqforge-novel-entity = "equinox_forge.novel_entity_admission:main"
 eqforge-relation-compose = "equinox_forge.relation_composition:main"
+eqforge-relation-induce = "equinox_forge.relation_composition_induction:main"
 
 [project.optional-dependencies]
 hf-runtime = [
