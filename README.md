@@ -1,4 +1,68 @@
-# Equinox Forge v0.28 — Automatic Exception / Override Induction
+# Equinox Forge v0.30 — Engineering Freeze
+
+v0.30 freezes the v0.29 cognitive architecture and turns the repository into a reproducible, installable research baseline. It intentionally adds no new knowledge mechanism.
+
+The release hardens the path from source checkout to verified package:
+
+```text
+source checkout
+      ↓
+editable or wheel install
+      ↓
+installed-package self-test
+      ↓
+33 isolated regression files
+      ↓
+machine-readable test report
+      ↓
+sdist + wheel
+```
+
+## Install and verify
+
+```bash
+python -m pip install -e ".[dev]"
+eqforge --version
+eqforge self-test
+python tests/run_all.py --report out/v030-regression-report.json
+python tools/verify_release.py --build
+```
+
+Both `eqforge` and `equinox-forge` are installed as command aliases. The three built-in Hugging Face adapter specifications are packaged with the distribution, so `detect-adapter` no longer depends on an `adapters/` directory in the current working directory.
+
+## v0.30 release contract
+
+- `pip install -e .` and wheel installation must succeed from a clean environment;
+- `pyproject.toml`, `equinox_forge.__version__`, the README and the release note must agree on version `0.30.0`;
+- the installed package must pass `eqforge self-test` without repository-relative test files;
+- all regression scripts remain isolated processes and emit a JSON summary;
+- CI runs static fatal-error checks, builds both distribution formats and executes the release verifier on Python 3.10 and 3.12;
+- v0.29 runtime behavior remains unchanged.
+
+## Scope
+
+This is an engineering milestone, not evidence of broader model equivalence or large-scale Teacher compilation. It establishes the stable measurement surface required for the v0.31 benchmark and v0.32 ablation milestones.
+
+See `RELEASE_V0_30.md` for the exact changes and verification commands.
+
+---
+
+## Previous milestone: v0.29
+
+v0.29 adds cross-source exception consensus and a persisted lifecycle for automatically induced subtype overrides. Candidate, contested and quarantined exceptions remain auditable in the compiled BASE, while the default runtime admits only stable exceptions.
+
+The lifecycle is:
+
+```text
+candidate → stable → contested → quarantined
+                 ↘ recovery ↗
+```
+
+Source policies can remove conflicting evidence and require repeated clean rebuilds before an exception becomes stable again.
+
+---
+
+## Previous milestone: v0.28 — Automatic Exception / Override Induction
 
 v0.28 learns **specific subtype overrides** from systematic residual behaviour against a broader hierarchical rule.
 

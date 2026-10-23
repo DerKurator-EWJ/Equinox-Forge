@@ -2,6 +2,7 @@ from __future__ import annotations
 import argparse, json
 from dataclasses import asdict
 from pathlib import Path
+from . import __version__
 from .io import load_document, save_document
 from .validate import validate_document
 from .database import CanonicalDB
@@ -38,6 +39,7 @@ from .specificity_resolution import load_specificity_cases, benchmark_specificit
 from .exception_induction import ExceptionInductionPolicy, induce_exception_overrides
 from .exception_benchmark import load_exception_cases, benchmark_exception_overrides
 from .exception_consensus import ExceptionConsensusPolicy, track_exception_run, list_exception_states
+from .selftest import run_self_test
 
 
 def ingest(db_path: str, doc_path: str):
@@ -1230,7 +1232,9 @@ def _list_artifacts(args) -> int:
 
 def main():
     p=argparse.ArgumentParser(prog="eqforge")
+    p.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     sub=p.add_subparsers(dest="cmd",required=True)
+    sub.add_parser("self-test", help="run an installed-package smoke test")
     v=sub.add_parser("validate"); v.add_argument("document")
     i=sub.add_parser("ingest"); i.add_argument("db"); i.add_argument("document")
     s=sub.add_parser("stats"); s.add_argument("db")
@@ -1240,7 +1244,7 @@ def main():
     hi=sub.add_parser("inspect-hf"); hi.add_argument("model_dir")
     hp=sub.add_parser("plan-hf"); hp.add_argument("model_dir"); hp.add_argument("adapter"); hp.add_argument("--output")
     ha=sub.add_parser("auto-adapter"); ha.add_argument("model_dir"); ha.add_argument("output"); ha.add_argument("--adapter-id",default="generated-adapter")
-    hd=sub.add_parser("detect-adapter"); hd.add_argument("model_dir"); hd.add_argument("--adapters",default="adapters")
+    hd=sub.add_parser("detect-adapter"); hd.add_argument("model_dir"); hd.add_argument("--adapters",help="adapter directory; defaults to packaged built-ins")
 
     tx=sub.add_parser("extract-text", help="extract bounded static text evidence from a local HF Safetensors teacher")
     tx.add_argument("model_dir")
@@ -1870,6 +1874,9 @@ def main():
     rb.add_argument("--quarantine-after-misses",type=int,default=2)
 
     a=p.parse_args()
+    if a.cmd=="self-test":
+        print(json.dumps(run_self_test(), ensure_ascii=False, indent=2, sort_keys=True))
+        raise SystemExit(0)
     if a.cmd=="validate":
         doc=load_document(a.document); issues=validate_document(doc)
         for x in issues: print(f"{x.severity.upper()}: {x.message}")
