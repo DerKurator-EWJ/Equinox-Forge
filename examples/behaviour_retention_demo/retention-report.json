@@ -1,0 +1,249 @@
+{
+  "average_recall_nodes": 5.666666666666667,
+  "average_relation_checks": 19.666666666666668,
+  "backend_manifest": {
+    "backend_id": "v017-scripted-demo-teacher",
+    "fixture": "deterministic"
+  },
+  "bytes_per_compiled_prompt": 664.6666666666666,
+  "bytes_per_retained_top1": 664.6666666666666,
+  "cases": 3,
+  "cases_detail": [
+    {
+      "conditional_js_divergence": 0.11491139670583253,
+      "conditional_total_variation": 0.1294689664984541,
+      "ndcg_at_k": 0.9429344878684272,
+      "overlap_count": 2,
+      "prompt": "Der Hund ist ein",
+      "recall_nodes": 6,
+      "relation_checks": 18,
+      "resolved_context": true,
+      "runtime_candidates": [
+        {
+          "score": 0.6649999803304674,
+          "surface": "Tier"
+        },
+        {
+          "score": 0.1900000004470348,
+          "surface": "Haustier"
+        },
+        {
+          "score": 0.1271591242671819,
+          "surface": "bellen"
+        }
+      ],
+      "runtime_precision_against_teacher_topk": 0.6666666666666666,
+      "runtime_top1": "Tier",
+      "teacher_candidates": [
+        {
+          "probability": 0.7,
+          "surface": "Tier"
+        },
+        {
+          "probability": 0.2,
+          "surface": "Haustier"
+        },
+        {
+          "probability": 0.1,
+          "surface": "Tierchen"
+        }
+      ],
+      "teacher_probability_mass_captured_by_probe": 1.0,
+      "teacher_probability_mass_retained_in_runtime_topk": 0.8999999999999999,
+      "teacher_top1": "Tier",
+      "teacher_top1_runtime_rank": 1,
+      "teacher_topk_recall": 0.6666666666666666,
+      "top1_match": true
+    },
+    {
+      "conditional_js_divergence": 0.13731585170761362,
+      "conditional_total_variation": 0.21317239593250323,
+      "ndcg_at_k": 0.9514598222129743,
+      "overlap_count": 2,
+      "prompt": "Der Hund kann",
+      "recall_nodes": 6,
+      "relation_checks": 24,
+      "resolved_context": true,
+      "runtime_candidates": [
+        {
+          "score": 0.7600000017881392,
+          "surface": "bellen"
+        },
+        {
+          "score": 0.24835766088352196,
+          "surface": "miauen"
+        },
+        {
+          "score": 0.15669778363555908,
+          "surface": "laufen"
+        }
+      ],
+      "runtime_precision_against_teacher_topk": 0.6666666666666666,
+      "runtime_top1": "bellen",
+      "teacher_candidates": [
+        {
+          "probability": 0.8,
+          "surface": "bellen"
+        },
+        {
+          "probability": 0.15,
+          "surface": "laufen"
+        },
+        {
+          "probability": 0.05,
+          "surface": "schlafen"
+        }
+      ],
+      "teacher_probability_mass_captured_by_probe": 1.0,
+      "teacher_probability_mass_retained_in_runtime_topk": 0.9500000000000001,
+      "teacher_top1": "bellen",
+      "teacher_top1_runtime_rank": 1,
+      "teacher_topk_recall": 0.6666666666666666,
+      "top1_match": true
+    },
+    {
+      "conditional_js_divergence": 0.1436590340768796,
+      "conditional_total_variation": 0.22434703259199743,
+      "ndcg_at_k": 0.9432015660322701,
+      "overlap_count": 2,
+      "prompt": "Die Katze kann",
+      "recall_nodes": 5,
+      "relation_checks": 17,
+      "resolved_context": true,
+      "runtime_candidates": [
+        {
+          "score": 0.7124999910593033,
+          "surface": "miauen"
+        },
+        {
+          "score": 0.2649148422232954,
+          "surface": "bellen"
+        },
+        {
+          "score": 0.2034113143271875,
+          "surface": "schlafen"
+        }
+      ],
+      "runtime_precision_against_teacher_topk": 0.6666666666666666,
+      "runtime_top1": "miauen",
+      "teacher_candidates": [
+        {
+          "probability": 0.75,
+          "surface": "miauen"
+        },
+        {
+          "probability": 0.2,
+          "surface": "schlafen"
+        },
+        {
+          "probability": 0.05,
+          "surface": "laufen"
+        }
+      ],
+      "teacher_probability_mass_captured_by_probe": 1.0,
+      "teacher_probability_mass_retained_in_runtime_topk": 0.95,
+      "teacher_top1": "miauen",
+      "teacher_top1_runtime_rank": 1,
+      "teacher_topk_recall": 0.6666666666666666,
+      "top1_match": true
+    }
+  ],
+  "compiled_prediction_evidence": 9,
+  "direct_replay": {
+    "average_recall_nodes": 4.333333333333333,
+    "average_relation_checks": 3.0,
+    "cases": 3,
+    "mean_conditional_js_divergence": 5.747417498379446e-17,
+    "mean_conditional_total_variation": 4.2219956766786915e-09,
+    "mean_ndcg_at_k": 1.0,
+    "mean_runtime_precision_against_teacher_topk": 1.0,
+    "mean_teacher_probability_mass_captured_by_probe": 1.0,
+    "mean_teacher_probability_mass_retained_in_runtime_topk": 1.0,
+    "mean_teacher_topk_recall": 1.0,
+    "no_runtime_predictions": 0,
+    "top1_retention": 1.0,
+    "unresolved_contexts": 0
+  },
+  "evaluation_scope": "compiled_probe_replay",
+  "format": "equinox-forge-behaviour-retention-v1",
+  "generalization_claim": false,
+  "mean_conditional_js_divergence": 0.13196209416344193,
+  "mean_conditional_total_variation": 0.18899613167431825,
+  "mean_ndcg_at_k": 0.9458652920378906,
+  "mean_runtime_precision_against_teacher_topk": 0.6666666666666666,
+  "mean_teacher_probability_mass_captured_by_probe": 1.0,
+  "mean_teacher_probability_mass_retained_in_runtime_topk": 0.9333333333333332,
+  "mean_teacher_topk_recall": 0.6666666666666666,
+  "no_runtime_predictions": 0,
+  "notes": [
+    "This is compiled-probe replay retention, not held-out language generalization.",
+    "direct_replay disables associative recall depth to isolate compiler/serialization retention; top-level metrics use the configured full runtime policy.",
+    "The retention pack uses relation min_score=0 and min_confidence=0 so accepted teacher top-k evidence is not silently pruned by production relation thresholds.",
+    "Teacher probability mass is measured on accepted top-k candidates after probe filtering.",
+    "Equinox runtime scores are ranking scores, not calibrated probabilities; JS/TV therefore compare distributions only after conditional top-k renormalization.",
+    "Host wall-clock timings are diagnostics only and are not mobile energy or latency claims."
+  ],
+  "pack_bytes": 1994,
+  "pack_manifest": {
+    "binary_major": 1,
+    "binary_minor": 0,
+    "bytes_per_node": 52.473684210526315,
+    "bytes_per_relation": 13.0,
+    "compile_ms": 1.8228859998998814,
+    "compression_run_id": 1,
+    "file_bytes": 1994,
+    "forge_version": "0.17",
+    "format": "equinox-runtime-base-v1",
+    "full_file_sha256": "51f7196abb83463f9ce4f7c49ac217261f402a9bb712980139ba9396fec60fa8",
+    "header_bytes": 112,
+    "index_bytes": 152,
+    "metadata_included": false,
+    "node_count": 38,
+    "node_section_bytes": 347,
+    "pack_id": "equinox-behaviour-retention",
+    "pack_version": 17,
+    "payload_sha256": "bcca7b5e81b8784cf298f3b0b91c32005d9cc8c10eb8f1c19edccea8afc15ab5",
+    "relation_count": 9,
+    "relation_section_bytes": 117,
+    "roundtrip_valid": true,
+    "string_count": 82,
+    "string_table_bytes": 1266,
+    "verify_ms": 0.22898999941389775
+  },
+  "pack_nodes": 38,
+  "pack_relations": 9,
+  "pack_to_teacher_storage_ratio": null,
+  "probe_report": {
+    "backend_id": "v017-scripted-demo-teacher",
+    "candidate_records": 9,
+    "context_nodes": 3,
+    "format": "equinox-forge-teacher-behaviour-v1",
+    "min_probability": 0.0,
+    "prediction_evidence": 9,
+    "prompts": 3,
+    "q_nodes": 21,
+    "skipped_invalid_surface": 0,
+    "skipped_low_probability": 0,
+    "skipped_special": 0,
+    "source_id": "demo-teacher",
+    "source_version": "1",
+    "surface_nodes": 14,
+    "temperature": 1.0,
+    "top_k": 3,
+    "unique_contexts": 3
+  },
+  "relation_compile_policy": {
+    "min_confidence": 0.0,
+    "min_score": 0.0,
+    "min_sources": 1
+  },
+  "runtime_eval_elapsed_ms": 0.6139309998616227,
+  "runtime_scores_are_calibrated_probabilities": false,
+  "runtime_top_k": 3,
+  "teacher_model_bytes": null,
+  "teacher_probe_elapsed_ms": 0.9333950001746416,
+  "teacher_top_k": 3,
+  "top1_retention": 1.0,
+  "unresolved_contexts": 0,
+  "version": "0.17"
+}

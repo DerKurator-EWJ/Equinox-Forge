@@ -10,12 +10,12 @@ import sqlite3
 import struct
 import time
 
-from .compiler import aggregate_relations
+from .compiler import aggregate_relations, CompilePolicy
 from .ir import IRNode, CompiledRelation
 from .runtime_compression import ensure_runtime_compression_schema
 
 PACK_FORMAT = "equinox-runtime-base-v1"
-PACK_VERSION = "0.16"
+PACK_VERSION = "0.17"
 MAGIC = b"EQXBASE1"
 BINARY_MAJOR = 1
 BINARY_MINOR = 0
@@ -188,7 +188,7 @@ def _node_any(db: sqlite3.Connection, node_id: str) -> RuntimeNode:
     return n
 
 
-def build_runtime_view(db: sqlite3.Connection, compression_run_id: int) -> tuple[list[RuntimeNode], list[CompiledRelation]]:
+def build_runtime_view(db: sqlite3.Connection, compression_run_id: int, relation_policy: CompilePolicy | None = None) -> tuple[list[RuntimeNode], list[CompiledRelation]]:
     ensure_runtime_compression_schema(db)
     exists = db.execute(
         "SELECT 1 FROM runtime_compression_runs WHERE compression_run_id=?", (compression_run_id,)
@@ -245,7 +245,7 @@ def build_runtime_view(db: sqlite3.Connection, compression_run_id: int) -> tuple
     runtime_nodes.sort(key=lambda n: (n.level, n.node_id))
 
     node_ids = set(nodes)
-    relations = [r for r in aggregate_relations(db) if r.from_id in node_ids and r.to_id in node_ids]
+    relations = [r for r in aggregate_relations(db, relation_policy or CompilePolicy()) if r.from_id in node_ids and r.to_id in node_ids]
     relations.sort(key=lambda r: (r.from_id, r.to_id, r.relation_type))
     return runtime_nodes, relations
 
@@ -401,11 +401,12 @@ def compile_base_pack(
     include_metadata: bool = True,
     persist: bool = True,
     verify_roundtrip: bool = True,
+    relation_policy: CompilePolicy | None = None,
 ) -> RuntimePackManifest:
     t0 = time.perf_counter()
     ensure_runtime_pack_schema(db)
     run_id = int(compression_run_id or _latest_compression_run(db))
-    nodes, relations = build_runtime_view(db, run_id)
+    nodes, relations = build_runtime_view(db, run_id, relation_policy=relation_policy)
     strings = _collect_strings(nodes, relations, pack_id, include_metadata)
     sid = {s: i for i, s in enumerate(strings)}
     node_index = {n.node_id: i for i, n in enumerate(nodes)}

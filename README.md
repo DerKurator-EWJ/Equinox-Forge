@@ -1,6 +1,182 @@
-# Equinox Forge v0.16 — Runtime Recall + Prediction Engine
+# Equinox Forge v0.17 — Teacher → Equinox Behaviour Retention Benchmark
 
-**Current milestone:** v0.16 executes bounded recall and ranked prediction directly on the compiled `.eqbase` runtime, preserving a hard distinction between recall links and directed prediction channels. It adds contribution traces plus a context→expected benchmark harness for measuring how much compiled behaviour survives into the runtime. Historical sections below document the earlier Forge milestones.
+**Current milestone:** v0.17 closes the first controlled Teacher → Forge → `.eqbase` → Runtime comparison loop. The same controlled next-token probes are captured from a causal teacher, compiled into Equinox prediction relations, loaded from the binary runtime pack, and replayed with explicit retention metrics.
+
+```text
+causal teacher
+    ↓ controlled prompts
+next-token distributions
+    ↓
+canonical Equinox evidence
+    ↓
+.eqbase compilation
+    ↓
+Equinox runtime prediction
+    ↓
+Teacher ↔ Runtime retention report
+```
+
+## Two retention layers
+
+v0.17 deliberately separates two questions that must not be conflated.
+
+### 1. Direct Replay — compiler/serialization retention
+
+Associative recall depth is disabled and accepted teacher top-k evidence is compiled with relation thresholds `min_score=0` and `min_confidence=0`. This isolates loss caused by canonicalization, relation aggregation, float32 pack representation, loading, and direct runtime ranking.
+
+### 2. Full Runtime Replay — operational Equinox behaviour
+
+The normal v0.16 recall/prediction policy is then restored. Related contexts may enter through hierarchical/associative recall and contribute additional prediction candidates. Any divergence here is therefore runtime cognition behaviour, not necessarily compiler information loss.
+
+This split matters. A single aggregate score would make it impossible to tell whether a disagreement came from the compiler or from the runtime routing policy.
+
+## Metrics
+
+For every prompt v0.17 records separately:
+
+- Teacher Top-1 and Equinox Top-1
+- Teacher Top-1 runtime rank
+- top-k set overlap / recall
+- runtime precision against Teacher top-k
+- captured Teacher probability mass
+- Teacher probability mass retained in the runtime top-k
+- NDCG using Teacher probabilities as relevance weights
+- conditional Jensen–Shannon divergence
+- conditional total-variation distance
+- resolved context status
+- recall-node count
+- relation-check count
+
+The divergence metrics are explicitly labelled **conditional**: Teacher probabilities and Equinox ranking scores are each renormalized on the compared top-k support. Equinox runtime scores are not claimed to be calibrated probabilities.
+
+## Scope limitation
+
+The current benchmark is intentionally:
+
+```text
+compiled_probe_replay
+```
+
+The same prompts used to extract teacher behaviour are replayed after compilation. This tests **behaviour preservation of captured probes**, not held-out language generalization. A good v0.17 result therefore does not imply that Equinox has reproduced the teacher's general language ability.
+
+## Relation-threshold control
+
+The normal relation compiler historically uses a `0.05` minimum score. That is useful production pruning, but it would silently delete low-probability Teacher top-k candidates before a retention benchmark. v0.17 therefore compiles its benchmark pack with:
+
+```text
+min_score      = 0
+min_confidence = 0
+min_sources    = 1
+```
+
+Pruning/size trade-offs are deliberately left for a separate Pareto benchmark rather than mixed into the base retention measurement.
+
+## Deterministic demo result
+
+The included scripted demo compiles three prompts and nine prediction relations into:
+
+```text
+38 runtime nodes
+9 prediction relations
+1,994 byte .eqbase
+```
+
+Direct Replay:
+
+```text
+Top-1 retention                    100.0%
+Teacher top-k recall               100.0%
+Teacher probability mass retained  100.0%
+NDCG@3                              1.000
+conditional JS divergence          ~0
+```
+
+With the configured normal recall policy:
+
+```text
+Top-1 retention                    100.0%
+Teacher top-k recall                66.7%
+Teacher probability mass retained   93.3%
+NDCG@3                              0.946
+conditional JS divergence           0.132
+average recall nodes                 5.67
+average relation checks             19.67
+```
+
+The difference is useful: the compiler preserved the captured distribution, while runtime recall deliberately exposed predictions from related contexts. v0.17 can now measure those effects separately.
+
+A second integration test trains and executes a real tiny PyTorch GRU causal teacher locally, then compiles and replays its computed next-token distributions through the same path. This requires PyTorch; it is skipped cleanly when PyTorch is unavailable.
+
+## CLI
+
+With the optional local Hugging Face runtime installed:
+
+```bash
+python -m equinox_forge.cli benchmark-retention \
+  /path/to/local/model \
+  probes.txt \
+  retention-out \
+  --source-id my-teacher \
+  --source-version 1 \
+  --teacher-top-k 8 \
+  --runtime-top-k 8 \
+  --device cpu
+```
+
+Forge does not download the model automatically. The backend remains `local_files_only=True`.
+
+The output directory contains:
+
+```text
+retention.sqlite
+teacher-behaviour.eqir.json
+teacher-probe-report.json
+retention.eqbase
+retention-report.json
+```
+
+## Regression suite
+
+```bash
+PYTHONPATH=. python tests/run_all.py
+```
+
+Expected final marker:
+
+```text
+FORGE_V17_ALL_TESTS_OK
+```
+
+## What v0.17 proves — and does not prove
+
+v0.17 proves that Forge can quantitatively compare captured Teacher behaviour with behaviour reconstructed from an independently loaded `.eqbase`, and can distinguish pure compilation retention from changes introduced by Equinox recall/routing.
+
+It does **not** yet prove:
+
+- held-out generalization;
+- equivalence to a large Transformer;
+- useful capability per byte at scale;
+- lower energy consumption;
+- superiority over quantization/distillation/RAG;
+- that the current runtime recall policy is optimally calibrated.
+
+## Recommended next step — v0.18
+
+**Behaviour / Size Pareto Sweep.** Recompile the same Teacher evidence across controlled pruning, top-k, confidence, macro-compression and runtime-budget settings, then plot/record the Pareto frontier:
+
+```text
+pack bytes / relation count / runtime work
+                ↕
+Top-1 retention / probability-mass retention / NDCG / JS divergence
+```
+
+That will answer a much more important question than whether one fixed configuration works: **how much Teacher behaviour can Equinox retain per byte and per unit of runtime work?**
+
+---
+
+# Historical v0.16 — Runtime Recall + Prediction Engine
+
+**v0.16 milestone:** bounded recall and ranked prediction directly on the compiled `.eqbase` runtime, with a hard distinction between recall links and directed prediction channels.
 
 ## Previous milestone: v0.13 runtime compression plan
 

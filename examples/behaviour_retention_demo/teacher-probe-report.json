@@ -1,0 +1,19 @@
+{
+  "backend_id": "v017-scripted-demo-teacher",
+  "candidate_records": 9,
+  "context_nodes": 3,
+  "format": "equinox-forge-teacher-behaviour-v1",
+  "min_probability": 0.0,
+  "prediction_evidence": 9,
+  "prompts": 3,
+  "q_nodes": 21,
+  "skipped_invalid_surface": 0,
+  "skipped_low_probability": 0,
+  "skipped_special": 0,
+  "source_id": "demo-teacher",
+  "source_version": "1",
+  "surface_nodes": 14,
+  "temperature": 1.0,
+  "top_k": 3,
+  "unique_contexts": 3
+}

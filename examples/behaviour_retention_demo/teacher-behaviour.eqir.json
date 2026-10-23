@@ -1,0 +1,681 @@
+{
+  "evidence": [
+    {
+      "confidence": 0.95,
+      "from_id": "m_381b7b3e73e8669f2fd4f64f",
+      "metadata": {
+        "backend_id": "v017-scripted-demo-teacher",
+        "canonical_surface": "Tier",
+        "decoded_surface": " Tier",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Der Hund ist ein",
+        "rank": 1,
+        "raw_token": "Tier",
+        "teacher_logit": 4.199999999999999,
+        "teacher_probability": 0.7,
+        "teacher_token_id": 1,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.7,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "demo-teacher",
+        "source_version": "1"
+      },
+      "to_id": "m_57daeeb6b1f4d6a5ae840cbc"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_381b7b3e73e8669f2fd4f64f",
+      "metadata": {
+        "backend_id": "v017-scripted-demo-teacher",
+        "canonical_surface": "Haustier",
+        "decoded_surface": " Haustier",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Der Hund ist ein",
+        "rank": 2,
+        "raw_token": "Haustier",
+        "teacher_logit": 1.2000000000000002,
+        "teacher_probability": 0.2,
+        "teacher_token_id": 2,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.2,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "demo-teacher",
+        "source_version": "1"
+      },
+      "to_id": "m_4a654e53d48d38c35fb591e8"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_381b7b3e73e8669f2fd4f64f",
+      "metadata": {
+        "backend_id": "v017-scripted-demo-teacher",
+        "canonical_surface": "Tierchen",
+        "decoded_surface": " Tierchen",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Der Hund ist ein",
+        "rank": 3,
+        "raw_token": "Tierchen",
+        "teacher_logit": 0.6000000000000001,
+        "teacher_probability": 0.1,
+        "teacher_token_id": 3,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.1,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "demo-teacher",
+        "source_version": "1"
+      },
+      "to_id": "m_b9b6199048ba1093885872a9"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_c1bb0e5f32b1bdff3f8c3b43",
+      "metadata": {
+        "backend_id": "v017-scripted-demo-teacher",
+        "canonical_surface": "bellen",
+        "decoded_surface": " bellen",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Der Hund kann",
+        "rank": 1,
+        "raw_token": "bellen",
+        "teacher_logit": 4.800000000000001,
+        "teacher_probability": 0.8,
+        "teacher_token_id": 4,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.8,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "demo-teacher",
+        "source_version": "1"
+      },
+      "to_id": "m_98d566404ba2ee8c8f5f6ec2"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_c1bb0e5f32b1bdff3f8c3b43",
+      "metadata": {
+        "backend_id": "v017-scripted-demo-teacher",
+        "canonical_surface": "laufen",
+        "decoded_surface": " laufen",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Der Hund kann",
+        "rank": 2,
+        "raw_token": "laufen",
+        "teacher_logit": 0.8999999999999999,
+        "teacher_probability": 0.15,
+        "teacher_token_id": 5,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.15,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "demo-teacher",
+        "source_version": "1"
+      },
+      "to_id": "m_2ae150ec010ac9543a5147fa"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_c1bb0e5f32b1bdff3f8c3b43",
+      "metadata": {
+        "backend_id": "v017-scripted-demo-teacher",
+        "canonical_surface": "schlafen",
+        "decoded_surface": " schlafen",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Der Hund kann",
+        "rank": 3,
+        "raw_token": "schlafen",
+        "teacher_logit": 0.30000000000000004,
+        "teacher_probability": 0.05,
+        "teacher_token_id": 6,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.05,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "demo-teacher",
+        "source_version": "1"
+      },
+      "to_id": "m_aebb389c3e02ec2b23ed60db"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_fa4a959ecd11c2ea711ef3dc",
+      "metadata": {
+        "backend_id": "v017-scripted-demo-teacher",
+        "canonical_surface": "miauen",
+        "decoded_surface": " miauen",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Die Katze kann",
+        "rank": 1,
+        "raw_token": "miauen",
+        "teacher_logit": 4.5,
+        "teacher_probability": 0.75,
+        "teacher_token_id": 7,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.75,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "demo-teacher",
+        "source_version": "1"
+      },
+      "to_id": "m_887e02db0ce6351adc922c44"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_fa4a959ecd11c2ea711ef3dc",
+      "metadata": {
+        "backend_id": "v017-scripted-demo-teacher",
+        "canonical_surface": "schlafen",
+        "decoded_surface": " schlafen",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Die Katze kann",
+        "rank": 2,
+        "raw_token": "schlafen",
+        "teacher_logit": 1.2000000000000002,
+        "teacher_probability": 0.2,
+        "teacher_token_id": 6,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.2,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "demo-teacher",
+        "source_version": "1"
+      },
+      "to_id": "m_aebb389c3e02ec2b23ed60db"
+    },
+    {
+      "confidence": 0.95,
+      "from_id": "m_fa4a959ecd11c2ea711ef3dc",
+      "metadata": {
+        "backend_id": "v017-scripted-demo-teacher",
+        "canonical_surface": "laufen",
+        "decoded_surface": " laufen",
+        "evidence_kind": "teacher_behaviour",
+        "prompt": "Die Katze kann",
+        "rank": 3,
+        "raw_token": "laufen",
+        "teacher_logit": 0.30000000000000004,
+        "teacher_probability": 0.05,
+        "teacher_token_id": 5,
+        "temperature": 1.0,
+        "top_k": 3
+      },
+      "relation_type": "prediction",
+      "score": 0.05,
+      "source": {
+        "extraction": "teacher_next_token_probe",
+        "source_id": "demo-teacher",
+        "source_version": "1"
+      },
+      "to_id": "m_2ae150ec010ac9543a5147fa"
+    }
+  ],
+  "format": "equinox-forge-ir-v1",
+  "nodes": [
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_0e89cc9028126dcb350ad7f0",
+      "surface": "a"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_0fc6b4b51d317d48bdb77696",
+      "surface": "k"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_1519008e6800cb8f93869359",
+      "surface": "l"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_15a18ac39698288fb1a91018",
+      "surface": "K"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_1a371ca4988365289108f6c2",
+      "surface": "i"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_292e599d0ba9bcdd44beb5e5",
+      "surface": "c"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_3510ecc33d8e1a348c0c6786",
+      "surface": "h"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_378672f12cb4344e8e3fe7dd",
+      "surface": "f"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_38bc09e968b2bef6ab7543b9",
+      "surface": "s"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_4e304d1d5053c0418f3cf06b",
+      "surface": "u"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_63226e2b8308e87a2c8b9efc",
+      "surface": "H"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_8bd232f90e9ab3dc726cc415",
+      "surface": "D"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_99799369ad132cd7e47da92b",
+      "surface": "e"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_9eb1cf62c9af901d123c2a8c",
+      "surface": "m"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_ad652928813fe3dcb86d10f9",
+      "surface": "z"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_ae9d2c37a77e479fc0c3a832",
+      "surface": "b"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_b531642b306274deb5568859",
+      "surface": "r"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_c6f6e6994e2cd21c9c0b4935",
+      "surface": "d"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f33bd22ce5519138db3a4bce",
+      "surface": "T"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f534dbef81ff2a5b9c86842b",
+      "surface": "t"
+    },
+    {
+      "kind": "quant",
+      "level": 0,
+      "members": [],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "q_f9c1ab02b020bf72a42dbb99",
+      "surface": "n"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_8bd232f90e9ab3dc726cc415",
+        "q_99799369ad132cd7e47da92b",
+        "q_b531642b306274deb5568859"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_05b030545bfd9b4e72b7628b",
+      "surface": "Der"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_1519008e6800cb8f93869359",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_378672f12cb4344e8e3fe7dd",
+        "q_99799369ad132cd7e47da92b",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_2ae150ec010ac9543a5147fa",
+      "surface": "laufen"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_63226e2b8308e87a2c8b9efc",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_c6f6e6994e2cd21c9c0b4935"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_42178d06f9c5e1b98384186a",
+      "surface": "Hund"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_0fc6b4b51d317d48bdb77696",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_f9c1ab02b020bf72a42dbb99",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_43991d5d200b6bec3e174b48",
+      "surface": "kann"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_63226e2b8308e87a2c8b9efc",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_38bc09e968b2bef6ab7543b9",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_1a371ca4988365289108f6c2",
+        "q_99799369ad132cd7e47da92b",
+        "q_b531642b306274deb5568859"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_4a654e53d48d38c35fb591e8",
+      "surface": "Haustier"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_f33bd22ce5519138db3a4bce",
+        "q_1a371ca4988365289108f6c2",
+        "q_99799369ad132cd7e47da92b",
+        "q_b531642b306274deb5568859"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_57daeeb6b1f4d6a5ae840cbc",
+      "surface": "Tier"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_99799369ad132cd7e47da92b",
+        "q_1a371ca4988365289108f6c2",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_588b6b130b77b7313d77b23e",
+      "surface": "ein"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_8bd232f90e9ab3dc726cc415",
+        "q_1a371ca4988365289108f6c2",
+        "q_99799369ad132cd7e47da92b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_81eebfe6abe6942f9f9b8989",
+      "surface": "Die"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_9eb1cf62c9af901d123c2a8c",
+        "q_1a371ca4988365289108f6c2",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_4e304d1d5053c0418f3cf06b",
+        "q_99799369ad132cd7e47da92b",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_887e02db0ce6351adc922c44",
+      "surface": "miauen"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_15a18ac39698288fb1a91018",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_f534dbef81ff2a5b9c86842b",
+        "q_ad652928813fe3dcb86d10f9",
+        "q_99799369ad132cd7e47da92b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_8f8d6efd0bd55cf0022982ac",
+      "surface": "Katze"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_ae9d2c37a77e479fc0c3a832",
+        "q_99799369ad132cd7e47da92b",
+        "q_1519008e6800cb8f93869359",
+        "q_1519008e6800cb8f93869359",
+        "q_99799369ad132cd7e47da92b",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_98d566404ba2ee8c8f5f6ec2",
+      "surface": "bellen"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_1a371ca4988365289108f6c2",
+        "q_38bc09e968b2bef6ab7543b9",
+        "q_f534dbef81ff2a5b9c86842b"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_adfbc192594d8f141843eac4",
+      "surface": "ist"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_38bc09e968b2bef6ab7543b9",
+        "q_292e599d0ba9bcdd44beb5e5",
+        "q_3510ecc33d8e1a348c0c6786",
+        "q_1519008e6800cb8f93869359",
+        "q_0e89cc9028126dcb350ad7f0",
+        "q_378672f12cb4344e8e3fe7dd",
+        "q_99799369ad132cd7e47da92b",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_aebb389c3e02ec2b23ed60db",
+      "surface": "schlafen"
+    },
+    {
+      "kind": "surface",
+      "level": 1,
+      "members": [
+        "q_f33bd22ce5519138db3a4bce",
+        "q_1a371ca4988365289108f6c2",
+        "q_99799369ad132cd7e47da92b",
+        "q_b531642b306274deb5568859",
+        "q_292e599d0ba9bcdd44beb5e5",
+        "q_3510ecc33d8e1a348c0c6786",
+        "q_99799369ad132cd7e47da92b",
+        "q_f9c1ab02b020bf72a42dbb99"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_b9b6199048ba1093885872a9",
+      "surface": "Tierchen"
+    },
+    {
+      "kind": "template",
+      "level": 2,
+      "members": [
+        "m_05b030545bfd9b4e72b7628b",
+        "m_42178d06f9c5e1b98384186a",
+        "m_adfbc192594d8f141843eac4",
+        "m_588b6b130b77b7313d77b23e"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_381b7b3e73e8669f2fd4f64f",
+      "surface": "Der Hund ist ein"
+    },
+    {
+      "kind": "template",
+      "level": 2,
+      "members": [
+        "m_05b030545bfd9b4e72b7628b",
+        "m_42178d06f9c5e1b98384186a",
+        "m_43991d5d200b6bec3e174b48"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_c1bb0e5f32b1bdff3f8c3b43",
+      "surface": "Der Hund kann"
+    },
+    {
+      "kind": "template",
+      "level": 2,
+      "members": [
+        "m_81eebfe6abe6942f9f9b8989",
+        "m_8f8d6efd0bd55cf0022982ac",
+        "m_43991d5d200b6bec3e174b48"
+      ],
+      "metadata": {},
+      "modality": "text",
+      "node_id": "m_fa4a959ecd11c2ea711ef3dc",
+      "surface": "Die Katze kann"
+    }
+  ]
+}
