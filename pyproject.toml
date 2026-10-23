@@ -1,6 +1,6 @@
 [project]
 name = "equinox-forge"
-version = "0.50.0"
+version = "0.51.0"
 description = "Model-independent canonical knowledge compiler for Equinox"
 requires-python = ">=3.10"
 dependencies = [
@@ -30,6 +30,7 @@ eqforge-top-down-teacher = "equinox_forge.top_down_teacher_structure:main"
 eqforge-numeric-runtime = "equinox_forge.numeric_runtime:main"
 eqforge-macro-numeric-runtime = "equinox_forge.macro_numeric_runtime:main"
 eqforge-teacher-numeric-compiler = "equinox_forge.teacher_numeric_compiler:main"
+eqforge-relation-facets = "equinox_forge.relation_facet_compiler:main"
 
 [project.optional-dependencies]
 domain-trial = [

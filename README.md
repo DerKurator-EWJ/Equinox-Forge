@@ -1,4 +1,32 @@
-# Equinox Forge v0.49 — Macro-Aware Numeric Routing
+# Equinox Forge v0.51 — Canonical Relation IDs / Multi-valued Structural Closure
+
+v0.51 makes relation identities first-class numeric objects. Coarse `PROPERTY`/`ACTION` teacher facts are deterministically faceted by their object IDs, so one concept can address multiple inherited values without scalar collisions. The same faceted graph then feeds Structural Closure, Recursive Macro Collapse, and the DB-free numeric runtime. In the frozen teacher fixture, safe macro shortcuts recover from 0 to 24 and hierarchy work drops 21.43%.
+
+```text
+subject ID → facet relation ID → object ID
+                       ↓
+                relation family ID
+```
+
+Run:
+
+```bash
+eqforge-relation-facets --out out/v0_51_relation_facets
+```
+
+See `RELEASE_V0_51.md` and `benchmarks/v0_51/`.
+
+---
+
+## Previous milestone — v0.50 Teacher → Numeric Equinox Compiler Trial
+
+v0.50 connected the full teacher → top-down hierarchy → numeric IDs → Structural Closure → Recursive Macro Collapse → DB-free runtime path. It preserved all 16 structural teacher facts and 12/12 scalar queries, but exposed the coarse `PROPERTY`/`ACTION` collision that v0.51 now resolves.
+
+See `RELEASE_V0_50.md` and `benchmarks/v0_50/`.
+
+---
+
+## Previous milestone — v0.49 Macro-Aware Numeric Routing
 
 v0.49 connects the recursive macro IDs to the DB-independent numeric runtime. Local concept evidence remains authoritative; inherited answers may use compile-time validated macro shortcuts, with automatic fallback to the frozen v0.48 specific-to-general path. The reference benchmark preserves 12/12 answers while reducing hierarchy-node touches from 38 to 23 (39.47%).
 
