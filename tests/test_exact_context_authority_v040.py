@@ -23,7 +23,7 @@ reference = json.loads((ROOT / "benchmarks" / "v0_40" / "reference.json").read_t
 contract = json.loads((ROOT / "benchmarks" / "v0_40" / "exact_context_authority_contract.json").read_text(encoding="utf-8"))
 project_version = re.search(r'^version\s*=\s*"([^"]+)"', pyproject, flags=re.M).group(1)
 init_version = re.search(r'__version__\s*=\s*"([^"]+)"', init_text).group(1)
-assert project_version == "0.40.0"
+assert tuple(map(int, project_version.split('.'))) >= (0, 40, 0)
 assert init_version == project_version
 assert 'eqforge-exact-authority = "equinox_forge.exact_context_authority:main"' in pyproject
 assert contract["treatment"]["same_eqbase"] is True

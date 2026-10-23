@@ -1,4 +1,35 @@
-# Equinox Forge v0.40 — Exact Context Authority / Evidence Ordering
+# Equinox Forge v0.41 — Active Probe Selection / Information-Gain Proxy
+
+v0.41 is the first acquisition-policy release. RuntimeCognition remains v0.40; the new work is entirely about deciding **which teacher prompts are worth spending a query on**. On the fixed 32-entity neural-teacher domain, all strategies receive the same 64 unique teacher-query budget.
+
+Frozen release result:
+
+```text
+Balanced fixed full accuracy:      57.03125%
+Seeded random (5-run mean):        57.34375%
+Active v0.41:                      61.71875%
+
+Fixed unqueried-fact accuracy:     14.0625%
+Random unqueried mean:             14.6875%
+Active unqueried-fact accuracy:    23.4375%
+
+Opaque relation abstention:        100%
+Outside-domain abstention:         100%
+```
+
+The selector first compiles one rotating seed relation per entity, then ranks the remaining known prompt pool using only current Equinox abstention / uncertainty plus coverage tie-breaks. It does not inspect teacher answers or benchmark labels before selection. A query cache ensures recompiling the seed does not create hidden extra teacher calls.
+
+Run:
+
+```bash
+eqforge-active-probe --out out/v0_41_active_probe_selection --random-trials 5
+```
+
+See `RELEASE_V0_41.md` and `benchmarks/v0_41/`.
+
+---
+
+## Previous milestone — v0.40 Exact Context Authority / Evidence Ordering
 
 v0.40 is the first runtime-cognition fix driven by the larger neural-teacher trial. It repairs the v0.39 scale error where many weaker recalled contexts could outvote a strong direct prediction from the live exact context purely through accumulation.
 
