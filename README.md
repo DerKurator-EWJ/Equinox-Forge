@@ -1,4 +1,8 @@
-# Equinox Forge v0.13 — Macro Promotion + Parent Rewriting / Runtime Compression Plan
+# Equinox Forge v0.14 — Runtime BASE Pack Compiler + Round-Trip Loader
+
+**Current milestone:** v0.14 turns the realized v0.13 runtime rewrite plan into a deterministic binary `.eqbase` file with integrity checking, a round-trip loader, a compact node-offset index, and persisted build provenance. The historical sections below document how the Forge architecture arrived at this point; the dedicated v0.14 specification is appended at the end.
+
+## Previous milestone: v0.13 runtime compression plan
 
 Forge v0.13 turns the **potential** compression reported by v0.12 into a concrete, auditable runtime encoding plan. Eligible repeated structures compete for actual parent positions, only a mutually non-overlapping set is promoted, promoted macros are materialized through the normal v0.11 Macro Builder, and every scanned parent receives a concrete rewritten member sequence.
 
@@ -840,3 +844,133 @@ The Macro Builder proves recursive representation, persistence, dependency track
 **Automatic Macro Discovery + Structural Compression Metrics.**
 
 Instead of manually declaring every higher macro recipe, v0.12 should scan stable relation/composition patterns, propose recurring higher structures, measure actual reuse/compression, and only promote structures that reduce repeated representation or search work.
+
+
+---
+
+# v0.14 — Runtime BASE Pack Compiler + Round-Trip Loader
+
+v0.14 converts a persisted v0.13 runtime compression run into the first actual compact Equinox runtime binary rather than another JSON/SQLite planning structure.
+
+```text
+Canonical / Derived knowledge
+        ↓
+v0.13 runtime rewrite plan
+        ↓
+v0.14 BASE pack compiler
+        ↓
+*.eqbase
+        ↓
+round-trip loader + verifier
+```
+
+## Binary layout
+
+The current `equinox-runtime-base-v1` format is deterministic and little-endian. It contains:
+
+1. a fixed 112-byte header;
+2. a deduplicated UTF-8 string table;
+3. varint encoded node records;
+4. varint node-member references;
+5. relation records with float32 score/confidence;
+6. a fixed 32-bit offset per node for direct numeric record seeking;
+7. SHA-256 over the complete payload.
+
+Node IDs remain stable canonical/derived IDs. Runtime parent member sequences are taken from the selected v0.13 compression run; the Canonical DB is not mutated.
+
+## Integrity rules
+
+The loader rejects:
+
+- wrong magic / unsupported major format;
+- inconsistent section offsets or file length;
+- payload SHA-256 mismatch;
+- malformed/truncated varints;
+- node/member/relation references outside the pack;
+- invalid node-offset index layout.
+
+`verify-base` additionally checks unique node IDs and dangling member/relation endpoints.
+
+## Compile
+
+First persist a v0.13 compression run:
+
+```bash
+python -m equinox_forge.cli compress-runtime master.sqlite
+```
+
+Then compile the latest run:
+
+```bash
+python -m equinox_forge.cli compile-base master.sqlite master.eqbase \
+  --pack-id equinox-master \
+  --pack-version 1 \
+  --report master.eqbase.report.json
+```
+
+For the smallest runtime-only form, omit compiler metadata strings:
+
+```bash
+python -m equinox_forge.cli compile-base master.sqlite master-mobile.eqbase \
+  --pack-id equinox-master \
+  --strip-metadata
+```
+
+Inspect / verify:
+
+```bash
+python -m equinox_forge.cli inspect-base master.eqbase
+python -m equinox_forge.cli verify-base master.eqbase
+```
+
+## Round-trip contract
+
+During compilation, v0.14 can immediately reload the file and compare it against the runtime view that produced it. Node identity, modality, kind, level, surface, member sequence, and optional metadata must match exactly. Relation weights intentionally use float32 in the runtime pack; the round-trip comparison therefore checks their exact float32 representation rather than pretending the original SQLite double precision was retained.
+
+The same DB + compression run + pack metadata compiles byte-for-byte deterministically.
+
+## Synthetic demo result
+
+The included v0.13 demo currently compiles to:
+
+```text
+26 runtime nodes
+0 relations
+104 B node-offset index
+1,623 B full pack with compiler metadata
+635 B full pack with --strip-metadata
+roundtrip_valid = true
+```
+
+These numbers are only a tiny deterministic format test, not a claim about large-model compression ratios.
+
+Run it with:
+
+```bash
+PYTHONPATH=. python examples/build_runtime_compression_demo.py
+PYTHONPATH=. python examples/build_runtime_base_demo.py
+```
+
+## Persistent audit
+
+Each persisted build records a `runtime_base_pack_runs` row containing compression-run ID, pack ID/version, byte size, counts, payload/full-file SHA-256 and the full manifest. This links a runtime binary back to the exact physical rewrite plan that generated it.
+
+## v0.14 regression suite
+
+```bash
+python tests/run_all.py
+```
+
+Expected final marker:
+
+```text
+FORGE_V14_ALL_TESTS_OK
+```
+
+The runner now explicitly injects the project root into subprocess `PYTHONPATH`, so a clean extracted ZIP does not depend on an unrelated editable install.
+
+## Recommended next step — v0.15
+
+**Runtime Indexes + Query/Traversal Benchmark Harness.**
+
+The pack is now real. The next question should no longer be only how many bytes it occupies, but whether the compressed hierarchy actually reduces runtime work. v0.15 should add compact adjacency / relation indexes and benchmark direct lookup, hierarchical traversal, recall candidate generation, and rewritten-vs-uncompressed node visits on the exact same knowledge fixture.

@@ -1,5 +1,5 @@
 from pathlib import Path
-import subprocess, sys
+import os, subprocess, sys
 ROOT=Path(__file__).resolve().parents[1]
 TESTS=[
     'test_forge.py',
@@ -18,7 +18,11 @@ TESTS=[
     'test_derived_macro_hierarchy.py',
     'test_macro_discovery.py',
     'test_runtime_compression.py',
+    'test_runtime_base_pack.py',
 ]
+env=os.environ.copy()
+old=env.get('PYTHONPATH','')
+env['PYTHONPATH']=str(ROOT)+(os.pathsep+old if old else '')
 for name in TESTS:
-    subprocess.run([sys.executable, str(ROOT/'tests'/name)], check=True, cwd=ROOT)
-print('FORGE_V13_ALL_TESTS_OK')
+    subprocess.run([sys.executable, str(ROOT/'tests'/name)], check=True, cwd=ROOT, env=env)
+print('FORGE_V14_ALL_TESTS_OK')

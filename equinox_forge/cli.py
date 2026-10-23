@@ -1,5 +1,6 @@
 from __future__ import annotations
 import argparse, json
+from dataclasses import asdict
 from pathlib import Path
 from .io import load_document, save_document
 from .validate import validate_document
@@ -21,6 +22,7 @@ from .artifact_store import list_artifacts
 from .macro_builder import MacroCompilePolicy, rebuild_macro
 from .macro_discovery import MacroDiscoveryPolicy, discover_and_optionally_materialize
 from .runtime_compression import MacroPromotionPolicy, compile_runtime_compression
+from .runtime_pack import compile_base_pack, load_base_pack, verify_base_pack
 
 
 def ingest(db_path: str, doc_path: str):
@@ -539,6 +541,50 @@ def _compress_runtime(args) -> int:
         print(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True))
     return 0
 
+def _compile_base(args) -> int:
+    with CanonicalDB(args.db) as c:
+        try:
+            manifest = compile_base_pack(
+                c.db, args.output,
+                pack_id=args.pack_id, pack_version=args.pack_version,
+                compression_run_id=args.compression_run_id,
+                include_metadata=not args.strip_metadata,
+                persist=not args.no_persist,
+                verify_roundtrip=not args.no_verify,
+            )
+        except Exception as exc:
+            print(f"ERROR: BASE pack compilation failed: {exc}")
+            return 3
+        payload = {"runtime_base_pack": manifest.to_dict(), "db_stats": c.stats()}
+        if args.report:
+            Path(args.report).write_text(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+        print(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True))
+    return 0
+
+
+def _inspect_base(args) -> int:
+    try:
+        loaded = load_base_pack(args.pack, verify_hash=not args.no_verify)
+    except Exception as exc:
+        print(f"ERROR: BASE pack load failed: {exc}")
+        return 3
+    payload = dict(loaded.manifest)
+    payload["sample_nodes"] = [asdict(n) for n in loaded.nodes[:args.sample_nodes]]
+    payload["sample_relations"] = [r.__dict__ for r in loaded.relations[:args.sample_relations]]
+    print(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True))
+    return 0
+
+
+def _verify_base(args) -> int:
+    try:
+        report = verify_base_pack(args.pack)
+    except Exception as exc:
+        print(f"ERROR: BASE pack verify failed: {exc}")
+        return 3
+    print(json.dumps(report,ensure_ascii=False,indent=2,sort_keys=True))
+    return 0 if report.get("valid") else 2
+
+
 def _list_artifacts(args) -> int:
     with CanonicalDB(args.db) as c:
         rows = list_artifacts(c.db, build_target_id=args.target_id, statuses=args.status or None)
@@ -743,6 +789,24 @@ def main():
     cr.add_argument("--plan-only",action="store_true",help="derive deterministic rewrite ids without materializing macro artifacts")
     cr.add_argument("--no-persist",action="store_true")
 
+    cb=sub.add_parser("compile-base", help="compile a persisted v0.13 runtime compression run into a compact binary .eqbase pack")
+    cb.add_argument("db"); cb.add_argument("output")
+    cb.add_argument("--pack-id",default="equinox-base")
+    cb.add_argument("--pack-version",type=int,default=1)
+    cb.add_argument("--compression-run-id",type=int)
+    cb.add_argument("--strip-metadata",action="store_true")
+    cb.add_argument("--no-verify",action="store_true")
+    cb.add_argument("--no-persist",action="store_true")
+    cb.add_argument("--report")
+
+    ib=sub.add_parser("inspect-base", help="load a binary .eqbase pack and print manifest/sample records")
+    ib.add_argument("pack"); ib.add_argument("--no-verify",action="store_true")
+    ib.add_argument("--sample-nodes",type=int,default=5)
+    ib.add_argument("--sample-relations",type=int,default=5)
+
+    vb=sub.add_parser("verify-base", help="verify hash, references, and structural integrity of a binary .eqbase pack")
+    vb.add_argument("pack")
+
     ar=sub.add_parser("artifacts", help="list current derived compiler artifacts")
     ar.add_argument("db"); ar.add_argument("--target-id"); ar.add_argument("--status", action="append", default=[])
 
@@ -843,6 +907,12 @@ def main():
         raise SystemExit(_discover_macros(a))
     elif a.cmd=="compress-runtime":
         raise SystemExit(_compress_runtime(a))
+    elif a.cmd=="compile-base":
+        raise SystemExit(_compile_base(a))
+    elif a.cmd=="inspect-base":
+        raise SystemExit(_inspect_base(a))
+    elif a.cmd=="verify-base":
+        raise SystemExit(_verify_base(a))
     elif a.cmd=="artifacts":
         raise SystemExit(_list_artifacts(a))
     elif a.cmd=="source-policy":
