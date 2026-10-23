@@ -1,3 +1,110 @@
+# Equinox Forge v0.12 — Automatic Macro Discovery + Structural Compression Metrics
+
+Forge v0.12 removes the requirement that every higher macro boundary be specified manually. It scans existing ordered canonical and derived compositions for repeated contiguous substructures, scores their **potential structural compression**, and can explicitly materialize only eligible candidates as normal v0.11 macro artifacts.
+
+```text
+canonical / derived structures
+        ↓
+ordered repeated substructures
+        ↓
+non-overlapping occurrence count
+        ↓
+compression + search metrics
+        ↓
+threshold / dominance pruning
+        ↓
+proposed macro candidates
+        ↓  optional explicit materialization
+Derived Artifact Store
+```
+
+## Compression rule
+
+For a candidate of member length `L` with `O` simultaneously usable, non-overlapping occurrences:
+
+```text
+baseline_refs = L * O
+encoded_refs  = L + O
+net_savings   = baseline_refs - encoded_refs - definition_overhead
+compression_ratio = net_savings / baseline_refs
+search_steps_saved = O * (L - 1)
+```
+
+A repeated structure is therefore **not automatically a macro**. It must satisfy configurable minimum occurrence, independent-parent, net-savings, and compression-ratio thresholds. Overlapping windows are greedily reduced to simultaneously usable occurrences before scoring.
+
+Example: `[A,B,C]` appearing in three parent structures has `9` baseline refs. Defining it once and using three macro refs costs `6` refs; with definition overhead `1`, potential net savings are `2` (`22.2%`). `[A,B]` appearing three times has no net saving under the same overhead and is rejected.
+
+Metrics in v0.12 are deliberately labelled **potential**: materializing a macro does not yet rewrite all parent structures/runtime encodings to consume it. `total_potential_net_savings` is therefore a candidate-level upper-bound style diagnostic, not a guarantee that all candidate savings can be realized jointly.
+
+## Discovery command
+
+```bash
+python -m equinox_forge.cli discover-macros master.sqlite \
+  --min-pattern-size 2 \
+  --max-pattern-size 6 \
+  --min-occurrences 2 \
+  --min-parent-structures 2 \
+  --min-net-savings 1 \
+  --min-compression-ratio 0.05 \
+  --report discovery.json
+```
+
+Discovery is non-destructive. To explicitly build the highest-ranked eligible candidates into the Derived Artifact Store:
+
+```bash
+python -m equinox_forge.cli discover-macros master.sqlite \
+  --materialize --materialize-limit 10 \
+  --report discovery.json
+```
+
+Each materialized candidate becomes a deterministic build target such as:
+
+```text
+auto-macro:mc_<content-hash>
+```
+
+and then uses the existing Macro Builder, Artifact Store, dependency graph, and incremental rebuild machinery.
+
+## Persistent audit trail
+
+v0.12 adds:
+
+```text
+macro_discovery_runs
+macro_candidates
+```
+
+Every persisted discovery run records its policy, candidate members, usable occurrence count, parent count, compression metrics, rejection reasons, dominance status, and optional materialized target.
+
+## Dominance pruning
+
+A shorter eligible pattern can be suppressed when a longer pattern contains it while offering at least the same reuse count and at least as much net compression benefit. This prevents obvious nested duplicate suggestions from flooding the candidate set.
+
+## Demo and tests
+
+```bash
+PYTHONPATH=. python examples/build_macro_discovery_demo.py
+PYTHONPATH=. python tests/run_all.py
+```
+
+Expected final marker:
+
+```text
+FORGE_V12_ALL_TESTS_OK
+```
+
+## What v0.12 does NOT prove
+
+v0.12 proves deterministic repeated-substructure discovery and a conservative structural cost model. It does **not** yet prove that a discovered macro improves downstream task quality or wall-clock inference. It also does not rewrite parent structures to realize all predicted savings, and it does not yet discover arbitrary graph motifs or unordered relational communities.
+
+## Recommended next step — v0.13
+
+**Macro Promotion + Parent Rewriting / Runtime Compression Plan.** The next step should take accepted discovery candidates, choose a mutually compatible non-overlapping set, rewrite/compile affected parent structures to reference them, and measure *realized* rather than potential reference/search reduction before promotion into a runtime BASE.
+
+---
+
+# Historical v0.11 documentation
+
 # Equinox Forge v0.11 — Derived Artifact Store + Recursive Macro/Hierarchy Builder
 
 Forge v0.11 adds the first real compiler family **above** provisional sense concepts. Derived outputs now live in a persistent Artifact Store with status and generation history, and the incremental scheduler can execute both `sense` and `macro` builders.

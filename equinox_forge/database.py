@@ -149,6 +149,8 @@ class CanonicalDB:
         self._migrate_schema()
         from .artifact_store import ensure_artifact_schema
         ensure_artifact_schema(self.db)
+        from .macro_discovery import ensure_discovery_schema
+        ensure_discovery_schema(self.db)
 
     def _migrate_schema(self):
         # v0.3 makes repeated extraction runs idempotent. Existing v0.1/v0.2 DBs
@@ -207,4 +209,4 @@ class CanonicalDB:
 
     def stats(self):
         q = lambda sql: self.db.execute(sql).fetchone()[0]
-        return {"nodes":q("SELECT COUNT(*) FROM nodes"),"evidence":q("SELECT COUNT(*) FROM evidence"),"sources":q("SELECT COUNT(DISTINCT source_id||'@'||source_version) FROM evidence"),"registered_models":q("SELECT COUNT(*) FROM source_models"),"hypothesis_runs":q("SELECT COUNT(*) FROM hypothesis_runs"),"hypotheses":q("SELECT COUNT(*) FROM hypothesis_states"),"source_policies":q("SELECT COUNT(*) FROM source_policies"),"rebuild_runs":q("SELECT COUNT(*) FROM rebuild_runs"),"dependency_edges":q("SELECT COUNT(*) FROM dependency_edges"),"build_targets":q("SELECT COUNT(*) FROM build_targets"),"incremental_rebuild_runs":q("SELECT COUNT(*) FROM incremental_rebuild_runs"),"derived_artifacts":q("SELECT COUNT(*) FROM derived_artifacts"),"derived_artifact_versions":q("SELECT COUNT(*) FROM derived_artifact_versions")}
+        return {"nodes":q("SELECT COUNT(*) FROM nodes"),"evidence":q("SELECT COUNT(*) FROM evidence"),"sources":q("SELECT COUNT(DISTINCT source_id||'@'||source_version) FROM evidence"),"registered_models":q("SELECT COUNT(*) FROM source_models"),"hypothesis_runs":q("SELECT COUNT(*) FROM hypothesis_runs"),"hypotheses":q("SELECT COUNT(*) FROM hypothesis_states"),"source_policies":q("SELECT COUNT(*) FROM source_policies"),"rebuild_runs":q("SELECT COUNT(*) FROM rebuild_runs"),"dependency_edges":q("SELECT COUNT(*) FROM dependency_edges"),"build_targets":q("SELECT COUNT(*) FROM build_targets"),"incremental_rebuild_runs":q("SELECT COUNT(*) FROM incremental_rebuild_runs"),"derived_artifacts":q("SELECT COUNT(*) FROM derived_artifacts"),"derived_artifact_versions":q("SELECT COUNT(*) FROM derived_artifact_versions"),"macro_discovery_runs":q("SELECT COUNT(*) FROM macro_discovery_runs"),"macro_candidates":q("SELECT COUNT(*) FROM macro_candidates")}

@@ -19,6 +19,7 @@ from .dependency import ArtifactRef, impact_from_roots, source_roots, refresh_de
 from .incremental import incremental_rebuild_from_sources
 from .artifact_store import list_artifacts
 from .macro_builder import MacroCompilePolicy, rebuild_macro
+from .macro_discovery import MacroDiscoveryPolicy, discover_and_optionally_materialize
 
 
 def ingest(db_path: str, doc_path: str):
@@ -467,6 +468,37 @@ def _build_macro(args) -> int:
     return 0
 
 
+
+def _discover_macros(args) -> int:
+    policy = MacroDiscoveryPolicy(
+        min_pattern_size=args.min_pattern_size,
+        max_pattern_size=args.max_pattern_size,
+        min_occurrences=args.min_occurrences,
+        min_parent_structures=args.min_parent_structures,
+        definition_overhead=args.definition_overhead,
+        min_net_savings=args.min_net_savings,
+        min_compression_ratio=args.min_compression_ratio,
+        max_candidates=args.max_candidates,
+        include_canonical=not args.no_canonical,
+        include_derived=not args.no_derived,
+        derived_statuses=list(args.derived_status or ["stable","active"]),
+        prune_dominated=not args.no_prune_dominated,
+    )
+    with CanonicalDB(args.db) as c:
+        try:
+            report, run_id = discover_and_optionally_materialize(
+                c.db, policy, materialize=args.materialize,
+                materialize_limit=args.materialize_limit, persist=not args.no_persist,
+            )
+        except Exception as exc:
+            print(f"ERROR: macro discovery failed: {exc}")
+            return 3
+        payload={"discovery_run_id":run_id,"macro_discovery":report.to_dict(),"db_stats":c.stats()}
+        if args.report:
+            Path(args.report).write_text(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+        print(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True))
+    return 0
+
 def _list_artifacts(args) -> int:
     with CanonicalDB(args.db) as c:
         rows = list_artifacts(c.db, build_target_id=args.target_id, statuses=args.status or None)
@@ -628,6 +660,25 @@ def main():
     bm.add_argument("--report")
     bm.add_argument("--ingest-derived", action="store_true")
 
+    dm=sub.add_parser("discover-macros", help="discover repeated ordered substructures and score potential structural compression")
+    dm.add_argument("db")
+    dm.add_argument("--report")
+    dm.add_argument("--min-pattern-size",type=int,default=2)
+    dm.add_argument("--max-pattern-size",type=int,default=6)
+    dm.add_argument("--min-occurrences",type=int,default=2)
+    dm.add_argument("--min-parent-structures",type=int,default=2)
+    dm.add_argument("--definition-overhead",type=float,default=1.0)
+    dm.add_argument("--min-net-savings",type=float,default=1.0)
+    dm.add_argument("--min-compression-ratio",type=float,default=0.05)
+    dm.add_argument("--max-candidates",type=int,default=100)
+    dm.add_argument("--derived-status",action="append",default=[])
+    dm.add_argument("--no-canonical",action="store_true")
+    dm.add_argument("--no-derived",action="store_true")
+    dm.add_argument("--no-prune-dominated",action="store_true")
+    dm.add_argument("--materialize",action="store_true",help="build top eligible candidates as derived macro artifacts")
+    dm.add_argument("--materialize-limit",type=int,default=10)
+    dm.add_argument("--no-persist",action="store_true")
+
     ar=sub.add_parser("artifacts", help="list current derived compiler artifacts")
     ar.add_argument("db"); ar.add_argument("--target-id"); ar.add_argument("--status", action="append", default=[])
 
@@ -724,6 +775,8 @@ def main():
         raise SystemExit(_incremental_rebuild(a))
     elif a.cmd=="build-macro":
         raise SystemExit(_build_macro(a))
+    elif a.cmd=="discover-macros":
+        raise SystemExit(_discover_macros(a))
     elif a.cmd=="artifacts":
         raise SystemExit(_list_artifacts(a))
     elif a.cmd=="source-policy":
