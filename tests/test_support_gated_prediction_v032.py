@@ -16,9 +16,12 @@ readme = (ROOT / "README.md").read_text(encoding="utf-8")
 contract = json.loads((ROOT / "benchmarks" / "v0_32" / "support_gate_contract.json").read_text(encoding="utf-8"))
 reference = json.loads((ROOT / "benchmarks" / "v0_32" / "reference.json").read_text(encoding="utf-8"))
 
-assert 'version = "0.32.0"' in pyproject
-assert '__version__ = "0.32.0"' in init_text
-assert readme.startswith("# Equinox Forge v0.32")
+import re
+project_version = re.search(r'^version\s*=\s*"([^"]+)"', pyproject, flags=re.M).group(1)
+init_version = re.search(r'__version__\s*=\s*"([^"]+)"', init_text).group(1)
+assert tuple(map(int, project_version.split('.'))) >= (0, 32, 0)
+assert init_version == project_version
+assert readme.startswith("# Equinox Forge v0.")
 assert 'eqforge-support-gate = "equinox_forge.support_gate_benchmark:main"' in pyproject
 assert contract["dataset_sha256"] == reference["dataset_sha256"]
 

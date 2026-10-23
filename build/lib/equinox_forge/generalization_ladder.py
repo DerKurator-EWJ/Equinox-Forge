@@ -19,6 +19,7 @@ from .compiler import CompilePolicy
 from .database import CanonicalDB
 from .generalization import _pass_through_compression, _tokenize_runtime
 from .io import save_document
+from .ir import ForgeDocument
 from .runtime_cognition import RuntimeCognition, RuntimeCognitionPolicy
 from .runtime_pack import compile_base_pack, load_base_pack
 from .runtime_query import RuntimeIndex
@@ -273,6 +274,7 @@ def compile_and_benchmark_generalization_ladder(
     pack_version: int = 20,
     include_pack_metadata: bool = False,
     strict_contracts: bool = True,
+    support_documents: Iterable[ForgeDocument] | None = None,
 ) -> GeneralizationLadderReport:
     cfg = probe_cfg or BehaviourProbeConfig()
     cfg.validate()
@@ -323,9 +325,18 @@ def compile_and_benchmark_generalization_ladder(
     save_document(eval_doc, eval_dir / "ladder-teacher-reference.eqir.json")
 
     relation_policy = CompilePolicy(min_score=0.0, min_confidence=0.0, min_sources=1)
+    support_docs = list(support_documents or [])
+    for i, doc in enumerate(support_docs, 1):
+        errors = [x for x in validate_document(doc) if x.severity == "error"]
+        if errors:
+            raise ValueError(f"support document {i} failed validation: " + "; ".join(x.message for x in errors))
+        save_document(doc, out / f"support-{i:02d}.eqir.json")
     with CanonicalDB(db_path) as db:
         for node in train_doc.nodes: db.upsert_node(node)
         for ev in train_doc.evidence: db.add_evidence(ev)
+        for doc in support_docs:
+            for node in doc.nodes: db.upsert_node(node)
+            for ev in doc.evidence: db.add_evidence(ev)
         db.commit()
         compression = _pass_through_compression(db.db)
         manifest = compile_base_pack(
@@ -444,6 +455,7 @@ def compile_and_benchmark_generalization_ladder(
             "L4 requires at least one novel lexical entity/token while retaining a previously observed relational frame.",
             "L5 requires an explicitly labeled relation/task family that is wholly absent from the compile split.",
             "The ladder reports observed transfer by stratum; it does not establish broad language generalization or reasoning equivalence to the teacher.",
+            f"Auxiliary support documents compiled into the BASE: {len(support_docs)}. They may supply non-predictive semantic evidence but evaluation teacher predictions are never inserted.",
         ],
     )
     (out / "generalization-ladder-report.json").write_text(json.dumps(report.to_dict(), ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")

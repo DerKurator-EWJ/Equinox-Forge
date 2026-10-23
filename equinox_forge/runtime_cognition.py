@@ -12,7 +12,7 @@ from .runtime_pack import LoadedRuntimePack, RuntimeNode, load_base_pack
 from .runtime_query import RuntimeIndex
 
 RUNTIME_COGNITION_FORMAT = "equinox-runtime-cognition-v2"
-RUNTIME_COGNITION_VERSION = "0.32"
+RUNTIME_COGNITION_VERSION = "0.33"
 
 
 @dataclass
@@ -49,6 +49,16 @@ class RuntimeCognitionPolicy:
     recalled_support_min_shared_tokens: int = 2
     recalled_support_min_overlap_fraction: float = 0.66
     recalled_support_allow_unknown_tokens_without_context: bool = False
+    # v0.33: an entity may be new to predictive training while already known to
+    # the BASE through independent semantic evidence. Such a token can substitute
+    # for a trained entity only when compiled semantic relations support the
+    # substitution. Mere presence of the surface in the BASE is not sufficient.
+    enable_evidence_backed_novel_entity_admission: bool = True
+    novel_entity_semantic_relation_types: tuple[str, ...] = (
+        RelationType.SEMANTIC_SIMILARITY.value,
+        RelationType.CONTEXTUAL_SIMILARITY.value,
+    )
+    novel_entity_min_semantic_quality: float = 0.65
     # v0.22: explicit induced frame schemas such as [SLOT_0] ist ein.
     enable_frame_schema_matching: bool = True
     # v0.23: if an induced slot carries a compiled semantic admission profile,
@@ -99,6 +109,8 @@ class RuntimeCognitionPolicy:
         if self.max_hierarchical_slot_hops < 1: raise ValueError("max_hierarchical_slot_hops must be >= 1")
         if self.recalled_support_min_shared_tokens < 1: raise ValueError("recalled_support_min_shared_tokens must be >= 1")
         if not 0 <= self.recalled_support_min_overlap_fraction <= 1: raise ValueError("recalled_support_min_overlap_fraction must be in [0,1]")
+        if not 0 <= self.novel_entity_min_semantic_quality <= 1: raise ValueError("novel_entity_min_semantic_quality must be in [0,1]")
+        if not self.novel_entity_semantic_relation_types: raise ValueError("novel_entity_semantic_relation_types must not be empty")
         if not 0 <= self.min_activation <= 1: raise ValueError("min_activation must be in [0,1]")
         if not 0 <= self.min_prediction_score <= 1: raise ValueError("min_prediction_score must be in [0,1]")
         if not 0 < self.depth_decay <= 1: raise ValueError("depth_decay must be in (0,1]")
@@ -303,6 +315,18 @@ class RuntimeCognition:
             })
         for width in self._frames_by_width:
             self._frames_by_width[width].sort(key=lambda x: (-int(x["scope_rank"]), -int(x["support"]), str(x["node_id"])))
+
+        # Tokens that have actually participated in a compiled predictive context.
+        # v0.33 uses this vocabulary to distinguish "known somewhere in the BASE"
+        # from "already trained for this predictive mechanism".
+        self._predictive_context_token_surfaces: set[str] = set()
+        for from_id, rels in self.index.relations_from.items():
+            if not any(r.relation_type == RelationType.PREDICTION.value for r in rels):
+                continue
+            node = self.index.node_by_id.get(from_id)
+            if node is None or not node.surface:
+                continue
+            self._predictive_context_token_surfaces.update(_surface_tokens(node.surface))
 
     @classmethod
     def from_path(cls, path: str | Path, policy: RuntimeCognitionPolicy | None = None) -> "RuntimeCognition":
@@ -715,6 +739,80 @@ class RuntimeCognition:
         }
         return traces, meta
 
+    def _novel_entity_semantic_substitution_support(
+        self,
+        live_tokens: list[str],
+        source_tokens: list[str],
+    ) -> dict[str, Any]:
+        """Require independent semantic evidence for tokens new to prediction.
+
+        The comparison is deliberately conservative: v0.33 only admits a single
+        aligned substitution in an otherwise matching context. This avoids turning
+        generic graph proximity into prediction authority and gives later versions a
+        clean baseline for richer prototype/hierarchy admission.
+        """
+        diag: dict[str, Any] = {
+            "required": False, "admitted": True, "reason": "no_novel_predictive_token",
+            "novel_tokens": [], "substitutions": [], "relation_checks": 0,
+        }
+        novel = sorted({t for t in live_tokens if t not in self._predictive_context_token_surfaces})
+        diag["novel_tokens"] = novel
+        if not novel or not self.policy.enable_evidence_backed_novel_entity_admission:
+            if novel and not self.policy.enable_evidence_backed_novel_entity_admission:
+                diag.update({"required": True, "admitted": True, "reason": "novel_entity_admission_disabled"})
+            return diag
+        diag["required"] = True
+        if len(live_tokens) != len(source_tokens):
+            diag.update({"admitted": False, "reason": "novel_entity_unaligned_context"})
+            return diag
+        diffs = [(i, a, b) for i, (a, b) in enumerate(zip(live_tokens, source_tokens)) if a != b]
+        if len(diffs) != 1:
+            diag.update({"admitted": False, "reason": "novel_entity_requires_single_substitution"})
+            return diag
+        pos, live_tok, source_tok = diffs[0]
+        if live_tok not in novel:
+            diag.update({"admitted": False, "reason": "novel_token_not_aligned_substitution"})
+            return diag
+        live_ids = [nid for nid in self.index.surface_to_nodes.get(live_tok, [])
+                    if self.index.node_by_id[nid].kind == NodeKind.SURFACE.value]
+        source_ids = [nid for nid in self.index.surface_to_nodes.get(source_tok, [])
+                      if self.index.node_by_id[nid].kind == NodeKind.SURFACE.value]
+        if not live_ids or not source_ids:
+            diag.update({"admitted": False, "reason": "novel_entity_missing_compiled_semantics"})
+            return diag
+        allowed = set(self.policy.novel_entity_semantic_relation_types)
+        best = 0.0
+        best_rel: dict[str, Any] | None = None
+        checks = 0
+        for a in live_ids:
+            for b in source_ids:
+                for rtype in allowed:
+                    for left, right in ((a, b), (b, a)):
+                        checks += 1
+                        rel = self.index.relation_by_key.get((left, right, rtype))
+                        if rel is None:
+                            continue
+                        quality = max(0.0, min(1.0, float(rel.score) * float(rel.confidence)))
+                        if quality > best:
+                            best = quality
+                            best_rel = {
+                                "from_id": rel.from_id, "to_id": rel.to_id,
+                                "relation_type": rel.relation_type, "score": rel.score,
+                                "confidence": rel.confidence, "quality": quality,
+                            }
+        diag["relation_checks"] = checks
+        substitution = {
+            "position": pos, "live_token": live_tok, "source_token": source_tok,
+            "best_quality": best, "threshold": self.policy.novel_entity_min_semantic_quality,
+            "best_relation": best_rel,
+        }
+        diag["substitutions"] = [substitution]
+        if best + 1e-12 < self.policy.novel_entity_min_semantic_quality:
+            diag.update({"admitted": False, "reason": "insufficient_novel_entity_semantic_support"})
+            return diag
+        diag.update({"admitted": True, "reason": "evidence_backed_novel_entity_substitution"})
+        return diag
+
     def _recalled_prediction_support(
         self,
         source: RuntimeNode | None,
@@ -776,6 +874,21 @@ class RuntimeCognition:
         if fraction + 1e-12 < self.policy.recalled_support_min_overlap_fraction:
             diag["reason"] = "insufficient_overlap_fraction"
             return False, diag
+
+        # If no exact/suffix/frame context already carries the live query, tokens
+        # that are new to predictive training require independent semantic support
+        # for the aligned substitution. This is the v0.33 L4 recovery path.
+        if not has_resolved_context:
+            semantic = self._novel_entity_semantic_substitution_support(live_tokens, _surface_tokens(source.surface))
+            diag["novel_entity_admission"] = semantic
+            if semantic.get("required") and not semantic.get("admitted"):
+                diag["reason"] = str(semantic.get("reason") or "novel_entity_rejected")
+                return False, diag
+            if semantic.get("required") and semantic.get("admitted"):
+                diag["admitted"] = True
+                diag["reason"] = str(semantic.get("reason") or "evidence_backed_novel_entity_substitution")
+                return True, diag
+
         diag["admitted"] = True
         diag["reason"] = "context_overlap_supported"
         return True, diag
