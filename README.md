@@ -1,4 +1,4 @@
-# Equinox Forge v0.18 — Behaviour / Size Pareto Sweep
+# Equinox Forge v0.19 — Held-out Generalization + Context Coverage
 
 **Current milestone:** v0.18 turns the fixed v0.17 retention benchmark into a controlled multi-configuration efficiency experiment. The teacher is probed **once** at the largest requested top-k. Forge then recompiles that exact captured evidence across pruning, runtime-budget, and optional macro-compression settings and measures the resulting storage/behaviour trade-off.
 
@@ -1542,3 +1542,160 @@ Die Katze kann   -> miauen
 ```
 
 All three expected surfaces are ranked first by the compiled runtime. The fixture also verifies that all candidate contributions originate exclusively from `prediction` or `transition` channels.
+
+---
+
+# v0.19 — Held-out Generalization + Context Coverage
+
+v0.19 separates **captured-behaviour replay** from **held-out context transfer**. Only the train split is compiled into the Equinox BASE. The held-out split is probed against the same teacher only to obtain an evaluation reference and is never inserted into SQLite or the `.eqbase` pack.
+
+```text
+Teacher
+  ├─ train prompts ─────→ Forge IR → Canonical DB → train.eqbase
+  │                                           │
+  │                                           └→ train replay baseline
+  │
+  └─ held-out prompts ─→ evaluation reference only
+                                              │
+                                              ↓
+                                     Equinox held-out replay
+```
+
+## Strict split boundary
+
+By default, normalized exact prompt overlap between train and held-out splits is a hard error. The output directory contains `split-manifest.json` with both normalized splits and SHA-256 hashes so the benchmark boundary is auditable.
+
+The held-out teacher IR is stored under `evaluation_only/` and is never ingested into `train.sqlite`.
+
+## Context coverage classes
+
+Every held-out prompt is classified into one of four operational buckets:
+
+- `proper_suffix_transfer` — the full prompt is unseen, but a shorter predictive context already compiled from the train split matches its suffix;
+- `resolved_structural` — a predictive context is resolved structurally but is not a strict suffix;
+- `lexical_only` — known lexical surfaces are present, but no predictive context is directly resolved;
+- `unresolved` — neither predictive context nor useful lexical seed is present.
+
+`exact_or_leaked` exists as a diagnostic bucket and should remain zero in strict mode.
+
+v0.19 also reports:
+
+- fraction of held-out contexts resolved at all;
+- proper-suffix transfer rate;
+- known-token coverage;
+- held-out token novelty rate;
+- teacher Top-1 target already present in the compiled pack;
+- train-vs-held-out Top-1 and retained-mass gaps;
+- metrics broken down by coverage bucket.
+
+This distinction is important. A failure because the correct target surface does not exist in the BASE is different from a failure to route an otherwise-known target from a novel context.
+
+## Two held-out runtime views
+
+As in v0.17, v0.19 evaluates two runtime modes:
+
+1. **Held-out Direct Replay** — associative recall depth is disabled. Longest-known-suffix context resolution remains enabled because it is itself the structural transfer mechanism being tested.
+2. **Held-out Full Runtime** — normal bounded recall/routing is enabled.
+
+This makes it possible to tell whether a held-out prediction came from deterministic structural reuse or from broader recalled context.
+
+## Deterministic regression fixture
+
+Compile split:
+
+```text
+Hund ist ein
+Hund kann
+Katze kann
+```
+
+Held-out split:
+
+```text
+Der Hund ist ein
+Mein Hund kann
+Die Katze kann
+Vogel kann
+```
+
+The first three prompts do not exist as compiled context nodes. They are resolved through the known suffixes `Hund ist ein`, `Hund kann`, and `Katze kann`. `Vogel kann` has lexical overlap but no stored predictive suffix and its teacher Top-1 target `fliegen` is absent from the BASE.
+
+Fixture result:
+
+```text
+Pack                         1,886 B
+Runtime nodes                    36
+Prediction relations              9
+
+Train Top-1 replay            100 %
+Held-out Top-1                75 %
+Proper-suffix transfer        75 %
+Lexical-only held-out         25 %
+Held-out teacher Top-1 known  75 %
+Exact held-out context nodes       0
+```
+
+This is intentionally not reported as broad language generalization. It demonstrates a narrower claim: **compiled Equinox structure can be reused on full contexts that were not present in the compile split when they contain a known predictive subcontext**.
+
+## CLI
+
+```bash
+eqforge benchmark-generalization /path/to/local/model out/generalization \
+  --train train-prompts.txt \
+  --heldout heldout-prompts.txt \
+  --source-id teacher-A \
+  --teacher-top-k 8 \
+  --runtime-top-k 8
+```
+
+Multiple `--train` and `--heldout` files may be supplied by repeating the flags.
+
+Diagnostic-only exact overlap can be allowed with `--allow-exact-overlap`, but strict mode is the benchmark default.
+
+## Output
+
+```text
+generalization-report.json
+split-manifest.json
+train.sqlite
+train.eqbase
+train-teacher-behaviour.eqir.json
+train-teacher-probe-report.json
+evaluation_only/
+  heldout-teacher-reference.eqir.json
+  heldout-teacher-probe-report.json
+```
+
+## Interpretation limit
+
+v0.19 is a held-out **context-transfer** benchmark. It does not yet prove semantic compositionality, novel factual reasoning, or broad out-of-distribution language generalization. Those require progressively harder splits in which surface overlap, suffix overlap, entities, relation patterns, and finally task families are independently held out.
+
+## Regression suite
+
+```bash
+python tests/run_all.py
+```
+
+Expected final marker:
+
+```text
+FORGE_V19_ALL_TESTS_OK
+```
+
+## Recommended next step — v0.20
+
+**Generalization Ladder + Leakage-Controlled Split Generator.**
+
+Instead of one binary train/held-out split, v0.20 should create increasingly difficult evaluation levels:
+
+```text
+L0 exact replay
+L1 unseen prefix / known suffix
+L2 unseen surface recombination
+L3 known entities + unseen relation composition
+L4 held-out entities / substitution transfer
+L5 held-out task or domain
+```
+
+That will show *which kind* of generalization Equinox actually performs, rather than compressing all novelty into one score.
+

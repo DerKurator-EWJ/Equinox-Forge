@@ -27,6 +27,7 @@ from .runtime_query import query_runtime_pack, benchmark_runtime_pack
 from .runtime_cognition import RuntimeCognitionPolicy, RuntimeCognition, benchmark_predictions, load_prediction_cases
 from .behaviour_retention import compile_and_benchmark_teacher_behaviour
 from .pareto_sweep import ParetoSweepConfig, run_behaviour_pareto_sweep
+from .generalization import compile_and_benchmark_heldout_generalization
 
 
 def ingest(db_path: str, doc_path: str):
@@ -765,6 +766,47 @@ def _benchmark_pareto(args) -> int:
     return 0
 
 
+def _benchmark_generalization(args) -> int:
+    probe_cfg = BehaviourProbeConfig(
+        top_k=args.teacher_top_k,
+        temperature=args.temperature,
+        min_probability=args.min_probability,
+        max_surface_chars=args.max_surface_chars,
+        evidence_confidence=args.evidence_confidence,
+        strip_leading_space=not args.keep_leading_space,
+        include_punctuation_only=args.include_punctuation_only,
+        include_numeric_only=not args.exclude_numeric_only,
+        max_prompt_words=args.max_prompt_words,
+    )
+    policy = RuntimeCognitionPolicy(
+        max_recall_nodes=args.max_recall_nodes,
+        max_recall_depth=args.max_recall_depth,
+        max_relation_neighbors=args.max_relation_neighbors,
+        max_structural_parents=args.max_structural_parents,
+        max_predictions=max(args.runtime_top_k, args.max_predictions),
+        min_activation=args.min_activation,
+        min_prediction_score=args.min_prediction_score,
+    )
+    try:
+        train_prompts = load_prompts(args.train)
+        heldout_prompts = load_prompts(args.heldout)
+        backend = TransformersCausalLMBackend(
+            args.model_dir, device=args.device, trust_remote_code=args.trust_remote_code, dtype=args.dtype
+        )
+        report = compile_and_benchmark_heldout_generalization(
+            backend, train_prompts, heldout_prompts, args.output_dir, args.source_id, args.source_version,
+            probe_cfg=probe_cfg, cognition_policy=policy, runtime_top_k=args.runtime_top_k,
+            pack_id=args.pack_id, pack_version=args.pack_version,
+            include_pack_metadata=args.include_pack_metadata, strict_split=not args.allow_exact_overlap,
+        )
+        payload = report.to_dict()
+    except Exception as exc:
+        print(f"ERROR: held-out generalization benchmark failed: {exc}")
+        return 3
+    print(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
+
 def _list_artifacts(args) -> int:
     with CanonicalDB(args.db) as c:
         rows = list_artifacts(c.db, build_target_id=args.target_id, statuses=args.status or None)
@@ -1096,6 +1138,38 @@ def main():
     ps.add_argument("--pack-version", type=int, default=18)
     ps.add_argument("--include-pack-metadata", action="store_true")
 
+    bg=sub.add_parser("benchmark-generalization", help="compile only train prompts and evaluate strictly held-out teacher contexts")
+    bg.add_argument("model_dir")
+    bg.add_argument("output_dir")
+    bg.add_argument("--train", action="append", required=True, help="UTF-8 train prompt file; repeatable")
+    bg.add_argument("--heldout", action="append", required=True, help="UTF-8 held-out prompt file; repeatable")
+    bg.add_argument("--source-id", required=True)
+    bg.add_argument("--source-version", default="local")
+    bg.add_argument("--teacher-top-k", type=int, default=8)
+    bg.add_argument("--runtime-top-k", type=int, default=8)
+    bg.add_argument("--temperature", type=float, default=1.0)
+    bg.add_argument("--min-probability", type=float, default=0.0)
+    bg.add_argument("--max-surface-chars", type=int, default=64)
+    bg.add_argument("--max-prompt-words", type=int, default=64)
+    bg.add_argument("--evidence-confidence", type=float, default=0.95)
+    bg.add_argument("--keep-leading-space", action="store_true")
+    bg.add_argument("--include-punctuation-only", action="store_true")
+    bg.add_argument("--exclude-numeric-only", action="store_true")
+    bg.add_argument("--device", default="cpu")
+    bg.add_argument("--dtype", default="auto")
+    bg.add_argument("--trust-remote-code", action="store_true")
+    bg.add_argument("--max-recall-nodes", type=int, default=96)
+    bg.add_argument("--max-recall-depth", type=int, default=3)
+    bg.add_argument("--max-relation-neighbors", type=int, default=24)
+    bg.add_argument("--max-structural-parents", type=int, default=24)
+    bg.add_argument("--max-predictions", type=int, default=8)
+    bg.add_argument("--min-activation", type=float, default=0.06)
+    bg.add_argument("--min-prediction-score", type=float, default=0.0)
+    bg.add_argument("--pack-id", default="equinox-heldout-generalization")
+    bg.add_argument("--pack-version", type=int, default=19)
+    bg.add_argument("--include-pack-metadata", action="store_true")
+    bg.add_argument("--allow-exact-overlap", action="store_true", help="diagnostic only; disables strict leakage rejection")
+
     ar=sub.add_parser("artifacts", help="list current derived compiler artifacts")
     ar.add_argument("db"); ar.add_argument("--target-id"); ar.add_argument("--status", action="append", default=[])
 
@@ -1214,6 +1288,8 @@ def main():
         raise SystemExit(_benchmark_retention(a))
     elif a.cmd=="benchmark-pareto":
         raise SystemExit(_benchmark_pareto(a))
+    elif a.cmd=="benchmark-generalization":
+        raise SystemExit(_benchmark_generalization(a))
     elif a.cmd=="artifacts":
         raise SystemExit(_list_artifacts(a))
     elif a.cmd=="source-policy":
