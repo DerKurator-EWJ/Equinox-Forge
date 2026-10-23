@@ -969,8 +969,136 @@ FORGE_V14_ALL_TESTS_OK
 
 The runner now explicitly injects the project root into subprocess `PYTHONPATH`, so a clean extracted ZIP does not depend on an unrelated editable install.
 
-## Recommended next step — v0.15
+---
 
-**Runtime Indexes + Query/Traversal Benchmark Harness.**
+# v0.15 — Runtime Indexes + Query / Traversal Benchmark Harness
 
-The pack is now real. The next question should no longer be only how many bytes it occupies, but whether the compressed hierarchy actually reduces runtime work. v0.15 should add compact adjacency / relation indexes and benchmark direct lookup, hierarchical traversal, recall candidate generation, and rewritten-vs-uncompressed node visits on the exact same knowledge fixture.
+v0.15 moves the test boundary from the Forge SQLite compiler into the compiled `.eqbase` runtime itself. All secondary indexes are built only from the loaded BASE pack; no canonical DB is consulted during query or benchmark execution.
+
+## Runtime indexes
+
+`RuntimeIndex` builds deterministic in-memory indexes for:
+
+- `node_id -> RuntimeNode`;
+- `surface -> node ids`;
+- `child -> direct parents`;
+- `node -> direct children`;
+- outgoing relations;
+- incoming relations;
+- composite root nodes.
+
+The binary v1 pack format itself is unchanged from v0.14. v0.15 therefore remains compatible with existing `equinox-runtime-base-v1` files.
+
+## Queries
+
+Examples:
+
+```bash
+python -m equinox_forge.cli query-base master.eqbase --node <NODE_ID>
+python -m equinox_forge.cli query-base master.eqbase --surface Hund
+python -m equinox_forge.cli query-base master.eqbase --parents <NODE_ID>
+python -m equinox_forge.cli query-base master.eqbase --expand <NODE_ID>
+python -m equinox_forge.cli query-base master.eqbase --relations-from <NODE_ID>
+```
+
+Each indexed query reports deterministic structural work units alongside optional host-Python microbench timings.
+
+## Hierarchical routing benchmark
+
+The benchmark compares two ways of finding roots that contain a known compiled macro:
+
+1. **expanded baseline** — recursively expand each runtime root to terminal symbols and naively scan for the macro's terminal pattern;
+2. **hierarchical route** — start at the macro node and follow the compiled parent index upward.
+
+This is deliberately a structural comparison, not a claim about CPU instructions, Joules, Android performance, or a transformer baseline.
+
+Run:
+
+```bash
+python -m equinox_forge.cli benchmark-base master.eqbase \
+  --sample-nodes 128 \
+  --sample-macros 16 \
+  --timing-repeat 50 \
+  --output benchmark.json
+```
+
+## Deterministic v0.15 demo
+
+The included demo builds 80 independent roots containing the reusable sequence `[a,b,c]`, compiles the promoted macro into an `.eqbase`, loads that binary, and benchmarks the runtime graph.
+
+Current fixture:
+
+```text
+244 runtime nodes
+80 relations
+80 composite roots
+243 member edges
+7,477 B .eqbase
+```
+
+Measured structural work on this fixture:
+
+```text
+node-id lookup:
+  linear baseline   15,680 work units
+  indexed              128
+  reduction          99.18 %
+
+surface lookup:
+  linear baseline   31,232
+  indexed              256
+  reduction          99.18 %
+
+parent lookup:
+  linear baseline   31,104
+  indexed              293
+  reduction          99.06 %
+
+relation adjacency:
+  linear baseline    6,720
+  indexed              205
+  reduction          96.95 %
+
+known-macro routing:
+  expanded baseline    320 symbol comparisons
+  hierarchy              81 work units
+  reduction            74.69 %
+  baseline roots found     80
+  hierarchical roots       80
+  coverage             100 %
+```
+
+The lookup reductions primarily demonstrate the expected benefit of indexing. The routing result is the more Equinox-specific test: a known higher structure can route directly through the compiled hierarchy instead of re-scanning the full expanded symbol stream.
+
+Run the exact fixture:
+
+```bash
+PYTHONPATH=. python examples/build_runtime_query_benchmark_demo.py
+```
+
+The report is written to `examples/runtime_query_demo/benchmark.json`.
+
+## Interpretation limits
+
+- `work_units` are deterministic structural operations defined by the harness, not CPU instructions.
+- host-Python nanosecond timings are diagnostic only and are not Android/runtime guarantees.
+- macro-routing coverage may be below 100% in real packs when the same terminal pattern exists in roots that were intentionally not rewritten to the promoted macro because of overlap/conflict decisions.
+- the benchmark does not yet measure answer quality, prediction quality, energy, or comparison against a transformer teacher.
+
+## v0.15 regression suite
+
+```bash
+python tests/run_all.py
+```
+
+Expected final marker:
+
+```text
+FORGE_V15_ALL_TESTS_OK
+```
+
+## Recommended next step — v0.16
+
+**Runtime Recall + Prediction Engine.**
+
+The runtime can now load, index and route through the compiled hierarchy. The next meaningful step is to consume the compiled relation channels themselves: activate a context, retrieve bounded candidates, score relation support / hierarchy relevance, and produce a next-state or next-token prediction directly from `.eqbase` without SQLite or a teacher model. That will let the benchmark move from pure graph traversal to actual retained behaviour.

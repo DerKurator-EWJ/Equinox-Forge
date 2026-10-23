@@ -23,6 +23,7 @@ from .macro_builder import MacroCompilePolicy, rebuild_macro
 from .macro_discovery import MacroDiscoveryPolicy, discover_and_optionally_materialize
 from .runtime_compression import MacroPromotionPolicy, compile_runtime_compression
 from .runtime_pack import compile_base_pack, load_base_pack, verify_base_pack
+from .runtime_query import query_runtime_pack, benchmark_runtime_pack
 
 
 def ingest(db_path: str, doc_path: str):
@@ -585,6 +586,36 @@ def _verify_base(args) -> int:
     return 0 if report.get("valid") else 2
 
 
+
+def _query_base(args) -> int:
+    try:
+        payload = query_runtime_pack(
+            args.pack, node_id=args.node, surface=args.surface, parents_of=args.parents,
+            expand=args.expand, relations_from=args.relations_from, relations_to=args.relations_to,
+            relation_type=args.relation_type, timing_repeat=args.timing_repeat,
+        )
+    except Exception as exc:
+        print(f"ERROR: BASE query failed: {exc}")
+        return 3
+    print(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True))
+    return 0
+
+
+def _benchmark_base(args) -> int:
+    try:
+        report = benchmark_runtime_pack(
+            args.pack, sample_nodes=args.sample_nodes, sample_macros=args.sample_macros,
+            timing_repeat=args.timing_repeat, max_expanded_symbols=args.max_expanded_symbols,
+        )
+        payload = report.to_dict()
+    except Exception as exc:
+        print(f"ERROR: BASE benchmark failed: {exc}")
+        return 3
+    if args.output:
+        Path(args.output).write_text(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+    print(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True))
+    return 0
+
 def _list_artifacts(args) -> int:
     with CanonicalDB(args.db) as c:
         rows = list_artifacts(c.db, build_target_id=args.target_id, statuses=args.status or None)
@@ -807,6 +838,26 @@ def main():
     vb=sub.add_parser("verify-base", help="verify hash, references, and structural integrity of a binary .eqbase pack")
     vb.add_argument("pack")
 
+    qb=sub.add_parser("query-base", help="query the compiled .eqbase runtime using secondary indexes")
+    qb.add_argument("pack")
+    qbg=qb.add_mutually_exclusive_group(required=True)
+    qbg.add_argument("--node")
+    qbg.add_argument("--surface")
+    qbg.add_argument("--parents")
+    qbg.add_argument("--expand")
+    qbg.add_argument("--relations-from")
+    qbg.add_argument("--relations-to")
+    qb.add_argument("--relation-type")
+    qb.add_argument("--timing-repeat",type=int,default=0)
+
+    bb=sub.add_parser("benchmark-base", help="benchmark indexed runtime queries and hierarchical routing on a compiled .eqbase pack")
+    bb.add_argument("pack")
+    bb.add_argument("--sample-nodes",type=int,default=128)
+    bb.add_argument("--sample-macros",type=int,default=16)
+    bb.add_argument("--timing-repeat",type=int,default=50)
+    bb.add_argument("--max-expanded-symbols",type=int,default=2000000)
+    bb.add_argument("--output")
+
     ar=sub.add_parser("artifacts", help="list current derived compiler artifacts")
     ar.add_argument("db"); ar.add_argument("--target-id"); ar.add_argument("--status", action="append", default=[])
 
@@ -913,6 +964,10 @@ def main():
         raise SystemExit(_inspect_base(a))
     elif a.cmd=="verify-base":
         raise SystemExit(_verify_base(a))
+    elif a.cmd=="query-base":
+        raise SystemExit(_query_base(a))
+    elif a.cmd=="benchmark-base":
+        raise SystemExit(_benchmark_base(a))
     elif a.cmd=="artifacts":
         raise SystemExit(_list_artifacts(a))
     elif a.cmd=="source-policy":

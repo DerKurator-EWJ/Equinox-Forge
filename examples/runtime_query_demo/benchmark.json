@@ -1,0 +1,106 @@
+{
+  "format": "equinox-runtime-query-v1",
+  "index_stats": {
+    "build_ms": 0.16448400037916144,
+    "member_edges": 243,
+    "node_count": 244,
+    "parent_keys": 164,
+    "relation_count": 80,
+    "relation_from_keys": 1,
+    "relation_to_keys": 80,
+    "root_count": 80,
+    "surface_keys": 244
+  },
+  "node_lookup": {
+    "baseline_wall_ns_median_of_medians": 2243,
+    "baseline_work_units": 15680,
+    "indexed_wall_ns_median_of_medians": 90,
+    "indexed_work_units": 128,
+    "operation": "node_id_lookup",
+    "result_items": 128,
+    "samples": 128,
+    "work_reduction": 0.9918367346938776
+  },
+  "notes": [
+    "work_units are deterministic structural operations, not CPU instructions or energy measurements",
+    "wall-clock nanoseconds are host-Python microbenchmarks and must not be treated as Android/runtime guarantees",
+    "routing baseline naively scans fully expanded root symbol streams; hierarchical routing follows compiled parent indexes",
+    "coverage can be below 1.0 when a pattern exists in roots that were intentionally not rewritten to the promoted macro"
+  ],
+  "pack_manifest": {
+    "binary_major": 1,
+    "binary_minor": 0,
+    "compression_run_id": 1,
+    "file_bytes": 7477,
+    "format": "equinox-runtime-base-v1",
+    "full_file_sha256": "899673bc8547bcacc9448d9a434c706ddf556a7cc3a66686862fd44f23488934",
+    "header_bytes": 112,
+    "index_bytes": 976,
+    "node_count": 244,
+    "node_section_bytes": 2710,
+    "pack_id": "v015-runtime-query-demo",
+    "pack_version": 15,
+    "payload_sha256": "8bac503c2e3b9f891d836743b11461b519e792c42874004ab779028d8aee5321",
+    "relation_count": 80,
+    "relation_section_bytes": 1155,
+    "string_count": 250,
+    "string_table_bytes": 2524
+  },
+  "parent_lookup": {
+    "baseline_wall_ns_median_of_medians": 5262,
+    "baseline_work_units": 31104,
+    "indexed_wall_ns_median_of_medians": 150,
+    "indexed_work_units": 293,
+    "operation": "parent_lookup",
+    "result_items": 165,
+    "samples": 128,
+    "work_reduction": 0.9905799897119342
+  },
+  "relation_adjacency": {
+    "baseline_wall_ns_median_of_medians": 1322,
+    "baseline_work_units": 6720,
+    "indexed_wall_ns_median_of_medians": 130,
+    "indexed_work_units": 205,
+    "operation": "relation_adjacency",
+    "result_items": 121,
+    "samples": 84,
+    "work_reduction": 0.9694940476190477
+  },
+  "routing": [
+    {
+      "baseline_matching_roots": 80,
+      "baseline_root_count": 80,
+      "baseline_symbol_comparisons": 320,
+      "coverage_of_baseline_matches": 1.0,
+      "hierarchical_index_lookups": 1,
+      "hierarchical_matching_roots": 80,
+      "hierarchical_parent_edges": 80,
+      "hierarchical_work_units": 81,
+      "macro_leaf_count": 3,
+      "macro_member_count": 3,
+      "macro_node_id": "m_3a34b0f24f99e838c20387fb",
+      "matched_root_overlap": 80,
+      "work_reduction": 0.746875
+    }
+  ],
+  "routing_summary": {
+    "baseline_matching_roots": 80,
+    "baseline_symbol_comparisons": 320,
+    "coverage_of_baseline_matches": 1.0,
+    "hierarchical_work_units": 81,
+    "matched_root_overlap": 80,
+    "samples": 1,
+    "work_reduction": 0.746875
+  },
+  "surface_lookup": {
+    "baseline_wall_ns_median_of_medians": 3925,
+    "baseline_work_units": 31232,
+    "indexed_wall_ns_median_of_medians": 160,
+    "indexed_work_units": 256,
+    "operation": "surface_lookup",
+    "result_items": 128,
+    "samples": 128,
+    "work_reduction": 0.9918032786885246
+  },
+  "version": "0.15"
+}
