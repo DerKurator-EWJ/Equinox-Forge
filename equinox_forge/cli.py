@@ -26,6 +26,7 @@ from .runtime_pack import compile_base_pack, load_base_pack, verify_base_pack
 from .runtime_query import query_runtime_pack, benchmark_runtime_pack
 from .runtime_cognition import RuntimeCognitionPolicy, RuntimeCognition, benchmark_predictions, load_prediction_cases
 from .behaviour_retention import compile_and_benchmark_teacher_behaviour
+from .pareto_sweep import ParetoSweepConfig, run_behaviour_pareto_sweep
 
 
 def ingest(db_path: str, doc_path: str):
@@ -703,6 +704,67 @@ def _benchmark_retention(args) -> int:
     print(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True))
     return 0
 
+def _parse_csv_ints(raw: str) -> list[int]:
+    return [int(x.strip()) for x in raw.split(",") if x.strip()]
+
+
+def _parse_csv_floats(raw: str) -> list[float]:
+    return [float(x.strip()) for x in raw.split(",") if x.strip()]
+
+
+def _parse_csv_strings(raw: str) -> list[str]:
+    return [x.strip() for x in raw.split(",") if x.strip()]
+
+
+def _benchmark_pareto(args) -> int:
+    probe_cfg = BehaviourProbeConfig(
+        top_k=args.teacher_top_k,
+        temperature=args.temperature,
+        min_probability=args.min_probability,
+        max_surface_chars=args.max_surface_chars,
+        evidence_confidence=args.evidence_confidence,
+        strip_leading_space=not args.keep_leading_space,
+        include_punctuation_only=args.include_punctuation_only,
+        include_numeric_only=not args.exclude_numeric_only,
+        max_prompt_words=args.max_prompt_words,
+    )
+    policy = RuntimeCognitionPolicy(
+        max_recall_nodes=max(_parse_csv_ints(args.recall_nodes)),
+        max_recall_depth=max(_parse_csv_ints(args.recall_depth)),
+        max_relation_neighbors=args.max_relation_neighbors,
+        max_structural_parents=args.max_structural_parents,
+        max_predictions=max(args.runtime_top_k, args.max_predictions),
+        min_activation=args.min_activation,
+        min_prediction_score=args.min_prediction_score,
+    )
+    sweep_cfg = ParetoSweepConfig(
+        evidence_top_k_values=_parse_csv_ints(args.evidence_top_k),
+        min_relation_score_values=_parse_csv_floats(args.min_relation_score),
+        max_recall_nodes_values=_parse_csv_ints(args.recall_nodes),
+        max_recall_depth_values=_parse_csv_ints(args.recall_depth),
+        compression_modes=_parse_csv_strings(args.compression),
+        max_points=args.max_points,
+        runtime_top_k=args.runtime_top_k,
+        include_pack_metadata=args.include_pack_metadata,
+    )
+    try:
+        prompts = load_prompts(args.prompts)
+        backend = TransformersCausalLMBackend(
+            args.model_dir, device=args.device, trust_remote_code=args.trust_remote_code, dtype=args.dtype
+        )
+        report = run_behaviour_pareto_sweep(
+            backend, prompts, args.output_dir, args.source_id, args.source_version,
+            probe_cfg=probe_cfg, base_cognition_policy=policy, sweep_cfg=sweep_cfg,
+            pack_id_prefix=args.pack_id_prefix, pack_version=args.pack_version,
+        )
+        payload = report.to_dict()
+    except Exception as exc:
+        print(f"ERROR: behaviour/size Pareto sweep failed: {exc}")
+        return 3
+    print(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
+
 def _list_artifacts(args) -> int:
     with CanonicalDB(args.db) as c:
         rows = list_artifacts(c.db, build_target_id=args.target_id, statuses=args.status or None)
@@ -1000,6 +1062,40 @@ def main():
     br.add_argument("--pack-version", type=int, default=17)
     br.add_argument("--include-pack-metadata", action="store_true")
 
+    ps=sub.add_parser("benchmark-pareto", help="sweep evidence pruning, compression, and recall budgets against compiled teacher-behaviour retention")
+    ps.add_argument("model_dir")
+    ps.add_argument("prompts", nargs="+", help="UTF-8 files containing one controlled prompt per line")
+    ps.add_argument("output_dir")
+    ps.add_argument("--source-id", required=True)
+    ps.add_argument("--source-version", default="local")
+    ps.add_argument("--teacher-top-k", type=int, default=8)
+    ps.add_argument("--runtime-top-k", type=int, default=8)
+    ps.add_argument("--evidence-top-k", default="1,2,4,8", help="comma-separated retained teacher ranks")
+    ps.add_argument("--min-relation-score", default="0,0.02,0.05", help="comma-separated probability pruning thresholds")
+    ps.add_argument("--recall-nodes", default="24,96", help="comma-separated recall node budgets")
+    ps.add_argument("--recall-depth", default="0,3", help="comma-separated recall depth budgets")
+    ps.add_argument("--compression", default="none,auto", help="comma-separated: none,auto")
+    ps.add_argument("--max-points", type=int, default=256)
+    ps.add_argument("--temperature", type=float, default=1.0)
+    ps.add_argument("--min-probability", type=float, default=0.0)
+    ps.add_argument("--max-surface-chars", type=int, default=64)
+    ps.add_argument("--max-prompt-words", type=int, default=64)
+    ps.add_argument("--evidence-confidence", type=float, default=0.95)
+    ps.add_argument("--keep-leading-space", action="store_true")
+    ps.add_argument("--include-punctuation-only", action="store_true")
+    ps.add_argument("--exclude-numeric-only", action="store_true")
+    ps.add_argument("--device", default="cpu")
+    ps.add_argument("--dtype", default="auto")
+    ps.add_argument("--trust-remote-code", action="store_true")
+    ps.add_argument("--max-relation-neighbors", type=int, default=24)
+    ps.add_argument("--max-structural-parents", type=int, default=24)
+    ps.add_argument("--max-predictions", type=int, default=8)
+    ps.add_argument("--min-activation", type=float, default=0.06)
+    ps.add_argument("--min-prediction-score", type=float, default=0.01)
+    ps.add_argument("--pack-id-prefix", default="equinox-pareto")
+    ps.add_argument("--pack-version", type=int, default=18)
+    ps.add_argument("--include-pack-metadata", action="store_true")
+
     ar=sub.add_parser("artifacts", help="list current derived compiler artifacts")
     ar.add_argument("db"); ar.add_argument("--target-id"); ar.add_argument("--status", action="append", default=[])
 
@@ -1116,6 +1212,8 @@ def main():
         raise SystemExit(_benchmark_predictions(a))
     elif a.cmd=="benchmark-retention":
         raise SystemExit(_benchmark_retention(a))
+    elif a.cmd=="benchmark-pareto":
+        raise SystemExit(_benchmark_pareto(a))
     elif a.cmd=="artifacts":
         raise SystemExit(_list_artifacts(a))
     elif a.cmd=="source-policy":

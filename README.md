@@ -1,4 +1,173 @@
-# Equinox Forge v0.17 — Teacher → Equinox Behaviour Retention Benchmark
+# Equinox Forge v0.18 — Behaviour / Size Pareto Sweep
+
+**Current milestone:** v0.18 turns the fixed v0.17 retention benchmark into a controlled multi-configuration efficiency experiment. The teacher is probed **once** at the largest requested top-k. Forge then recompiles that exact captured evidence across pruning, runtime-budget, and optional macro-compression settings and measures the resulting storage/behaviour trade-off.
+
+```text
+one Teacher probe set
+        ↓
+shared captured evidence
+        ↓
+┌ top-k pruning
+├ relation-score pruning
+├ optional structural compression
+├ recall-node budget
+└ recall-depth budget
+        ↓
+many independent .eqbase packs
+        ↓
+Direct Replay + Full Runtime Replay
+        ↓
+Pareto frontiers
+```
+
+## Why this matters
+
+v0.17 could answer whether one compiled configuration retained captured teacher behaviour. It could not answer the more important engineering question:
+
+> **How much captured teacher behaviour is retained per byte and per unit of runtime work?**
+
+v0.18 makes that trade-off explicit instead of hiding it behind a single default.
+
+## Controlled axes
+
+Each sweep point is defined by:
+
+- `evidence_top_k`: how many teacher-ranked candidates per prompt are retained before compilation;
+- `min_relation_score`: probability/score pruning before node closure;
+- `max_recall_nodes`: bounded runtime recall budget;
+- `max_recall_depth`: maximum recall expansion depth;
+- `compression_mode`: `none` or `auto`.
+
+The teacher is **not rerun per point**. This is important: a smaller pack is compared against exactly the same captured teacher reference distribution.
+
+## Real node pruning
+
+v0.18 does not merely hide low-ranked relations while leaving all their target structures in the pack. After rank/score pruning, Forge computes the transitive member closure of the surviving relation endpoints. Candidate surfaces and Q-structure that are no longer reachable are excluded from that sweep point. Pack-size differences therefore reflect the actual compiled knowledge slice.
+
+## Two evaluation layers remain
+
+As in v0.17, every point is measured twice:
+
+1. **Direct Replay** — recall depth is disabled to isolate compilation/serialization loss.
+2. **Full Runtime Replay** — the configured Equinox recall budget is enabled.
+
+Per point v0.18 records, among other fields:
+
+- `.eqbase` bytes, nodes, relations;
+- promoted macro count and realized structural compression ratio;
+- Top-1 retention;
+- teacher top-k recall;
+- teacher probability mass retained;
+- NDCG;
+- conditional JS divergence;
+- average recalled nodes;
+- average relation checks;
+- compile/evaluation diagnostics.
+
+## Pareto labels
+
+v0.18 computes three explicit non-dominance sets:
+
+- **storage frontier** — pack bytes vs direct compiler-only retention;
+- **runtime frontier** — relation work vs full-runtime retention;
+- **joint frontier** — bytes + relation work vs full-runtime retention.
+
+A point is Pareto-labelled only when no other point is at least as good on every relevant objective and strictly better on at least one. This is **not** an automatic recommendation or a claim that one point is universally best.
+
+## Deterministic demo
+
+The bundled demo sweeps 48 configurations over a four-candidate teacher distribution. A particularly clear storage/retention slice is:
+
+```text
+retained Teacher candidates   pack bytes   relations   Teacher mass   NDCG
+1                             1,594        3           61.7%          0.740
+2                             1,914        6           83.3%          0.904
+4                             2,231        12          100.0%         1.000
+```
+
+Top-1 retention is still 100% at all three points. That is exactly why Top-1 alone is insufficient: the smallest pack has discarded roughly 38% of the captured teacher probability mass even though its most likely answer remains unchanged.
+
+In this tiny language-behaviour fixture the automatic structural compression mode promotes no macros because no repeated subsequence passes the already established **net realized savings** criterion. That no-op is intentional and auditable; compression is never forced merely because the sweep requested it. Larger repeated structures can activate the same axis.
+
+## Outputs
+
+A sweep directory contains:
+
+```text
+teacher-behaviour-full.eqir.json
+teacher-probe-report.json
+pareto-report.json
+pareto-points.csv
+points/
+  p0001-.../
+    compiled-input.eqir.json
+    point.sqlite
+    runtime.eqbase
+    point-report.json
+  ...
+```
+
+`pareto-points.csv` is intentionally flat so the curve can be plotted or analysed without parsing the complete audit JSON.
+
+## CLI
+
+With the optional local Hugging Face runtime installed:
+
+```bash
+python -m equinox_forge.cli benchmark-pareto \
+  /path/to/local/model \
+  prompts.txt \
+  pareto-out \
+  --source-id my-teacher \
+  --source-version 1 \
+  --teacher-top-k 8 \
+  --runtime-top-k 8 \
+  --evidence-top-k 1,2,4,8 \
+  --min-relation-score 0,0.02,0.05 \
+  --recall-nodes 24,96 \
+  --recall-depth 0,3 \
+  --compression none,auto
+```
+
+`--max-points` prevents an accidental combinatorial explosion. Forge still uses `local_files_only=True`; this command does not silently download a model.
+
+## Scope limitation
+
+The evaluation remains **compiled probe replay**. The same prompts used for capture are replayed after compilation. v0.18 measures the efficiency frontier of captured behaviour; it does not yet establish held-out language generalization, equivalence to a Transformer, mobile energy savings, or superiority to quantization/distillation.
+
+## Regression suite
+
+```bash
+PYTHONPATH=. python tests/test_pareto_sweep.py
+```
+
+Expected marker:
+
+```text
+FORGE_V18_PARETO_SWEEP_OK
+```
+
+The full historical regression runner now ends in:
+
+```text
+FORGE_V18_ALL_TESTS_OK
+```
+
+## Recommended next step — v0.19
+
+**Held-out Generalization Split + Prefix/Context Coverage.** The next scientifically important question is no longer whether captured prompts replay efficiently, but whether compiled structure transfers to prompts that were **not** used during teacher extraction. A v0.19 benchmark should create explicit train/capture and held-out sets, report exact-context vs suffix-context coverage, and separate:
+
+```text
+memorized probe replay
+        vs
+structural transfer to unseen prompts
+```
+
+That is the next necessary step before making stronger claims about language capability.
+
+---
+
+# Historical v0.17 — Teacher → Equinox Behaviour Retention Benchmark
 
 **Current milestone:** v0.17 closes the first controlled Teacher → Forge → `.eqbase` → Runtime comparison loop. The same controlled next-token probes are captured from a causal teacher, compiled into Equinox prediction relations, loaded from the binary runtime pack, and replayed with explicit retention metrics.
 

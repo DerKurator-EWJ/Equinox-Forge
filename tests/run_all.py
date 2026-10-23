@@ -23,10 +23,11 @@ TESTS=[
     'test_runtime_cognition.py',
     'test_behaviour_retention.py',
     'test_tiny_retention_runtime.py',
+    'test_pareto_sweep.py',
 ]
 env=os.environ.copy()
 old=env.get('PYTHONPATH','')
 env['PYTHONPATH']=str(ROOT)+(os.pathsep+old if old else '')
 for name in TESTS:
     subprocess.run([sys.executable, str(ROOT/'tests'/name)], check=True, cwd=ROOT, env=env)
-print('FORGE_V17_ALL_TESTS_OK')
+print('FORGE_V18_ALL_TESTS_OK')
