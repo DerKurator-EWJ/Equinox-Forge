@@ -19,9 +19,10 @@ from .dependency import (
 )
 from .rebuild import rebuild_senses, source_policy_hash
 from .sense_compiler import FusionWeights, SenseCompilePolicy
+from .macro_builder import MacroCompilePolicy, rebuild_macro
 
 INCREMENTAL_FORMAT = "equinox-forge-incremental-rebuild-v1"
-INCREMENTAL_VERSION = "0.10"
+INCREMENTAL_VERSION = "0.11"
 
 
 @dataclass
@@ -93,6 +94,14 @@ def _consensus_policy(payload: dict[str, Any]) -> ConsensusPolicy:
     return ConsensusPolicy(**{k: c[k] for k in valid if k in c})
 
 
+def _macro_policy(payload: dict[str, Any]) -> MacroCompilePolicy:
+    valid = {
+        "input_build_targets", "input_nodes", "allowed_statuses", "min_members",
+        "ordered_members", "modality", "kind", "surface",
+    }
+    return MacroCompilePolicy(**{k: payload[k] for k in valid if k in payload})
+
+
 def incremental_rebuild(
     db: sqlite3.Connection,
     roots: list[ArtifactRef],
@@ -128,18 +137,38 @@ def incremental_rebuild(
             deferred.append({"target_id":target_id,"builder":info["builder"],"reason":"upstream_builder_deferred"})
             deferred_ids.add(target_id)
             continue
-        if info["builder"] != "sense":
+        if info["builder"] not in {"sense", "macro"}:
             deferred.append({"target_id": target_id, "builder": info["builder"], "reason": "builder_not_installed"})
             deferred_ids.add(target_id)
             continue
+        if info["builder"] == "macro" and not ((info["policy"].get("input_build_targets") or []) or (info["policy"].get("input_nodes") or [])):
+            # Preserve the v0.10 placeholder behaviour: merely naming a future
+            # macro builder is not enough to execute it until a real recipe exists.
+            deferred.append({"target_id": target_id, "builder": "macro", "reason": "builder_not_installed"})
+            deferred_ids.add(target_id)
+            continue
         if dry_run:
-            rebuilt.append({"target_id": target_id, "builder": "sense", "status": "planned"})
+            rebuilt.append({"target_id": target_id, "builder": info["builder"], "status": "planned"})
             continue
         policy_payload = info["policy"]
-        sense = _sense_policy(policy_payload)
-        consensus = _consensus_policy(policy_payload)
-        track = bool(policy_payload.get("track_stability", True))
-        doc, report = rebuild_senses(db, target_id, sense, consensus, track_stability=track)
+        if info["builder"] == "sense":
+            sense = _sense_policy(policy_payload)
+            consensus = _consensus_policy(policy_payload)
+            track = bool(policy_payload.get("track_stability", True))
+            doc, report = rebuild_senses(db, target_id, sense, consensus, track_stability=track)
+            extra = {
+                "rebuild_run_id": report.rebuild_run_id,
+                "clusters_created": report.sense_report.get("clusters_created"),
+            }
+        else:
+            macro_policy = _macro_policy(policy_payload)
+            doc, report = rebuild_macro(db, target_id, macro_policy, record_store=True)
+            extra = {
+                "built": report.built,
+                "output_node_id": report.output_node_id,
+                "members": len(report.members),
+                "reason": report.reason,
+            }
         if ingest_derived:
             _ingest_document(db, doc)
         output_path = None
@@ -149,12 +178,11 @@ def incremental_rebuild(
             output_path.write_text(json.dumps(doc.to_dict(),ensure_ascii=False,indent=2,sort_keys=True)+"\n",encoding="utf-8")
         rebuilt.append({
             "target_id": target_id,
-            "builder": "sense",
-            "status": "rebuilt",
+            "builder": info["builder"],
+            "status": "rebuilt" if getattr(report, "built", True) else "not_built",
             "output": None if output_path is None else str(output_path),
-            "output_hash": report.sense_report.get("format", "") + ":" + hashlib.sha256(json.dumps(doc.to_dict(),sort_keys=True,ensure_ascii=False,separators=(",",":")).encode()).hexdigest(),
-            "rebuild_run_id": report.rebuild_run_id,
-            "clusters_created": report.sense_report.get("clusters_created"),
+            "output_hash": hashlib.sha256(json.dumps(doc.to_dict(),sort_keys=True,ensure_ascii=False,separators=(",",":")).encode()).hexdigest(),
+            **extra,
         })
 
     if not dry_run:

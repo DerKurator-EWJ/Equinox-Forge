@@ -17,6 +17,8 @@ from .consensus import ConsensusPolicy, track_hypothesis_run, list_hypothesis_st
 from .rebuild import set_source_policy, clear_source_policy, replace_source_version, list_source_policies, rebuild_senses
 from .dependency import ArtifactRef, impact_from_roots, source_roots, refresh_dependency_index, register_manual_dependency
 from .incremental import incremental_rebuild_from_sources
+from .artifact_store import list_artifacts
+from .macro_builder import MacroCompilePolicy, rebuild_macro
 
 
 def ingest(db_path: str, doc_path: str):
@@ -314,7 +316,7 @@ def _source_policy_set(args) -> int:
         policy = set_source_policy(
             c.db, args.source_id, args.source_version,
             enabled=enabled, trust_weight=args.weight,
-            note=args.note or "", metadata={"set_via": "eqforge-v0.10"},
+            note=args.note or "", metadata={"set_via": "eqforge-v0.11"},
         )
         print(json.dumps({"policy": {
             "source_id": policy.source_id,
@@ -426,6 +428,49 @@ def _incremental_rebuild(args) -> int:
         if report_path:
             report_path.write_text(json.dumps(report.to_dict(),ensure_ascii=False,indent=2,sort_keys=True)+"\n",encoding="utf-8")
         print(json.dumps({"incremental_rebuild": report.to_dict(), "report": None if report_path is None else str(report_path), "db_stats": c.stats()}, ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
+
+def _build_macro(args) -> int:
+    policy = MacroCompilePolicy(
+        input_build_targets=list(args.input_target or []),
+        input_nodes=list(args.input_node or []),
+        allowed_statuses=list(args.allowed_status or ["stable", "active"]),
+        min_members=args.min_members,
+        ordered_members=args.ordered_members,
+        modality=args.modality,
+        kind=args.kind,
+        surface=args.surface,
+    )
+    with CanonicalDB(args.db) as c:
+        try:
+            doc, report = rebuild_macro(c.db, args.target_id, policy, record_store=True)
+        except Exception as exc:
+            print(f"ERROR: macro build failed: {exc}")
+            return 3
+        issues = validate_document(doc) if doc.nodes else []
+        errors = [x for x in issues if x.severity == "error"]
+        if errors:
+            for x in issues: print(f"{x.severity.upper()}: {x.message}")
+            return 2
+        save_document(doc, args.output)
+        report_path = Path(args.report) if args.report else Path(args.output).with_suffix('.macro.json')
+        report_path.write_text(json.dumps(report.to_dict(),ensure_ascii=False,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+        if args.ingest_derived:
+            for n in doc.nodes: c.upsert_node(n)
+            for e in doc.evidence: c.add_evidence(e)
+            c.commit()
+        print(json.dumps({
+            "output": str(Path(args.output)), "report": str(report_path),
+            "macro": report.to_dict(), "db_stats": c.stats(),
+        }, ensure_ascii=False, indent=2, sort_keys=True))
+    return 0
+
+
+def _list_artifacts(args) -> int:
+    with CanonicalDB(args.db) as c:
+        rows = list_artifacts(c.db, build_target_id=args.target_id, statuses=args.status or None)
+        print(json.dumps(rows, ensure_ascii=False, indent=2, sort_keys=True))
     return 0
 
 
@@ -570,6 +615,22 @@ def main():
     irb.add_argument("--dry-run", action="store_true")
     irb.add_argument("--ingest-derived", action="store_true")
 
+    bm=sub.add_parser("build-macro", help="build a higher Equinox macro from current derived artifacts/nodes")
+    bm.add_argument("db"); bm.add_argument("output"); bm.add_argument("--target-id", required=True)
+    bm.add_argument("--input-target", action="append", default=[], help="upstream build target; repeatable")
+    bm.add_argument("--input-node", action="append", default=[], help="explicit canonical/derived node; repeatable")
+    bm.add_argument("--allowed-status", action="append", default=[], help="eligible artifact status; repeatable")
+    bm.add_argument("--min-members", type=int, default=2)
+    bm.add_argument("--ordered-members", action="store_true")
+    bm.add_argument("--modality")
+    bm.add_argument("--kind", default="composite")
+    bm.add_argument("--surface")
+    bm.add_argument("--report")
+    bm.add_argument("--ingest-derived", action="store_true")
+
+    ar=sub.add_parser("artifacts", help="list current derived compiler artifacts")
+    ar.add_argument("db"); ar.add_argument("--target-id"); ar.add_argument("--status", action="append", default=[])
+
     sp=sub.add_parser("source-policy", help="set, clear, or list persistent source trust/ablation policy")
     sps=sp.add_subparsers(dest="source_policy_cmd", required=True)
     spset=sps.add_parser("set")
@@ -661,6 +722,10 @@ def main():
         raise SystemExit(_dependency_impact(a))
     elif a.cmd=="incremental-rebuild":
         raise SystemExit(_incremental_rebuild(a))
+    elif a.cmd=="build-macro":
+        raise SystemExit(_build_macro(a))
+    elif a.cmd=="artifacts":
+        raise SystemExit(_list_artifacts(a))
     elif a.cmd=="source-policy":
         if a.source_policy_cmd=="set": raise SystemExit(_source_policy_set(a))
         if a.source_policy_cmd=="clear": raise SystemExit(_source_policy_clear(a))

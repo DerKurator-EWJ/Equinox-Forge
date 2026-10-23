@@ -1,23 +1,33 @@
-# Equinox Forge v0.10 — Dependency Graph + Incremental Transitive Rebuild
+# Equinox Forge v0.11 — Derived Artifact Store + Recursive Macro/Hierarchy Builder
 
-Forge v0.10 turns the v0.9 source-policy rebuild into a **dependency-aware incremental compiler**.
-
-Instead of manually naming every surface that might be affected after a teacher/source change, Forge now maintains a generic dependency graph:
+Forge v0.11 adds the first real compiler family **above** provisional sense concepts. Derived outputs now live in a persistent Artifact Store with status and generation history, and the incremental scheduler can execute both `sense` and `macro` builders.
 
 ```text
-source@version
-    ↓ evidence provenance
-canonical endpoints
-    ↓ composition / contextual use / template match
-registered build target
-    ↓ derived output
-higher artifact / future builder
+Teacher/source
+   ↓
+Sense compiler
+   ↓  stable/candidate/stale artifacts
+Derived Artifact Store
+   ↓
+Macro builder
+   ↓
+higher Macro builder
+   ↓
+... recursive Equinox hierarchy
 ```
 
-A changed source can therefore invalidate only the transitive subgraph that actually depends on it. Unrelated registered targets remain untouched.
+A source change can therefore propagate selectively through an actual derived hierarchy:
 
-The dependency graph is intentionally builder-agnostic. v0.10 can automatically execute the existing **sense compiler**; future macro/crossmodal/domain builders can register in the same scheduler and are currently reported as `deferred` until their executor exists.
+```text
+teacher-bank@1
+→ bank sense
+→ macro-pair
+→ macro-domain
+```
 
+while unrelated branches remain untouched. Intermediate derived nodes do **not** have to be forced into the canonical input tables; higher builders can read them directly from the Artifact Store.
+
+The v0.10 dependency graph and v0.9 source-policy rebuild remain intact underneath this layer.
 
 The v0.9 source-ablation and reweighting engine remains intact underneath this layer: raw evidence is preserved, source policies create an effective evidence view, and rebuilds remain deterministic/auditable.
 
@@ -439,3 +449,113 @@ Source trust values also remain compiler policy and still require calibration ag
 **Derived Artifact Store + Macro/Hierarchy Builder.**
 
 That would give the generic v0.10 scheduler a second real compiler family above provisional senses, so changes can propagate and rebuild not only sense nodes but higher Equinox macros/domains automatically.
+
+
+## v0.11 derived Artifact Store
+
+The Canonical DB now also owns a separate derived-output layer:
+
+```text
+derived_artifacts          current compiler outputs
+derived_artifact_versions immutable output/status history
+```
+
+Every artifact records its build target, builder, canonical node ID, content hash, lifecycle status, generation, source-policy hash, and complete node payload. If an output disappears from a later rebuild it is not deleted; its current record becomes `stale` while its older generations remain auditable.
+
+Sense compiler outputs are mirrored automatically. Their Artifact Store status follows the v0.8/v0.9 hypothesis lifecycle (`candidate`, `stable`, `contested`, `quarantined`).
+
+Inspect current artifacts:
+
+```bash
+python -m equinox_forge.cli artifacts master.sqlite
+python -m equinox_forge.cli artifacts master.sqlite --target-id bank --status stable
+```
+
+## v0.11 macro / hierarchy builder
+
+A macro recipe may consume:
+
+- explicit canonical/derived node IDs;
+- current outputs of one or more build targets;
+- only selected statuses such as `stable` or `active`.
+
+Example:
+
+```bash
+python -m equinox_forge.cli build-macro master.sqlite macro.eqir.json \
+  --target-id animal-domain \
+  --input-target hund \
+  --input-target katze \
+  --allowed-status stable \
+  --min-members 2 \
+  --surface "macro:animal-domain"
+```
+
+The resulting level is structural only:
+
+```text
+level(macro) = 1 + max(level(member_i))
+```
+
+No importance or confidence bonus is assigned merely because a node is deeper. Membership is represented by `node_members` and explicit derived `composition` evidence.
+
+Macro build targets register dependencies on upstream build targets/nodes. Therefore macros may themselves become inputs to higher macro targets. The existing v0.10 topological scheduler automatically executes them dependency-first.
+
+## Artifact-only intermediate hierarchy
+
+A core v0.11 rule is that an intermediate compiler output does not have to become canonical input state just to feed the next compiler. If a derived node is absent from `nodes`, the Macro Builder can resolve its current node payload from `derived_artifacts`. This keeps:
+
+```text
+source/canonical evidence
+!=
+derived compiler state
+```
+
+until an explicit ingest/runtime-pack stage decides what becomes part of the compiled BASE.
+
+## Recursive invalidation test
+
+The v0.11 regression fixture constructs:
+
+```text
+bank sense ─┐
+            ├→ macro-pair ─┐
+kran sense ─┘              ├→ macro-domain
+hund sense ────────────────┘
+```
+
+Then `teacher-bank@1` is disabled. The expected rebuild order is:
+
+```text
+bank → macro-pair → macro-domain
+```
+
+`macro-pair` and `macro-domain` can no longer satisfy their minimum-member policy and become `stale`; `kran` and `hund` remain `stable`.
+
+Run the reproducible demo:
+
+```bash
+PYTHONPATH=. python examples/build_macro_hierarchy_demo.py
+```
+
+## v0.11 regression suite
+
+```bash
+PYTHONPATH=. python tests/run_all.py
+```
+
+Expected final marker:
+
+```text
+FORGE_V11_ALL_TESTS_OK
+```
+
+## What v0.11 does NOT prove
+
+The Macro Builder proves recursive representation, persistence, dependency tracking, and selective recompilation. It does not yet prove that Forge can automatically discover useful high-level macro boundaries at scale. v0.11 recipes explicitly state which upstream build targets/nodes may compose a macro; automatic hierarchy discovery is a separate compiler problem.
+
+## Recommended next step — v0.12
+
+**Automatic Macro Discovery + Structural Compression Metrics.**
+
+Instead of manually declaring every higher macro recipe, v0.12 should scan stable relation/composition patterns, propose recurring higher structures, measure actual reuse/compression, and only promote structures that reduce repeated representation or search work.

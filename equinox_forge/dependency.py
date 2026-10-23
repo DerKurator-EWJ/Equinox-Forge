@@ -10,7 +10,7 @@ import sqlite3
 from .ir import RelationType, NodeKind
 
 DEPENDENCY_FORMAT = "equinox-forge-dependency-graph-v1"
-DEPENDENCY_VERSION = "0.10"
+DEPENDENCY_VERSION = "0.11"
 
 AUTO_KINDS = {
     "composition_member",
@@ -20,6 +20,7 @@ AUTO_KINDS = {
     "sense_context",
     "sense_prediction_template",
     "sense_output",
+    "derived_output",
 }
 
 
@@ -176,6 +177,30 @@ def register_sense_build_target(
     register_build_target(db, target_id, "sense", payload, last_output_hash=last_output_hash)
 
 
+
+
+def register_macro_build_target(
+    db: sqlite3.Connection,
+    target_id: str,
+    macro_policy: Any,
+    *,
+    active: bool = True,
+    last_output_hash: str = "",
+) -> None:
+    """Register a reproducible macro recipe plus explicit dependency boundary."""
+    payload = asdict(macro_policy) if hasattr(macro_policy, "__dataclass_fields__") else dict(macro_policy)
+    register_build_target(db, target_id, "macro", payload, active=active, last_output_hash=last_output_hash)
+    # Replace only this builder's explicit input edges; unrelated manual/plugin edges survive.
+    db.execute(
+        "DELETE FROM dependency_edges WHERE dependent_type='build_target' AND dependent_id=? AND dependency_kind IN ('macro_input_target','macro_input_node')",
+        (target_id,),
+    )
+    for upstream in sorted(set(payload.get("input_build_targets") or [])):
+        add_dependency(db, ArtifactRef("build_target", target_id), ArtifactRef("build_target", upstream), "macro_input_target")
+    for node_id in sorted(set(payload.get("input_nodes") or [])):
+        add_dependency(db, ArtifactRef("build_target", target_id), ArtifactRef("node", node_id), "macro_input_node")
+    db.commit()
+
 def _members(db: sqlite3.Connection, node_id: str) -> list[str]:
     return [r[0] for r in db.execute(
         "SELECT child_id FROM node_members WHERE parent_id=? ORDER BY position", (node_id,)
@@ -261,11 +286,23 @@ def refresh_dependency_index(db: sqlite3.Connection) -> dict[str, int]:
             add_dependency(db, ArtifactRef("node", nid), bt, "sense_output")
             sense_edges += 1
 
+    derived_edges = 0
+    try:
+        rows = db.execute(
+            "SELECT build_target_id,node_id FROM derived_artifacts WHERE node_id IS NOT NULL AND status!='stale' ORDER BY build_target_id,artifact_id"
+        ).fetchall()
+    except sqlite3.OperationalError:
+        rows = []
+    for target_id, node_id in rows:
+        add_dependency(db, ArtifactRef("node", node_id), ArtifactRef("build_target", target_id), "derived_output")
+        derived_edges += 1
+
     db.commit()
     return {
         "composition_edges": composition_edges,
         "evidence_source_edges": evidence_edges,
         "sense_edges": sense_edges,
+        "derived_output_edges": derived_edges,
         "total_edges": int(db.execute("SELECT COUNT(*) FROM dependency_edges").fetchone()[0]),
         "sense_build_targets": len(targets),
         "registered_build_targets": int(db.execute("SELECT COUNT(*) FROM build_targets WHERE active=1").fetchone()[0]),

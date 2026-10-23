@@ -12,7 +12,7 @@ from .sense_compiler import SenseCompilePolicy, compile_provisional_senses
 from .consensus import ConsensusPolicy, track_hypothesis_run, ConsensusReport
 
 REBUILD_FORMAT = "equinox-forge-rebuild-v1"
-REBUILD_VERSION = "0.10"
+REBUILD_VERSION = "0.11"
 
 
 @dataclass(frozen=True)
@@ -234,6 +234,19 @@ def rebuild_senses(
         register_sense_build_target(
             db, target_id, sense_policy, consensus_policy or ConsensusPolicy(),
             track_stability=track_stability, last_output_hash=output_hash,
+        )
+        # v0.11 persists compiler outputs as derived artifacts. Only provisional
+        # sense nodes are outputs; closure/input nodes remain canonical inputs.
+        from .artifact_store import record_document_outputs
+        output_ids = [n.node_id for n in doc.nodes if n.metadata.get("provisional") and n.metadata.get("target_id") == target_id]
+        status_by_node = {}
+        if consensus is not None:
+            status_by_node = {h["hypothesis_id"]: h.get("status", "candidate") for h in consensus.hypotheses}
+        else:
+            status_by_node = {nid: "candidate" for nid in output_ids}
+        record_document_outputs(
+            db, target_id, "sense", doc, output_ids, status_by_node=status_by_node,
+            source_policy_hash=meta["source_policy_hash"], artifact_type="sense_node",
         )
         refresh_dependency_index(db)
         db.commit()
