@@ -1,4 +1,30 @@
-# Equinox Forge v0.39 — Real Teacher Domain Trial
+# Equinox Forge v0.40 — Exact Context Authority / Evidence Ordering
+
+v0.40 is the first runtime-cognition fix driven by the larger neural-teacher trial. It repairs the v0.39 scale error where many weaker recalled contexts could outvote a strong direct prediction from the live exact context purely through accumulation.
+
+Frozen v0.39 -> v0.40 comparison on the **same compiled EQBASE**, with no additional teacher queries and no recompilation:
+
+```text
+Replay Top-1:                  92.1875% -> 100%
+Paraphrase Top-1:              92.1875% -> 100%
+Held-out fact Top-1:           14.0625% -> 14.0625%
+Opaque relation abstention:    100% -> 100%
+Outside-domain abstention:     100% -> 100%
+```
+
+The new authority tier activates only when an exact or longest-known suffix context carries sufficiently strong direct `PREDICTION` evidence. It does not alter candidate scores and it is not an unconditional "exact always wins" rule: if direct evidence does not clear the quality floor, historical aggregate ordering remains active.
+
+Run:
+
+```bash
+eqforge-exact-authority --out out/v0_40_exact_context_authority
+```
+
+See `RELEASE_V0_40.md` and `benchmarks/v0_40/`.
+
+---
+
+## Previous milestone — v0.39 Real Teacher Domain Trial
 
 v0.39 is a measurement release. It adds the first larger end-to-end neural-teacher domain trial without changing the v0.38 cognition mechanisms. A deterministic PyTorch next-token teacher is trained on a fixed 32-entity animal domain, Forge may probe only part of its knowledge, and the compiled `.eqbase` is then evaluated after the teacher is removed from the runtime answer path.
 

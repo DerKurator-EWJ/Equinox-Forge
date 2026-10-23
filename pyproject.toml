@@ -1,6 +1,6 @@
 [project]
 name = "equinox-forge"
-version = "0.39.0"
+version = "0.40.0"
 description = "Model-independent canonical knowledge compiler for Equinox"
 requires-python = ">=3.10"
 dependencies = [
@@ -19,6 +19,7 @@ eqforge-composition-lifecycle = "equinox_forge.composition_lifecycle:main"
 eqforge-source-lineage = "equinox_forge.source_lineage_benchmark:main"
 eqforge-global-lineage = "equinox_forge.global_lineage_consensus:main"
 eqforge-domain-trial = "equinox_forge.real_teacher_domain_trial:main"
+eqforge-exact-authority = "equinox_forge.exact_context_authority:main"
 
 [project.optional-dependencies]
 domain-trial = [

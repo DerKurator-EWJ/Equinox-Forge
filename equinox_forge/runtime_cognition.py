@@ -12,7 +12,7 @@ from .runtime_pack import LoadedRuntimePack, RuntimeNode, load_base_pack
 from .runtime_query import RuntimeIndex
 
 RUNTIME_COGNITION_FORMAT = "equinox-runtime-cognition-v2"
-RUNTIME_COGNITION_VERSION = "0.34"
+RUNTIME_COGNITION_VERSION = "0.40"
 
 
 @dataclass
@@ -29,6 +29,15 @@ class RuntimeCognitionPolicy:
     transition_weight: float = 0.72
     recalled_prediction_weight: float = 0.72
     exact_context_prediction_weight: float = 1.0
+    # v0.40: strong direct evidence from an exact or suffix context forms an
+    # authority tier over recall-only alternatives. This is deliberately not an
+    # unconditional "exact always wins" rule: the tier activates only when at
+    # least one direct PREDICTION candidate clears the configured support floor.
+    # Competing strong direct candidates remain mutually comparable, and weak
+    # direct evidence falls back to ordinary aggregation.
+    enable_exact_context_authority: bool = True
+    exact_context_authority_min_direct_score: float = 0.50
+    exact_context_authority_include_suffix: bool = True
     seed_recent_word_weight: float = 0.82
     seed_older_word_weight: float = 0.48
     # Runtime mechanism switches. Defaults preserve v0.16-v0.20 behavior.
@@ -137,6 +146,7 @@ class RuntimeCognitionPolicy:
         if not self.relation_composition_allowed_statuses: raise ValueError("relation_composition_allowed_statuses must not be empty")
         if self.relation_composition_min_schema_sources < 1: raise ValueError("relation_composition_min_schema_sources must be >= 1")
         if self.relation_composition_min_schema_support < 1: raise ValueError("relation_composition_min_schema_support must be >= 1")
+        if not 0 <= self.exact_context_authority_min_direct_score <= 1: raise ValueError("exact_context_authority_min_direct_score must be in [0,1]")
         if not 0 <= self.min_activation <= 1: raise ValueError("min_activation must be in [0,1]")
         if not 0 <= self.min_prediction_score <= 1: raise ValueError("min_prediction_score must be in [0,1]")
         if not 0 < self.depth_decay <= 1: raise ValueError("depth_decay must be in (0,1]")
@@ -667,7 +677,7 @@ class RuntimeCognition:
                 return [], checks, diagnostics
         return [], checks, diagnostics
 
-    def _resolve_context(self, context: str) -> tuple[list[str], list[str], list[str], int, list[dict[str, Any]]]:
+    def _resolve_context(self, context: str) -> tuple[list[str], list[str], list[str], int, list[dict[str, Any]], str]:
         text = " ".join(_surface_tokens(context))
         exact = list(self.index.surface_to_nodes.get(text, [])) if text else []
         exact_nodes = sorted((self.index.node_by_id[x] for x in exact), key=_node_preference)
@@ -708,7 +718,8 @@ class RuntimeCognition:
 
         if not self.policy.enable_lexical_seeds:
             lexical = []
-        return exact_context or fallback or frames, lexical, tokens, frame_checks, frame_admission
+        resolution_kind = "exact" if exact_context else ("suffix" if fallback else ("frame" if frames else "none"))
+        return exact_context or fallback or frames, lexical, tokens, frame_checks, frame_admission, resolution_kind
 
     def _relation_quality(self, rel: CompiledRelation, weight: float) -> float:
         # source_count is only a mild confidence bonus; it never substitutes for
@@ -717,7 +728,7 @@ class RuntimeCognition:
         return max(0.0, min(1.0, rel.score * rel.confidence * weight * source_bonus))
 
     def recall(self, context: str) -> tuple[list[RecallTrace], dict[str, Any]]:
-        context_ids, lexical_ids, tokens, frame_checks, frame_admission = self._resolve_context(context)
+        context_ids, lexical_ids, tokens, frame_checks, frame_admission, resolution_kind = self._resolve_context(context)
         seeds: list[tuple[str, float, str]] = []
         for nid in context_ids:
             node = self.index.node_by_id.get(nid)
@@ -811,6 +822,7 @@ class RuntimeCognition:
             "resolved_context_ids": context_ids,
             "lexical_seed_ids": lexical_ids,
             "tokens": tokens,
+            "context_resolution_kind": resolution_kind,
             "frame_admission": frame_admission,
             "work": {
                 "recall_nodes": len(traces),
@@ -1215,10 +1227,41 @@ class RuntimeCognition:
             candidates.append(PredictionCandidate(
                 target_id, node.surface, score, direct, recalled_score, transition, len(cs), cs, composition,
             ))
-        candidates.sort(key=lambda x: (-x.score, -x.direct_score, -x.transition_score, x.surface or "", x.node_id))
+
+        # v0.40 evidence ordering. Direct exact/suffix prediction evidence is a
+        # stronger *kind* of support than associative recall once it clears a
+        # minimum quality floor. This prevents many weak recalled contexts from
+        # winning merely by noisy-OR accumulation. If no direct candidate clears
+        # the floor, ordinary score ordering is preserved. Frames and composition
+        # are deliberately excluded from this authority tier.
+        resolution_kind = str(meta.get("context_resolution_kind") or "none")
+        authority_resolution = resolution_kind == "exact" or (
+            resolution_kind == "suffix" and self.policy.exact_context_authority_include_suffix
+        )
+        authority_active = False
+        authority_ids: set[str] = set()
+        if self.policy.enable_exact_context_authority and authority_resolution:
+            authority_ids = {
+                c.node_id for c in candidates
+                if c.direct_score + 1e-12 >= self.policy.exact_context_authority_min_direct_score
+            }
+            authority_active = bool(authority_ids)
+        if authority_active:
+            candidates.sort(key=lambda x: (
+                0 if x.node_id in authority_ids else 1,
+                -x.direct_score if x.node_id in authority_ids else 0.0,
+                -x.score, -x.transition_score, x.surface or "", x.node_id,
+            ))
+        else:
+            candidates.sort(key=lambda x: (-x.score, -x.direct_score, -x.transition_score, x.surface or "", x.node_id))
         candidates = candidates[:self.policy.max_predictions]
 
         work = dict(meta["work"])
+        work["exact_context_authority_active"] = int(authority_active)
+        work["exact_context_authority_candidates"] = len(authority_ids)
+        work["context_resolution_kind:exact"] = int(resolution_kind == "exact")
+        work["context_resolution_kind:suffix"] = int(resolution_kind == "suffix")
+        work["context_resolution_kind:frame"] = int(resolution_kind == "frame")
         work.update(composition_work)
         work["prediction_relation_checks"] = prediction_relations_checked
         work["support_gate_checks"] = support_gate_checks

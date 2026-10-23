@@ -301,6 +301,9 @@ def run_domain_trial(out_dir: str | Path, *, max_entities: int | None = None, se
         max_recall_depth=3,
         max_predictions=4,
         min_prediction_score=0.000001,
+        # v0.39 is a frozen measurement baseline. Later runtime releases must not
+        # silently rewrite its reference numbers.
+        enable_exact_context_authority=False,
     )
     compile_dir = out / "compiled"
     replay_report = compile_and_benchmark_teacher_behaviour(
